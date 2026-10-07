@@ -22,7 +22,7 @@ workers:
       - packages/mission/**
       - packages/workflow/**
       - packages/scheduler/**
-      - packages/integrations/**
+      - packages/integrations/convergence/**
       - infrastructure/**
       - spec/**
       - docs/**
@@ -53,6 +53,7 @@ workers:
       - packages/recovery/**
       - packages/maintenance/**
       - packages/connectivity/**
+      - packages/integrations/adcos/**
       - apps/agent/**
     responsibilities:
       - device-twin
@@ -63,6 +64,7 @@ workers:
       - maintenance
       - connectivity
       - field-mode foundations
+      - ADCOS adapter
 
   worker-b:
     role: safety-and-intelligence
@@ -77,6 +79,7 @@ workers:
       - packages/world-context/**
       - packages/learning/**
       - packages/simulation/**
+      - packages/integrations/arena/**
     responsibilities:
       - guardian
       - authorization
@@ -86,6 +89,7 @@ workers:
       - world-model
       - evaluation
       - simulation
+      - Arena adapter
 
   worker-c:
     role: work-and-commerce
@@ -98,6 +102,9 @@ workers:
       - packages/software/**
       - packages/agent-organizations/**
       - packages/model-gateway/**
+      - packages/integrations/aurum/**
+      - packages/integrations/apify/**
+      - packages/integrations/vendors/**
     responsibilities:
       - projects
       - workloads
@@ -106,6 +113,8 @@ workers:
       - software
       - agent organizations
       - model routing/gateway
+      - Aurum adapter
+      - Apify/vendor adapters
 
 rules:
   contracts:
