@@ -1,0 +1,35 @@
+{
+  "name": "@fleetos/experience-safety-intel",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./finding-views": "./src/finding-views.ts",
+    "./guardian-views": "./src/guardian-views.ts",
+    "./inspect-views": "./src/inspect-views.ts",
+    "./advisory-cards": "./src/advisory-cards.ts",
+    "./command-intents": "./src/command-intents.ts"
+  },
+  "scripts": {
+    "lint": "oxlint src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/actions": "workspace:*",
+    "@fleetos/evidence": "workspace:*",
+    "@fleetos/execution": "workspace:*",
+    "@fleetos/policy": "workspace:*",
+    "@fleetos/predictive": "workspace:*",
+    "@fleetos/security": "workspace:*",
+    "@fleetos/world-context": "workspace:*",
+    "@fleetos/world-model": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^2.1.9"
+  }
+}
