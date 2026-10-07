@@ -903,6 +903,34 @@ importers:
         specifier: ^2.1.9
         version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
 
+  packages/experiences/control-tower:
+    dependencies:
+      '@fleetos/control-plane':
+        specifier: workspace:*
+        version: link:../../control-plane
+      '@fleetos/experience-asset-field':
+        specifier: workspace:*
+        version: link:../asset-field
+      '@fleetos/experience-safety-intel':
+        specifier: workspace:*
+        version: link:../safety-intel
+      '@fleetos/experience-work-commerce':
+        specifier: workspace:*
+        version: link:../work-commerce
+      '@fleetos/kernel':
+        specifier: workspace:*
+        version: link:../../kernel
+      '@fleetos/mission':
+        specifier: workspace:*
+        version: link:../../mission
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
+
   packages/experiences/safety-intel:
     dependencies:
       '@fleetos/actions':
