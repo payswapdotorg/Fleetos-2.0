@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "head": "787793010aa4fa92ed52ef7bc7decd91c2360635",
-  "generatedAt": "2026-10-07T16:29:51.592Z",
+  "head": "a9a96d95cbc0e51182e36363364b1e305f1444a4",
+  "generatedAt": "2026-10-07T17:03:53.566Z",
   "packages": {
     "fleetos-kernel": {
       "owner": "tl",
@@ -1304,7 +1304,9 @@
       "files": [
         "packages/predictive/src/feature-projection.ts",
         "packages/predictive/src/index.ts",
-        "packages/predictive/src/reference-model.ts"
+        "packages/predictive/src/reference-model.ts",
+        "packages/predictive/src/reference/contracts.ts",
+        "packages/predictive/src/reference/model.ts"
       ],
       "exports": [
         "AnyValue:type",
@@ -1363,7 +1365,11 @@
       "files": [
         "packages/world-model/src/index.ts",
         "packages/world-model/src/widening.ts",
-        "packages/world-model/src/world-fold.ts"
+        "packages/world-model/src/world-fold.ts",
+        "packages/world-model/src/world/journal.ts",
+        "packages/world-model/src/world/projection-bridge.ts",
+        "packages/world-model/src/world/staleness.ts",
+        "packages/world-model/src/world/state.ts"
       ],
       "exports": [
         "AssetRef:interface",
