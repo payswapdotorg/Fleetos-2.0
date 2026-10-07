@@ -671,6 +671,19 @@ importers:
         specifier: ^2.1.9
         version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
 
+  packages/control-plane:
+    dependencies:
+      '@fleetos/kernel':
+        specifier: workspace:*
+        version: link:../kernel
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
+
   packages/desktop:
     dependencies:
       '@arms/rum-electron':
@@ -954,6 +967,19 @@ importers:
         version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
 
   packages/maintenance:
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
+
+  packages/mission:
+    dependencies:
+      '@fleetos/kernel':
+        specifier: workspace:*
+        version: link:../kernel
     devDependencies:
       typescript:
         specifier: ^6.0.2
