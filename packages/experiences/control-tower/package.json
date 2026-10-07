@@ -1,0 +1,32 @@
+{
+  "name": "@fleetos/control-tower",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tower-assembly": "./src/tower-assembly.ts",
+    "./command-registry": "./src/command-registry.ts",
+    "./search": "./src/search.ts",
+    "./mission-replay-view": "./src/mission-replay-view.ts"
+  },
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/experience-asset-field": "workspace:*",
+    "@fleetos/experience-safety-intel": "workspace:*",
+    "@fleetos/experience-work-commerce": "workspace:*",
+    "@fleetos/control-plane": "workspace:*",
+    "@fleetos/mission": "workspace:*",
+    "@fleetos/kernel": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^2.1.9"
+  }
+}
