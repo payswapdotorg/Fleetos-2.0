@@ -1,7 +1,5 @@
 /**
- * @fleetos/apify — Apify adapter seam.
- *
- * Wave 0 lane C (F200C). Pure TypeScript domain package.
+ * @fleetos/apify — Apify adapter seam (Wave 1 kernel-grade).
  *
  * Laws:
  *   A4  — consequential action protocol; scraping/actor jobs are typed as
@@ -13,9 +11,10 @@
  *   A8  — tenant isolation, fail-closed.
  *   A20 — no cross-boundary implementation imports.
  *
- * Types encode the untrusted nature of scraping proposals: there is no
- * `RunActor` capability here — only `ProposeActorJob` that yields a
- * proposal requiring Guardian authorization outside this package.
+ * Wave 1 kernel-grade additions over Wave 0 (F200C):
+ *   - retry/idempotency contracts at the seam;
+ *   - honest degraded states (UNAVAILABLE vs DEGRADED vs ACTOR_UNKNOWN);
+ *   - idempotency-key-based deduplication.
  */
 
 export interface TenantScope {
@@ -53,8 +52,7 @@ export function validateTenantScope(scope: unknown): TenantValidation {
 }
 
 // ---------------------------------------------------------------------------
-// Guardian authorization seam — LOCAL structural type. Worker B owns the
-// authoritative GuardianDecision; this package only references its shape.
+// GuardianDecisionRefLike — LOCAL structural seam.
 // ---------------------------------------------------------------------------
 
 export interface GuardianDecisionRefLike {
@@ -64,8 +62,8 @@ export interface GuardianDecisionRefLike {
 }
 
 // ---------------------------------------------------------------------------
-// Structural port — ApifyPort. Adapter implementations satisfy this shape;
-// Apify SDK types never leak into domain contracts (law A7).
+// ActorJobProposal — typed as a PROPOSAL. The adapter refuses to execute
+// until authorization is set and authorized=true.
 // ---------------------------------------------------------------------------
 
 export interface ActorJobProposal {
@@ -74,62 +72,93 @@ export interface ActorJobProposal {
   readonly actorId: string;
   readonly input: Readonly<Record<string, unknown>>;
   readonly proposedAt: string;
-  /** Guardian authorization for this proposal; the adapter refuses to
-   * execute the job until authorized is true. */
   readonly authorization: GuardianDecisionRefLike | null;
+  readonly idempotencyKey: string;
 }
 
 export type ActorJobResult =
-  | { ok: true; output: Readonly<Record<string, unknown>> }
-  | { ok: false; reasonCode: ActorJobReasonCode };
+  | { readonly ok: true; readonly output: Readonly<Record<string, unknown>>; readonly fromCache: boolean }
+  | { readonly ok: false; readonly reasonCode: ActorJobReasonCode; readonly attempts: number };
 
 export type ActorJobReasonCode =
   | "TENANT_SCOPE_MISSING"
   | "PROPOSAL_UNAUTHORIZED"
   | "APIFY_UNAVAILABLE"
   | "APIFY_DEGRADED"
-  | "ACTOR_UNKNOWN";
+  | "ACTOR_UNKNOWN"
+  | "IDEMPOTENCY_KEY_EMPTY";
 
 export interface ApifyPort {
   runActorJob(proposal: ActorJobProposal): ActorJobResult;
 }
 
 // ---------------------------------------------------------------------------
-// Deterministic reference adapter — no network. Honors the proposal/authorization
-// boundary: refuses any proposal whose authorization is null or not authorized.
+// Retry policy contract.
+// ---------------------------------------------------------------------------
+
+export interface RetryPolicy {
+  readonly maxAttempts: number;
+  readonly backoffMillis: number;
+}
+
+export const DEFAULT_RETRY_POLICY: RetryPolicy = {
+  maxAttempts: 3,
+  backoffMillis: 100,
+};
+
+// ---------------------------------------------------------------------------
+// Deterministic reference adapter — no network.
 // ---------------------------------------------------------------------------
 
 export interface DeterministicApifyAdapterConfig {
   readonly simulateOutage: boolean;
   readonly actors: Readonly<Record<string, Readonly<Record<string, unknown>>>>;
+  readonly retryPolicy?: RetryPolicy;
 }
 
 export function createDeterministicApifyAdapter(
   config: DeterministicApifyAdapterConfig,
 ): ApifyPort {
+  const cache = new Map<string, Readonly<Record<string, unknown>>>();
+  const policy = config.retryPolicy ?? DEFAULT_RETRY_POLICY;
   return {
     runActorJob(proposal: ActorJobProposal): ActorJobResult {
       const tenant = validateTenantScope(proposal.tenant);
-      if (!tenant.ok) return { ok: false, reasonCode: "TENANT_SCOPE_MISSING" };
-      if (proposal.authorization === null || !proposal.authorization.authorized) {
-        return { ok: false, reasonCode: "PROPOSAL_UNAUTHORIZED" };
+      if (!tenant.ok) return { ok: false, reasonCode: "TENANT_SCOPE_MISSING", attempts: 0 };
+      if (!proposal.authorization || !proposal.authorization.authorized) {
+        return { ok: false, reasonCode: "PROPOSAL_UNAUTHORIZED", attempts: 0 };
       }
-      if (config.simulateOutage) {
-        return { ok: false, reasonCode: "APIFY_UNAVAILABLE" };
+      if (!proposal.idempotencyKey || proposal.idempotencyKey.trim().length === 0) {
+        return { ok: false, reasonCode: "IDEMPOTENCY_KEY_EMPTY", attempts: 0 };
       }
-      const actorOutput = config.actors[proposal.actorId];
-      if (!actorOutput) {
-        return { ok: false, reasonCode: "ACTOR_UNKNOWN" };
+      const cacheKey = `${tenant.scope.tenantId}::${proposal.idempotencyKey}`;
+      const cached = cache.get(cacheKey);
+      if (cached !== undefined) {
+        return { ok: true, output: cached, fromCache: true };
       }
-      return { ok: true, output: actorOutput };
+      let attempts = 0;
+      let lastReason: ActorJobReasonCode = "APIFY_UNAVAILABLE";
+      while (attempts < policy.maxAttempts) {
+        attempts++;
+        if (config.simulateOutage) {
+          lastReason = "APIFY_UNAVAILABLE";
+          continue;
+        }
+        const actorOutput = config.actors[proposal.actorId];
+        if (!actorOutput) {
+          lastReason = "ACTOR_UNKNOWN";
+          continue;
+        }
+        cache.set(cacheKey, actorOutput);
+        return { ok: true, output: actorOutput, fromCache: false };
+      }
+      return { ok: false, reasonCode: lastReason, attempts };
     },
   };
 }
 
 // ---------------------------------------------------------------------------
-// Proposal factory — the only way to construct an ActorJobProposal. Starts
-// unauthorized; the Guardian path (out-of-lane) MUST set authorization
-// before the adapter will execute the job.
+// Proposal factory — the only way to construct an ActorJobProposal.
 // ---------------------------------------------------------------------------
 
 export function proposeActorJob(
@@ -137,6 +166,7 @@ export function proposeActorJob(
   actorId: string,
   input: Readonly<Record<string, unknown>>,
   proposedAt: string,
+  idempotencyKey: string,
 ): ActorJobProposal {
   return {
     kind: "actor-job-proposal",
@@ -145,5 +175,14 @@ export function proposeActorJob(
     input,
     proposedAt,
     authorization: null,
+    idempotencyKey,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Boundary assertion — Apify responses are projections, not domain truth.
+// ---------------------------------------------------------------------------
+
+export function isApifyProjection(p: { readonly kind?: string }): boolean {
+  return p.kind === "apify-projection";
 }
