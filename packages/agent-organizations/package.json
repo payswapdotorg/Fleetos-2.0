@@ -3,6 +3,9 @@
   "version": "2.0.0-alpha.0",
   "license": "Apache-2.0",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "description": "FleetOS Agent Organizations bounded context — agent roles, capability budgets, organization configuration; pure budget enforcement (organizations are UNTRUSTED actors — they propose, never authorize).",
   "scripts": {
     "lint": "oxlint src tests",
