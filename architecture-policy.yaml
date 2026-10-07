@@ -51,6 +51,12 @@ modules:
     roots: [apps/zcode-cli]
     managed: false
 
+  # ---------- FleetOS kernel (F211, merged under TL grant) ----------
+  - id: fleetos-kernel
+    roots: [packages/kernel/src]
+    managed: false
+    owner: tl
+
   # ---------- FleetOS bounded contexts (Wave 0, registered-transitional) ----------
   # Worker A — Edge + Asset (F200A, merged cdecf80)
   - id: fleetos-identity
