@@ -1,0 +1,17 @@
+{
+  "name": "@fleetos/procurement",
+  "version": "2.0.0-alpha.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "FleetOS Procurement bounded context — Need, ProcurementDemand, Quote, Order, Fulfillment contracts (exchange semantics, law A16); pure matching, quote lifecycle, order+fulfillment transitions.",
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^1.6.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@fleetos/software",
+  "version": "2.0.0-alpha.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "FleetOS Software bounded context — software subscriptions, entitlements, allocations contracts; pure entitlement check (tenant-scoped, fail-closed, over-allocation refused, never clamped).",
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^1.6.0"
+  }
+}
