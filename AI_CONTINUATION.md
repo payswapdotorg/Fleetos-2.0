@@ -18,67 +18,70 @@ Read the canonical files instead:
 
 Never treat this file as authoritative if it conflicts with those files.
 
-## Execution state (2026-10-07, 18:00Z)
+## Execution state (2026-10-07, 19:10Z)
 
-**WAVE 2 + WAVE 3 COMPLETE — all lanes accepted + merged; main @ 432f7e1; full suite 2654 tests / 36 packages / 0 failures (baseline 1697 + 957 net-new, arithmetic verified).**
+**WAVE 4 COMPLETE — all lanes accepted + merged; full suite 2937 tests / 40 packages / 0 failures (baseline 2654 + 283 net-new tonight: F240A 69, F240B 104, F240C 49, F241 61).**
 
 Tonight's execution (TL + sandbox worker agents in isolated worktrees; every
-lane gated at exact commit on a clean worktree by the TL before merge — never
-trusting reported numbers):
+lane gated at exact commit by the TL before merge — never trusting reported
+numbers):
 
-- **F220B** (Worker B, safety composition) `work/f220b` @ 74b888f, merged
-  c95a6e4 — 473 lane tests (security 116 / policy 112 / actions 73 /
-  execution 90 / evidence 82; +258): findings intake pipeline, posture as
-  event-sourced fold, evidence-gated remediation, Guardian rules engine,
-  capability grant chains with revocation propagation, action-plan
-  composition, command queue with dead-letter, canonical sha-256 bundles.
-- **F220C** (Worker C, commerce spine) `work/f220c` @ 3d432c9, merged d291b85
-  — 344 lane tests (+193): allocation lifecycle with capacity invariants,
-  project stage gates + budget ledger, full Need->Demand->Quote->Order->
-  Fulfillment flow with bps quote scoring, vendor lifecycle + KPI rollups,
-  entitlement seat invariants.
-- **F221** (TL lane, control plane) `work/f221` @ 873851a, merged 17cd4b8 —
-  237 tests: NEW `packages/control-plane` (idempotent command bus, bps retry
-  ladders, dead-letter, execution ledger, SLA tracker, assignments) + NEW
-  `packages/mission` (journal fold runtime, resume-from-checkpoint,
-  CommandSubmitPort type seam, outbox seam). Lint conformance refactor
-  merged separately (work/f221-lint @ 204d7a4 -> 736753c).
-- **F230B** (Worker B, predictive twin) `work/f230b` @ 862e37b, merged 667c2a7
-  — 137 lane tests (+67): deterministic reference model with provenance +
-  bps uncertainty + counterfactuals, world fold with staleness, tenant
-  fail-closed context assembly with redaction, ModelPort seam (Wave 5 JEPA).
-  Lint conformance refactor (work/f230b-lint @ 957c2c8 -> 8653553).
-- **F230C** (Worker C, agent org + gateway) `work/f230c` @ 3e38d37, merged
-  7877930 — 188 lane tests (+151): agent roles with concurrent-role
-  invariants, capability budgets, org config + snapshots, model routing with
-  reason codes, provider fallback ladders, usage ledger + quotas.
-- **F231** (TL lane, convergence) `work/f231` @ 5fec247, merged 150edb7 — 51
-  composition tests: NEW `packages/integrations/convergence` — mission stack
-  (MissionRuntime + command bus + kernel drivers wired end-to-end),
-  budget-gated model stack (BudgetCheckPort binding with reason-code
-  propagation), advisory loop (ModelPort, advisory law structural). TL
-  composition follow-up: additive `exports` maps for @fleetos/model-gateway +
-  @fleetos/agent-organizations, convergence bridges removed, 51/51 green
-  through real entry points.
+- **F240A** (Worker A, asset/field/mobile experiences) `work/f240a` @ d6f962e,
+  merged b54ed60 — 69 lane tests: NEW `packages/experiences/asset-field` —
+  fleet overview + asset detail read-models, phone-shaped field view with the
+  offline-tolerance law structural, ops boards, inert CommandDraft intent
+  builders mirroring the control-plane submit contract.
+- **F240B** (Worker B, security/Guardian/predictive experiences) `work/f240b`
+  @ 8be3965, merged fc1a941 — 104 lane tests: NEW
+  `packages/experiences/safety-intel` — findings intake views, Guardian
+  ceilings-not-authorizations views with dead-letter visibility,
+  decision-provenance inspect views, advisory cards with the advisory law
+  structural at the view boundary, inert CommandDraft builders. (Continuation
+  dispatch finished the inherited WIP with zero source edits.)
+- **F240C** (Worker C, work/projects/commerce experiences) `work/f240c` @
+  c3b2c2f, merged 33a4684 — 49 lane tests: NEW
+  `packages/experiences/work-commerce` — work boards + stage-gate views, the
+  Need→Demand→Quote→Order→Fulfillment spine board with bps scoring
+  visibility, vendor KPI/seat/budget rollups, org + model-usage views with
+  reason-code summaries, inert CommandDraft builders.
+- **F241** (TL lane, Control Tower) `work/f241` @ 8a1b911, merged a17eba9 —
+  61 composition tests: NEW `packages/experiences/control-tower` — tower
+  assembly composing the three experience lanes' real read-models
+  (fail-closed tenancy + chained tower digest), universal command registry
+  (10 entries, ceiling-not-authorization markers) + TowerCommandBus over the
+  REAL queueAsSubmitPort seam sharing ONE queue with missions (shared
+  idempotency law machine-proven), deterministic universal search over
+  verified towers, mission replay view == foldMission with
+  completed-stages-never-re-execute resume policy. (Worker hit a context
+  deadline after pushing; the TL re-verified all gates and filed the record.)
 
-**Governance state**: `architecture:check` 0 violations; lint 70w/0e
-(baseline-identical); `fleetos:source-of-truth` PASS; snapshot regenerated
-(33 packages / 1841 exported symbols, +459 tonight); lockfile updated for
-the three new packages.
+**TL composition (6464e24 + e64d58b):** `packages/experiences/*` workspace
+glob; additive exports maps for the six Wave-1 lane-C packages
+(work/projects/workloads/procurement/vendors/software, sibling convention);
+work-commerce bridges removed — all experience packages green through real
+entry points; lockfile links for the four new packages.
+
+**Governance state:** `architecture:check` 0 violations; lint 70w/0e
+(baseline-identical); `fleetos:source-of-truth` PASS; contract snapshot
+unchanged (33 tracked packages; experience packages unregistered per the
+mission/control-plane precedent).
 
 **Open TL adjudications (recorded by workers, unresolved by design):**
-WorldModelAdapter (Wave 1) vs ModelPort (F230B) dual seam — ModelPort is the
-bound seam, the adapter remains additive-but-unused; FNV-1a vs sha-256 digest
+CommandDraft ↔ SubmitCommandInput contract unification (three structurally
+divergent lane shapes — the tower's local shape guards are a working
+reference binding, not the adjudication; lane C drafts carry no actor id);
+advisory-board tenant-check ownership (lane vs tower); tower
+reason-vocabulary narrowing policy; attention-ladder rung values;
+WorldModelAdapter vs ModelPort dual seam; FNV-1a vs sha-256 digest
 convergence; time duality (epoch numbers vs ISO strings) across Wave 1
 surfaces; rules-engine matcher duplication inside @fleetos/policy.
 
-**Next ready work** (tomorrow, after operator review): Wave 4 experience
-lanes (F240A/B/C + F241 Control Tower); Wave 5 adapters (F250A/B/C);
-mission-lane port-typed constructor if kernel-under-mission composition is
-wanted; control-plane claim-reclaim for true process restarts.
+**Next ready work:** Wave 5 adapter lanes (F250A/B/C + F251 integration
+health/convergence/retry/idempotency); experience-package registration in
+architecture-policy.yaml when they gain tracked-module status; widening the
+tower search corpus (advisory/spine/vendor/org surfaces).
 
-**Baseline at this writing**: merged main 432f7e1; evidence under
-`docs/evidence/<work-item>/`; dispatch packets under
-`docs/tech-lead/packets/`. Full substrate `typecheck`/`build` remain
-memory-constrained on 4GB boxes — per-package typecheck is the local
-equivalent.
+**Baseline at this writing:** evidence under `docs/evidence/<work-item>/`;
+dispatch packets under `docs/tech-lead/packets/`. Full substrate
+`typecheck`/`build` remain memory-constrained on 4GB boxes — per-package
+typecheck is the local equivalent.
