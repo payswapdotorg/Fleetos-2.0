@@ -1,0 +1,64 @@
+=== TL BASELINE GATES at 35a65601b0be66fb084d841d06ad37603d20b5ef (2026-10-07T05:29:41Z) ===
+--- pnpm install ---
+packages/desktop postinstall: [node-pty] run electron-rebuild (non-windows-platform): /home/z/fleetos2/node_modules/node-pty/prebuilds/linux-x64/pty.node
+packages/desktop postinstall: - Searching dependency tree
+packages/desktop postinstall: ✔ Rebuild Complete
+packages/desktop postinstall: Done
+Done in 1m 15s using pnpm v10.33.2
+--- fleetos:source-of-truth ---
+Canonical architecture, ownership, work catalog, TL handoff and continuation files are present.
+Exactly three implementation workers are registered.
+Product identity: fleetos-2.0
+Architecture lock: 2.0.0
+--- architecture:check ---
+> fleetos-2.0@2.0.0-alpha.0 architecture:check /home/z/fleetos2
+> node scripts/architecture/architecture-check.mjs check
+
+file:///home/z/fleetos2/scripts/architecture/policy.mjs:33
+    throw new Error("architecture-policy.yaml 必须包含 version: 1 和 modules 数组");
+          ^
+
+Error: architecture-policy.yaml 必须包含 version: 1 和 modules 数组
+    at validatePolicy (file:///home/z/fleetos2/scripts/architecture/policy.mjs:33:11)
+    at loadPolicy (file:///home/z/fleetos2/scripts/architecture/policy.mjs:128:10)
+    at async checkArchitecture (file:///home/z/fleetos2/scripts/architecture/index.mjs:82:18)
+    at async file:///home/z/fleetos2/scripts/architecture/architecture-check.mjs:23:16
+
+Node.js v24.21.0
+ ELIFECYCLE  Command failed with exit code 1.
+--- lint ---
+ 27 | const pnpmRunEnv = {
+    `----
+  help: Consider removing this declaration.
+
+Found 70 warnings and 0 errors.
+Finished in 1.4s on 2617 files using 2 threads.
+--- typecheck ---
+
+> fleetos-2.0@2.0.0-alpha.0 typecheck /home/z/fleetos2
+> tsc -b packages/rpc packages/provider packages/provider-node packages/shared packages/services packages/client packages/server packages/zcode-server-cli packages/ui packages/web packages/desktop/tsconfig.host.json
+
+Killed
+ ELIFECYCLE  Command failed with exit code 137.
+--- build (bootstrap variant first for env-safety) ---
+
+> fleetos-2.0@2.0.0-alpha.0 build:bootstrap /home/z/fleetos2
+> pnpm -r --filter "./packages/*" --filter "!@zcode/desktop" build && pnpm --filter @zcode/desktop build:no-runtime-assets
+
+sh: 1: pnpm: not found
+ ELIFECYCLE  Command failed.
+=== BASELINE DONE 2026-10-07T05:31:32Z ===
+--- build:bootstrap 2026-10-07T05:39:22Z ---
+packages/server build: ESM dist/es-OL6HBEAM.js                   3.75 MB
+packages/server build: ESM ⚡️ Build success in 4968ms
+packages/server build: ../../apps/zcode-cli                     |  WARN  Unsupported engine: wanted: {"node":"24.14.0"} (current: {"node":"v24.21.0","pnpm":"10.33.2"})
+packages/server build: > @zcode/server@ build:remote /home/z/fleetos2/packages/server
+packages/server build: > tsx build-remote.ts
+packages/web build: Killed
+packages/web build: transforming...
+packages/web build: Failed
+/home/z/fleetos2/packages/web:
+ ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @zcode/web@ build: `vite build`
+Exit status 137
+ ELIFECYCLE  Command failed with exit code 137.
+=== BUILD DONE 2026-10-07T05:39:46Z rc=0 ===

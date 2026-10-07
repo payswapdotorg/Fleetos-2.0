@@ -1,10 +1,22 @@
-version: 2
+version: 1
 
-# Transitional policy for the FleetOS 2.0 fork.
-# ZCode modules are legacy substrate until explicitly adopted into the
-# FleetOS bounded-context map. New FleetOS modules become managed as they land.
+# FleetOS 2.0 architecture policy.
+#
+# ZCode modules are inherited runtime substrate: unmanaged (not yet adopted
+# into the FleetOS bounded-context map). New FleetOS bounded-context packages
+# are registered below with their worker owner. Registration as managed
+# (full deep-import/layer enforcement) happens per-package when the module
+# adopts the module.ts/contract.ts artifact convention (Wave 1+); until then
+# they are registered-but-transitional so ownership validation and the
+# dependency report see them.
+#
+# Canonical ownership/dependency definitions:
+# - spec/BOUNDED-CONTEXTS.md
+# - spec/DEPENDENCY-GRAPH.md
+# - spec/worker-ownership.yaml
 
 modules:
+  # ---------- inherited ZCode substrate (legacy, unmanaged) ----------
   - id: zcode-rpc
     roots: [packages/rpc/src]
     managed: false
@@ -39,6 +51,141 @@ modules:
     roots: [apps/zcode-cli]
     managed: false
 
+  # ---------- FleetOS bounded contexts (Wave 0, registered-transitional) ----------
+  # Worker A — Edge + Asset (F200A, merged cdecf80)
+  - id: fleetos-identity
+    roots: [packages/identity/src]
+    managed: false
+    owner: worker-a
+  - id: fleetos-tenancy
+    roots: [packages/tenancy/src]
+    managed: false
+    owner: worker-a
+  - id: fleetos-assets
+    roots: [packages/assets/src]
+    managed: false
+    owner: worker-a
+  - id: fleetos-observations
+    roots: [packages/observations/src]
+    managed: false
+    owner: worker-a
+  - id: fleetos-health
+    roots: [packages/health/src]
+    managed: false
+    owner: worker-a
+  - id: fleetos-recovery
+    roots: [packages/recovery/src]
+    managed: false
+    owner: worker-a
+  - id: fleetos-maintenance
+    roots: [packages/maintenance/src]
+    managed: false
+    owner: worker-a
+  - id: fleetos-connectivity
+    roots: [packages/connectivity/src]
+    managed: false
+    owner: worker-a
+  - id: fleetos-adcos
+    roots: [packages/integrations/adcos/src]
+    managed: false
+    owner: worker-a
+  - id: fleetos-agent
+    roots: [apps/agent/src]
+    managed: false
+    owner: worker-a
+
+  # Worker B — Safety + Intelligence (F200B, merged dbf56b0)
+  - id: fleetos-security
+    roots: [packages/security/src]
+    managed: false
+    owner: worker-b
+  - id: fleetos-policy
+    roots: [packages/policy/src]
+    managed: false
+    owner: worker-b
+  - id: fleetos-actions
+    roots: [packages/actions/src]
+    managed: false
+    owner: worker-b
+  - id: fleetos-execution
+    roots: [packages/execution/src]
+    managed: false
+    owner: worker-b
+  - id: fleetos-evidence
+    roots: [packages/evidence/src]
+    managed: false
+    owner: worker-b
+  - id: fleetos-predictive
+    roots: [packages/predictive/src]
+    managed: false
+    owner: worker-b
+  - id: fleetos-world-model
+    roots: [packages/world-model/src]
+    managed: false
+    owner: worker-b
+  - id: fleetos-world-context
+    roots: [packages/world-context/src]
+    managed: false
+    owner: worker-b
+  - id: fleetos-learning
+    roots: [packages/learning/src]
+    managed: false
+    owner: worker-b
+  - id: fleetos-simulation
+    roots: [packages/simulation/src]
+    managed: false
+    owner: worker-b
+  - id: fleetos-arena
+    roots: [packages/integrations/arena/src]
+    managed: false
+    owner: worker-b
+
+  # Worker C — Work + Commerce (F200C, merged 30446fd)
+  - id: fleetos-work
+    roots: [packages/work/src]
+    managed: false
+    owner: worker-c
+  - id: fleetos-projects
+    roots: [packages/projects/src]
+    managed: false
+    owner: worker-c
+  - id: fleetos-workloads
+    roots: [packages/workloads/src]
+    managed: false
+    owner: worker-c
+  - id: fleetos-procurement
+    roots: [packages/procurement/src]
+    managed: false
+    owner: worker-c
+  - id: fleetos-vendors
+    roots: [packages/vendors/src]
+    managed: false
+    owner: worker-c
+  - id: fleetos-software
+    roots: [packages/software/src]
+    managed: false
+    owner: worker-c
+  - id: fleetos-agent-organizations
+    roots: [packages/agent-organizations/src]
+    managed: false
+    owner: worker-c
+  - id: fleetos-model-gateway
+    roots: [packages/model-gateway/src]
+    managed: false
+    owner: worker-c
+  - id: fleetos-aurum
+    roots: [packages/integrations/aurum/src]
+    managed: false
+    owner: worker-c
+  - id: fleetos-apify
+    roots: [packages/integrations/apify/src]
+    managed: false
+    owner: worker-c
+  - id: fleetos-vendor-integrations
+    roots: [packages/integrations/vendors/src]
+    managed: false
+    owner: worker-c
+
 global:
   maxFileLines: 400
   maxContractLines: 300
@@ -46,11 +193,5 @@ global:
   forbidCycles: true
   forbidDeepImports: true
   managedOnly: true
-
-# FleetOS bounded contexts are registered here as they are created by Wave 0.
-# The canonical ownership/dependency definition is in:
-# - spec/BOUNDED-CONTEXTS.md
-# - spec/DEPENDENCY-GRAPH.md
-# - spec/worker-ownership.yaml
 
 exceptions: []

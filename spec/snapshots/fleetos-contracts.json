@@ -1,0 +1,777 @@
+{
+  "version": 1,
+  "head": "30446fd2995f22ddc879202263b8fb74aa36576a",
+  "generatedAt": "2026-10-07T06:29:36.972Z",
+  "packages": {
+    "fleetos-identity": {
+      "owner": "worker-a",
+      "files": [
+        "packages/identity/src/identity.ts",
+        "packages/identity/src/index.ts"
+      ],
+      "exports": [
+        "Actor:interface",
+        "ActorId:type",
+        "Brand:type",
+        "Membership:interface",
+        "MembershipId:type",
+        "Role:interface",
+        "RoleId:type",
+        "RoleScope:type",
+        "Session:interface",
+        "SessionId:type",
+        "Tenant:interface",
+        "TenantContext:interface",
+        "TenantContextInput:interface",
+        "TenantContextRejectionCode:type",
+        "TenantContextResult:type",
+        "TenantId:type",
+        "TenantScopeVocabulary:type",
+        "contextExpired:function",
+        "isActorId:variable",
+        "isMembershipId:variable",
+        "isRoleId:variable",
+        "isSessionId:variable",
+        "isTenantId:variable",
+        "makeTenantContext:function",
+        "sameTenant:function"
+      ]
+    },
+    "fleetos-tenancy": {
+      "owner": "worker-a",
+      "files": [
+        "packages/tenancy/src/index.ts",
+        "packages/tenancy/src/tenancy.ts"
+      ],
+      "exports": [
+        "TenantBoundary:interface",
+        "TenantIdLike:type",
+        "TenantIsolationRule:interface",
+        "TenantLifecycleCommand:interface",
+        "TenantLifecycleCommandKind:type",
+        "TenantState:type",
+        "TenantTransitionRejectionCode:type",
+        "TenantTransitionResult:type",
+        "assertSameTenant:function",
+        "evaluateTenantTransition:function",
+        "makeTenantBoundary:function"
+      ]
+    },
+    "fleetos-assets": {
+      "owner": "worker-a",
+      "files": [
+        "packages/assets/src/assets.ts",
+        "packages/assets/src/index.ts"
+      ],
+      "exports": [
+        "AssetId:type",
+        "AssetKind:type",
+        "AssetLifecycleCommand:type",
+        "AssetLifecycleState:type",
+        "AssetTransitionRejectionCode:type",
+        "AssetTransitionResult:type",
+        "Brand:type",
+        "Device:interface",
+        "DeviceId:type",
+        "DeviceIdLike:type",
+        "DeviceTwin:interface",
+        "ManagedAsset:interface",
+        "ObservationRefLike:interface",
+        "TenantIdLike:type",
+        "TwinRevision:interface",
+        "TwinRevisionInput:interface",
+        "TwinRevisionRejectionCode:type",
+        "TwinRevisionResult:type",
+        "TwinRevisionSeq:type",
+        "applyTwinRevision:function",
+        "evaluateAssetTransition:function",
+        "isAssetId:variable",
+        "isDeviceId:variable",
+        "latestAttributes:function"
+      ]
+    },
+    "fleetos-observations": {
+      "owner": "worker-a",
+      "files": [
+        "packages/observations/src/index.ts",
+        "packages/observations/src/observations.ts"
+      ],
+      "exports": [
+        "AdmissionAck:interface",
+        "AdmissionInput:interface",
+        "AdmissionRejectionCode:type",
+        "AdmissionResult:type",
+        "AdmissionStore:interface",
+        "Brand:type",
+        "DeviceIdLike:type",
+        "Observation:interface",
+        "ObservationId:type",
+        "ObservationKind:type",
+        "ObservationSeq:type",
+        "TenantIdLike:type",
+        "admitObservation:function",
+        "computePayloadDigest:function",
+        "emptyAdmissionStore:function",
+        "isObservationId:variable"
+      ]
+    },
+    "fleetos-health": {
+      "owner": "worker-a",
+      "files": [
+        "packages/health/src/health.ts",
+        "packages/health/src/index.ts"
+      ],
+      "exports": [
+        "DeviceIdLike:type",
+        "Diagnosis:type",
+        "DiagnosisHypothesis:interface",
+        "DiagnosisRecord:interface",
+        "EvidenceRefLike:interface",
+        "Finding:interface",
+        "HealthSignal:interface",
+        "ObservationLike:interface",
+        "Severity:type",
+        "TenantIdLike:type",
+        "TriageDegradation:type",
+        "TriageResult:interface",
+        "triage:function"
+      ]
+    },
+    "fleetos-recovery": {
+      "owner": "worker-a",
+      "files": [
+        "packages/recovery/src/index.ts",
+        "packages/recovery/src/recovery.ts"
+      ],
+      "exports": [
+        "Brand:type",
+        "DeviceIdLike:type",
+        "EvidenceRefLike:interface",
+        "RecoveryCase:interface",
+        "RecoveryCaseId:type",
+        "RecoveryCommand:interface",
+        "RecoveryCommandKind:type",
+        "RecoveryHistoryEntry:interface",
+        "RecoveryRejectionCode:type",
+        "RecoveryState:type",
+        "RecoveryTransitionResult:type",
+        "TenantIdLike:type",
+        "applyRecoveryCommand:function",
+        "evaluateRecoveryTransition:function",
+        "isRecoveryCaseId:variable",
+        "openRecoveryCase:function"
+      ]
+    },
+    "fleetos-maintenance": {
+      "owner": "worker-a",
+      "files": [
+        "packages/maintenance/src/index.ts",
+        "packages/maintenance/src/maintenance.ts"
+      ],
+      "exports": [
+        "AssetIdLike:type",
+        "Brand:type",
+        "MaintenanceCommand:interface",
+        "MaintenanceCommandKind:type",
+        "MaintenanceOrder:interface",
+        "MaintenanceOrderId:type",
+        "MaintenanceRejectionCode:type",
+        "MaintenanceState:type",
+        "MaintenanceTransitionResult:type",
+        "Schedule:type",
+        "ServicePlan:interface",
+        "ServicePlanId:type",
+        "ServicePlanKind:type",
+        "TenantIdLike:type",
+        "applyMaintenanceCommand:function",
+        "createMaintenanceOrder:function",
+        "evaluateMaintenanceTransition:function",
+        "isMaintenanceOrderId:variable",
+        "isServicePlanId:variable",
+        "nextRun:function"
+      ]
+    },
+    "fleetos-connectivity": {
+      "owner": "worker-a",
+      "files": [
+        "packages/connectivity/src/connectivity.ts",
+        "packages/connectivity/src/index.ts"
+      ],
+      "exports": [
+        "ConnectivityDecision:interface",
+        "ConnectivityDesiredState:type",
+        "ConnectivityEffect:type",
+        "ConnectivityIntent:interface",
+        "ConnectivityPolicy:interface",
+        "ConnectivityProviderPort:interface",
+        "ConnectivityRule:interface",
+        "ConnectivityState:type",
+        "ConnectivityStatus:interface",
+        "DeviceIdLike:type",
+        "InMemoryConnectivityProvider:class",
+        "TenantIdLike:type",
+        "evaluateIntent:function",
+        "failClosedPolicy:function"
+      ]
+    },
+    "fleetos-adcos": {
+      "owner": "worker-a",
+      "files": [
+        "packages/integrations/adcos/src/adcos.ts",
+        "packages/integrations/adcos/src/index.ts"
+      ],
+      "exports": [
+        "AdcosCommand:interface",
+        "AdcosCommandKind:type",
+        "AdcosHealth:type",
+        "AdcosProviderPort:interface",
+        "AdcosRejection:interface",
+        "AdcosRejectionCode:type",
+        "AdcosResult:type",
+        "AdcosSuccess:interface",
+        "DeviceIdLike:type",
+        "ReferenceAdcosProvider:class",
+        "TenantIdLike:type",
+        "unavailableAdcosResult:function"
+      ]
+    },
+    "fleetos-agent": {
+      "owner": "worker-a",
+      "files": [
+        "apps/agent/src/agent.ts",
+        "apps/agent/src/index.ts"
+      ],
+      "exports": [
+        "AgentCommand:interface",
+        "AgentCommandKind:type",
+        "AgentIdLike:type",
+        "AgentLoopResult:type",
+        "AgentLoopState:interface",
+        "AgentPorts:interface",
+        "AgentRejectionCode:type",
+        "AgentState:type",
+        "AgentTransitionResult:type",
+        "Brand:type",
+        "CommandInboxPort:interface",
+        "DeviceIdLike:type",
+        "DiagnosticsPort:interface",
+        "EnrollmentPort:interface",
+        "EnrollmentTokenId:type",
+        "EvidenceBufferPort:interface",
+        "EvidenceRecordId:type",
+        "ReconciliationPort:interface",
+        "TelemetryPort:interface",
+        "TenantIdLike:type",
+        "createAgentLoop:function",
+        "evaluateAgentTransition:function",
+        "reconcileAgent:function",
+        "step:function"
+      ]
+    },
+    "fleetos-security": {
+      "owner": "worker-b",
+      "files": [
+        "packages/security/src/index.ts"
+      ],
+      "exports": [
+        "FindingConfidence:type",
+        "FindingKind:type",
+        "RemediationProposal:interface",
+        "SecurityFinding:interface",
+        "SecurityPosture:interface",
+        "SecuritySeverity:type",
+        "TriageReasonCode:type",
+        "TriageResult:interface",
+        "computePosture:function",
+        "proposeRemediation:function",
+        "triageSeverity:function"
+      ]
+    },
+    "fleetos-policy": {
+      "owner": "worker-b",
+      "files": [
+        "packages/policy/src/boundary.ts",
+        "packages/policy/src/capability.ts",
+        "packages/policy/src/guardian.ts",
+        "packages/policy/src/index.ts",
+        "packages/policy/src/policy.ts"
+      ],
+      "exports": [
+        "AdoptionReasonCode:type",
+        "AuthorityKind:type",
+        "BoundaryViolation:interface",
+        "Capability:interface",
+        "CapabilityAdoptionAuthorization:interface",
+        "CapabilityAdoptionProposal:interface",
+        "CapabilityCategory:type",
+        "CapabilityRisk:type",
+        "GuardianContext:interface",
+        "GuardianDecision:interface",
+        "GuardianReasonCode:type",
+        "IdempotencyContract:interface",
+        "LANE_ALLOWED_FLEETOS_PACKAGES:variable",
+        "MissionRefLike:interface",
+        "Policy:interface",
+        "PolicyEvaluation:interface",
+        "PolicyRule:interface",
+        "PolicyRuleId:type",
+        "PolicyVerdict:type",
+        "ResourceScope:interface",
+        "SideEffect:interface",
+        "TenantScopeLike:interface",
+        "VerificationContract:interface",
+        "assertNoForbiddenImports:function",
+        "authorizeAdoption:function",
+        "evaluateCapability:function",
+        "extractSpecifiers:function",
+        "isCapability:function",
+        "scanSources:function"
+      ]
+    },
+    "fleetos-actions": {
+      "owner": "worker-b",
+      "files": [
+        "packages/actions/src/index.ts"
+      ],
+      "exports": [
+        "ActionIntent:interface",
+        "ActionRecord:interface",
+        "ActionState:type",
+        "AdvanceRefusalReason:type",
+        "AdvanceResult:type",
+        "ExecutionResult:interface",
+        "IdempotencyKey:interface",
+        "MissionRefLike:interface",
+        "StateTransition:interface",
+        "TenantScopeLike:interface",
+        "VerificationRecord:interface",
+        "advanceActionState:function",
+        "proposeAction:function"
+      ]
+    },
+    "fleetos-execution": {
+      "owner": "worker-b",
+      "files": [
+        "packages/execution/src/index.ts"
+      ],
+      "exports": [
+        "AuthorizationRefusalReason:type",
+        "AuthorizedCommand:interface",
+        "CommandPayload:interface",
+        "CommandTransportPort:interface",
+        "ExecutionResult:interface",
+        "ExecutionState:type",
+        "MissionRefLike:interface",
+        "TenantScopeLike:interface",
+        "authorizeCommand:function",
+        "executeCommand:function",
+        "makeReferenceTransport:function",
+        "referenceCapability:function"
+      ]
+    },
+    "fleetos-evidence": {
+      "owner": "worker-b",
+      "files": [
+        "packages/evidence/src/index.ts"
+      ],
+      "exports": [
+        "ActorRef:interface",
+        "CapabilityVersionRef:interface",
+        "ChainBreakReason:type",
+        "ChainVerificationRecord:interface",
+        "ContentAddressedArtifact:interface",
+        "EvidenceBundle:interface",
+        "EvidenceChainEntry:interface",
+        "EvidenceMetadata:interface",
+        "MissionRefLike:interface",
+        "Sha256Port:type",
+        "TenantScopeLike:interface",
+        "appendEvidence:function",
+        "buildArtifact:function",
+        "bytesToHex:function",
+        "computeBundleDigest:function",
+        "computeEntryDigest:function",
+        "defaultSha256:variable",
+        "hexToBytes:function",
+        "sha256Hex:function",
+        "utf8Bytes:function",
+        "verifyEvidenceChain:function"
+      ]
+    },
+    "fleetos-predictive": {
+      "owner": "worker-b",
+      "files": [
+        "packages/predictive/src/index.ts"
+      ],
+      "exports": [
+        "AnyValue:type",
+        "AssetRef:interface",
+        "DegradedState:type",
+        "FeatureProjection:interface",
+        "HypotheticalValue:interface",
+        "ObservedValue:interface",
+        "PredictedValue:interface",
+        "PredictiveInterpretation:type",
+        "ProvenanceDigest:interface",
+        "SemanticKind:type",
+        "TenantScopeLike:interface",
+        "UncertaintyInterval:interface",
+        "buildCounterfactual:function",
+        "buildObserved:function",
+        "isHypothetical:function",
+        "isObserved:function",
+        "isPredicted:function",
+        "referencePredict:function",
+        "referenceUncertainty:function"
+      ]
+    },
+    "fleetos-world-model": {
+      "owner": "worker-b",
+      "files": [
+        "packages/world-model/src/index.ts"
+      ],
+      "exports": [
+        "AssetRef:interface",
+        "CounterfactualScenario:interface",
+        "WorldModelAdapter:interface",
+        "WorldModelRepresentation:interface",
+        "assertHypotheticalMarker:function",
+        "makeReferenceWorldModelAdapter:function"
+      ]
+    },
+    "fleetos-world-context": {
+      "owner": "worker-b",
+      "files": [
+        "packages/world-context/src/index.ts"
+      ],
+      "exports": [
+        "ObservationProvenance:interface",
+        "ProjectProjection:interface",
+        "ProjectRef:interface",
+        "TenantScopeLike:interface",
+        "WORLD_CONTEXT_SCHEMA_VERSION:variable",
+        "WorkItemRef:interface",
+        "WorkloadProjection:interface",
+        "hasValidSchemaVersion:function",
+        "projectProject:function",
+        "projectWorkload:function"
+      ]
+    },
+    "fleetos-learning": {
+      "owner": "worker-b",
+      "files": [
+        "packages/learning/src/index.ts"
+      ],
+      "exports": [
+        "CapabilityAdoptionProposal:interface",
+        "CapabilityEvaluation:interface",
+        "CapabilityVersionRef:interface",
+        "CertificationRef:interface",
+        "EvaluationCase:interface",
+        "OutcomeObservation:interface",
+        "TenantScopeLike:interface",
+        "evaluateCapability:function",
+        "markProposalAuthorized:function",
+        "markProposalRejected:function",
+        "proposeAdoption:function"
+      ]
+    },
+    "fleetos-simulation": {
+      "owner": "worker-b",
+      "files": [
+        "packages/simulation/src/index.ts"
+      ],
+      "exports": [
+        "ExperimentalComparison:interface",
+        "ExperimentalRunOutput:interface",
+        "SimulationScenario:interface",
+        "SimulationStep:interface",
+        "SimulationWorld:interface",
+        "TenantScopeLike:interface",
+        "buildComparison:function",
+        "isExperimental:function",
+        "runSimulation:function"
+      ]
+    },
+    "fleetos-arena": {
+      "owner": "worker-b",
+      "files": [
+        "packages/integrations/arena/src/index.ts"
+      ],
+      "exports": [
+        "ArenaAdapter:interface",
+        "ArenaEvaluationProposal:interface",
+        "ArenaEvaluationRequest:interface",
+        "CapabilityVersionRef:interface",
+        "EvaluationCase:interface",
+        "TenantScopeLike:interface",
+        "isArenaEvaluationProposal:function",
+        "makeReferenceArenaAdapter:function"
+      ]
+    },
+    "fleetos-work": {
+      "owner": "worker-c",
+      "files": [
+        "packages/work/src/index.ts"
+      ],
+      "exports": [
+        "Assignment:interface",
+        "AssignmentReasonCode:type",
+        "AssignmentResult:type",
+        "EvidenceRefLike:interface",
+        "GuardianDecisionRefLike:interface",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantScopeLike:interface",
+        "TenantValidation:type",
+        "WORK_ITEM_STATUSES:variable",
+        "WORK_ITEM_TERMINAL_STATUSES:variable",
+        "WorkItem:interface",
+        "WorkItemId:interface",
+        "WorkItemReasonCode:type",
+        "WorkItemStatus:type",
+        "WorkItemTransition:type",
+        "WorkItemTransitionCommand:type",
+        "advanceWorkItem:function",
+        "assignTo:function",
+        "validateTenantScope:function"
+      ]
+    },
+    "fleetos-projects": {
+      "owner": "worker-c",
+      "files": [
+        "packages/projects/src/index.ts"
+      ],
+      "exports": [
+        "Milestone:interface",
+        "MilestoneGateResult:type",
+        "MilestoneId:interface",
+        "MilestoneReasonCode:type",
+        "MilestoneStatus:type",
+        "PROJECT_STATUSES:variable",
+        "PROJECT_TERMINAL_STATUSES:variable",
+        "Project:interface",
+        "ProjectId:interface",
+        "ProjectReasonCode:type",
+        "ProjectStatus:type",
+        "ProjectTransition:type",
+        "ProjectTransitionCommand:type",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantValidation:type",
+        "WorkItemStatusRefLike:interface",
+        "checkMilestoneGate:function",
+        "transitionProject:function",
+        "validateTenantScope:function"
+      ]
+    },
+    "fleetos-workloads": {
+      "owner": "worker-c",
+      "files": [
+        "packages/workloads/src/index.ts"
+      ],
+      "exports": [
+        "AllocationDemand:interface",
+        "FeasibilityReasonCode:type",
+        "FeasibilityResult:type",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantValidation:type",
+        "WorkloadAllocation:interface",
+        "WorkloadCapacity:interface",
+        "WorkloadUtilization:interface",
+        "checkAllocationFeasibility:function",
+        "computeUtilization:function",
+        "validateTenantScope:function"
+      ]
+    },
+    "fleetos-procurement": {
+      "owner": "worker-c",
+      "files": [
+        "packages/procurement/src/index.ts"
+      ],
+      "exports": [
+        "DemandId:interface",
+        "Fulfillment:interface",
+        "FulfillmentId:interface",
+        "FulfillmentReasonCode:type",
+        "FulfillmentStatus:type",
+        "FulfillmentTransition:type",
+        "FulfillmentTransitionCommand:type",
+        "Need:interface",
+        "NeedId:interface",
+        "Order:interface",
+        "OrderId:interface",
+        "OrderReasonCode:type",
+        "OrderStatus:type",
+        "OrderTransition:type",
+        "OrderTransitionCommand:type",
+        "ProcurementDemand:interface",
+        "Quote:interface",
+        "QuoteId:interface",
+        "QuoteReasonCode:type",
+        "QuoteStatus:type",
+        "QuoteTransition:type",
+        "QuoteTransitionCommand:type",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantValidation:type",
+        "VendorCapabilityRefLike:interface",
+        "VendorMatch:interface",
+        "contractsAreDistinct:function",
+        "matchVendors:function",
+        "transitionFulfillment:function",
+        "transitionOrder:function",
+        "transitionQuote:function",
+        "validateTenantScope:function"
+      ]
+    },
+    "fleetos-vendors": {
+      "owner": "worker-c",
+      "files": [
+        "packages/vendors/src/index.ts"
+      ],
+      "exports": [
+        "MetricScore:interface",
+        "ScorecardAggregateResult:type",
+        "ScorecardReasonCode:type",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantValidation:type",
+        "Vendor:interface",
+        "VendorId:interface",
+        "VendorScorecard:interface",
+        "VendorScorecardAggregate:interface",
+        "VendorServiceRelationship:interface",
+        "VendorStatus:type",
+        "aggregateScorecard:function",
+        "validateTenantScope:function",
+        "vendorHasCapability:function"
+      ]
+    },
+    "fleetos-software": {
+      "owner": "worker-c",
+      "files": [
+        "packages/software/src/index.ts"
+      ],
+      "exports": [
+        "AllocationRequest:interface",
+        "Entitlement:interface",
+        "EntitlementCheckResult:type",
+        "EntitlementId:interface",
+        "EntitlementReasonCode:type",
+        "Subscription:interface",
+        "SubscriptionId:interface",
+        "SubscriptionStatus:type",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantValidation:type",
+        "checkEntitlement:function",
+        "validateTenantScope:function"
+      ]
+    },
+    "fleetos-agent-organizations": {
+      "owner": "worker-c",
+      "files": [
+        "packages/agent-organizations/src/index.ts"
+      ],
+      "exports": [
+        "AgentRole:interface",
+        "BudgetEnforcementResult:type",
+        "BudgetReasonCode:type",
+        "CapabilityBudget:interface",
+        "CapabilityProposal:interface",
+        "CapabilityUsage:interface",
+        "OrganizationConfiguration:interface",
+        "OrganizationId:interface",
+        "OrganizationUsage:interface",
+        "RoleUsageSnapshot:interface",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantValidation:type",
+        "enforceBudget:function",
+        "validateTenantScope:function"
+      ]
+    },
+    "fleetos-model-gateway": {
+      "owner": "worker-c",
+      "files": [
+        "packages/model-gateway/src/index.ts"
+      ],
+      "exports": [
+        "BudgetCheckResult:type",
+        "BudgetReasonCode:type",
+        "ModelProviderPort:interface",
+        "ModelRequest:interface",
+        "RoutingDecision:type",
+        "RoutingPolicy:interface",
+        "RoutingReasonCode:type",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantValidation:type",
+        "checkBudgetPolicy:function",
+        "route:function",
+        "validateTenantScope:function"
+      ]
+    },
+    "fleetos-aurum": {
+      "owner": "worker-c",
+      "files": [
+        "packages/integrations/aurum/src/index.ts"
+      ],
+      "exports": [
+        "AurumPort:interface",
+        "AurumReasonCode:type",
+        "AurumRequest:interface",
+        "AurumResponse:type",
+        "DeterministicAurumAdapterConfig:interface",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantValidation:type",
+        "createDeterministicAurumAdapter:function",
+        "validateTenantScope:function"
+      ]
+    },
+    "fleetos-apify": {
+      "owner": "worker-c",
+      "files": [
+        "packages/integrations/apify/src/index.ts"
+      ],
+      "exports": [
+        "ActorJobProposal:interface",
+        "ActorJobReasonCode:type",
+        "ActorJobResult:type",
+        "ApifyPort:interface",
+        "DeterministicApifyAdapterConfig:interface",
+        "GuardianDecisionRefLike:interface",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantValidation:type",
+        "createDeterministicApifyAdapter:function",
+        "proposeActorJob:function",
+        "validateTenantScope:function"
+      ]
+    },
+    "fleetos-vendor-integrations": {
+      "owner": "worker-c",
+      "files": [
+        "packages/integrations/vendors/src/index.ts"
+      ],
+      "exports": [
+        "DeterministicExternalVendorAdapterConfig:interface",
+        "ExternalProjection:interface",
+        "ExternalQuery:interface",
+        "ExternalQueryResult:type",
+        "ExternalReasonCode:type",
+        "ExternalVendorPort:interface",
+        "TenantReasonCode:type",
+        "TenantScope:interface",
+        "TenantValidation:type",
+        "createDeterministicExternalVendorAdapter:function",
+        "isExternalProjection:function",
+        "projectionDoesNotOwnDomainTruth:function",
+        "validateTenantScope:function"
+      ]
+    }
+  }
+}

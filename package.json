@@ -47,7 +47,10 @@
     "architecture:context": "node scripts/architecture/architecture-check.mjs context",
     "fleetos:source-of-truth": "node scripts/fleetos/source-of-truth-check.mjs",
     "fleetos:architecture": "pnpm run fleetos:source-of-truth && pnpm run architecture:check",
-    "fleetos:verify": "pnpm run fleetos:source-of-truth && pnpm run lint && pnpm run typecheck && pnpm run build"
+    "fleetos:verify": "pnpm run fleetos:source-of-truth && pnpm run fleetos:snapshot:check && pnpm run architecture:check && pnpm run lint && pnpm run typecheck && pnpm run build",
+    "test": "pnpm -r test",
+    "fleetos:snapshot": "node scripts/fleetos/contract-snapshot.mjs",
+    "fleetos:snapshot:check": "node scripts/fleetos/contract-snapshot.mjs --check"
   },
   "dependencies": {
     "border-beam": "^1.0.1",
