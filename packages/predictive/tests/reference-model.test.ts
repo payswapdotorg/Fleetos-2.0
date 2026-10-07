@@ -14,7 +14,6 @@ import {
   type CounterfactualInput,
   type CounterfactualIntervention,
   type ModelPort,
-  type Prediction,
   type TwinStateInput,
   type TwinObservation,
 } from "../src/index.ts";
