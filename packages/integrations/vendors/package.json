@@ -1,0 +1,17 @@
+{
+  "name": "@fleetos/external-vendors",
+  "version": "2.0.0-alpha.0",
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "FleetOS external vendor/system adapter seam — structural port + deterministic reference adapter; external systems never own domain truth (encoded + tested at the boundary).",
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^1.6.0"
+  }
+}
