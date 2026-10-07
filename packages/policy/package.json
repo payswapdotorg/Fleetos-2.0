@@ -9,7 +9,11 @@
     "./capability": "./src/capability.ts",
     "./guardian": "./src/guardian.ts",
     "./policy": "./src/policy.ts",
-    "./boundary": "./src/boundary.ts"
+    "./boundary": "./src/boundary.ts",
+    "./repository": "./src/repository.ts",
+    "./decision-record": "./src/decision-record.ts",
+    "./ledger": "./src/ledger.ts",
+    "./adoption": "./src/adoption.ts"
   },
   "scripts": {
     "lint": "oxlint src",

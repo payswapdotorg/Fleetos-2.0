@@ -179,3 +179,8 @@ export function referenceCapability(id: string): Capability {
     version: "1.0.0",
   };
 }
+
+// ---------- Wave 1 (F210B) kernel extensions ----------
+
+export * from "./queue.ts";
+export * from "./verification.ts";

@@ -136,3 +136,7 @@ function stableDigest(s: string): string {
   }
   return h.toString(16).padStart(8, "0");
 }
+
+// ---------- Wave 1 (F210B) kernel extensions ----------
+
+export * from "./widening.ts";

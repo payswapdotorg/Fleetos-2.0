@@ -110,3 +110,7 @@ export function projectProject(input: {
 export function hasValidSchemaVersion<P extends { readonly schemaVersion: string }>(p: P): boolean {
   return p.schemaVersion === WORLD_CONTEXT_SCHEMA_VERSION;
 }
+
+// ---------- Wave 1 (F210B) kernel extensions ----------
+
+export * from "./windowing.ts";

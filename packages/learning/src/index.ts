@@ -163,3 +163,7 @@ export function markProposalAuthorized(proposal: CapabilityAdoptionProposal): Ca
 export function markProposalRejected(proposal: CapabilityAdoptionProposal): CapabilityAdoptionProposal {
   return { ...proposal, status: "rejected" };
 }
+
+// ---------- Wave 1 (F210B) kernel extensions ----------
+
+export * from "./join.ts";

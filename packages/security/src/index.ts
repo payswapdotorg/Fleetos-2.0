@@ -175,3 +175,8 @@ export function proposeRemediation(
     description: `Remediate ${findings.length} findings (max severity ${maxSeverity})`,
   };
 }
+
+// ---------- Wave 1 (F210B) kernel extensions ----------
+
+export * from "./lifecycle.ts";
+export * from "./posture.ts";
