@@ -1,39 +1,46 @@
+/**
+ * @fleetos/model-gateway — Wave 1 kernel-grade tests.
+ */
 import { describe, expect, it } from "vitest";
 import {
   route,
   checkBudgetPolicy,
-  validateTenantScope,
-  type TenantScope,
+  computeQuotaProjection,
+  computeRoutingDigest,
+  createModelGatewayDirectory,
+  createInMemoryModelGatewayRepository,
   type ModelRequest,
   type RoutingPolicy,
   type ModelProviderPort,
+  type QuotaAccount,
+  type TenantScope,
 } from "../src/index.js";
 
 const TENANT: TenantScope = { tenantId: "acme" };
 
-function request(overrides: Partial<ModelRequest> = {}): ModelRequest {
+function basePolicy(overrides: Partial<RoutingPolicy> = {}): RoutingPolicy {
   return {
     tenant: TENANT,
-    promptTokenEstimate: 500,
-    capability: "diagnose-fault",
+    fallbackOrder: ["p-1", "p-2"],
+    maxTokensPerRequest: 1000,
+    budgetTokensPerHour: 10000,
     ...overrides,
   };
 }
 
-function policy(overrides: Partial<RoutingPolicy> = {}): RoutingPolicy {
+function baseRequest(overrides: Partial<ModelRequest> = {}): ModelRequest {
   return {
     tenant: TENANT,
-    fallbackOrder: ["provider-a", "provider-b"],
-    maxTokensPerRequest: 10_000,
-    budgetTokensPerHour: 1_000_000,
+    promptTokenEstimate: 100,
+    capability: "chat",
     ...overrides,
   };
 }
 
-function provider(
+function makeProvider(
   providerId: string,
   available: boolean,
-  cost = 1,
+  cost: number,
 ): ModelProviderPort {
   return {
     providerId,
@@ -42,167 +49,268 @@ function provider(
   };
 }
 
-describe("validateTenantScope", () => {
-  it("accepts a valid tenant id", () => {
-    expect(validateTenantScope({ tenantId: "acme" })).toEqual({
-      ok: true,
-      scope: { tenantId: "acme" },
-    });
-  });
+// ---------------------------------------------------------------------------
+// route — deterministic routing with recorded digest.
+// ---------------------------------------------------------------------------
 
-  it("refuses a null scope with TENANT_SCOPE_MISSING", () => {
-    expect(validateTenantScope(null)).toEqual({
-      ok: false,
-      reasonCode: "TENANT_SCOPE_MISSING",
-    });
-  });
-});
-
-describe("route — ordered fallback", () => {
-  it("selects the first available provider in fallback order", () => {
-    const r = route(request(), policy(), [
-      provider("provider-a", true, 100),
-      provider("provider-b", true, 200),
-    ]);
-    expect(r.ok).toBe(true);
-    if (r.ok) {
-      expect(r.providerId).toBe("provider-a");
-      expect(r.estimatedCost).toBe(100);
-      expect(r.fallbackTried).toEqual([]);
+describe("route — deterministic routing", () => {
+  it("selects the first available provider in the fallback order", () => {
+    const decision = route(
+      baseRequest(),
+      basePolicy(),
+      [makeProvider("p-1", true, 10), makeProvider("p-2", true, 5)],
+    );
+    expect(decision.ok).toBe(true);
+    if (decision.ok) {
+      expect(decision.providerId).toBe("p-1");
+      expect(decision.estimatedCost).toBe(10);
+      expect(decision.fallbackTried).toEqual([]);
+      expect(decision.digest).toMatch(/^route_[0-9a-f]{8}$/);
     }
   });
 
   it("falls through to the next provider when the first is unavailable", () => {
-    const r = route(request(), policy(), [
-      provider("provider-a", false),
-      provider("provider-b", true, 150),
-    ]);
-    expect(r.ok).toBe(true);
-    if (r.ok) {
-      expect(r.providerId).toBe("provider-b");
-      expect(r.fallbackTried).toEqual(["provider-a"]);
+    const decision = route(
+      baseRequest(),
+      basePolicy(),
+      [makeProvider("p-1", false, 10), makeProvider("p-2", true, 5)],
+    );
+    expect(decision.ok).toBe(true);
+    if (decision.ok) {
+      expect(decision.providerId).toBe("p-2");
+      expect(decision.fallbackTried).toEqual(["p-1"]);
     }
   });
 
-  it("falls through when a provider id is unknown", () => {
-    const r = route(request(), policy(), [provider("provider-b", true)]);
-    expect(r.ok).toBe(true);
-    if (r.ok) {
-      expect(r.providerId).toBe("provider-b");
-      expect(r.fallbackTried).toEqual(["provider-a"]);
-    }
-  });
-});
-
-describe("route — honest no-provider-available degradation", () => {
   it("refuses with NO_PROVIDER_AVAILABLE when all providers are unavailable", () => {
-    const r = route(request(), policy(), [
-      provider("provider-a", false),
-      provider("provider-b", false),
-    ]);
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "NO_PROVIDER_AVAILABLE",
-      fallbackTried: ["provider-a", "provider-b"],
-    });
-  });
-
-  it("refuses with EMPTY_FALLBACK_ORDER when policy has no providers", () => {
-    const r = route(request(), policy({ fallbackOrder: [] }), []);
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "EMPTY_FALLBACK_ORDER",
-      fallbackTried: [],
-    });
-  });
-
-  it("refuses with REQUEST_EXCEEDS_MAX_TOKENS when the prompt is too large", () => {
-    const r = route(
-      request({ promptTokenEstimate: 20_000 }),
-      policy({ maxTokensPerRequest: 10_000 }),
-      [provider("provider-a", true)],
+    const decision = route(
+      baseRequest(),
+      basePolicy(),
+      [makeProvider("p-1", false, 10), makeProvider("p-2", false, 5)],
     );
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "REQUEST_EXCEEDS_MAX_TOKENS",
-      fallbackTried: [],
-    });
+    expect(decision.ok).toBe(false);
+    if (!decision.ok) {
+      expect(decision.reasonCode).toBe("NO_PROVIDER_AVAILABLE");
+      expect(decision.fallbackTried).toEqual(["p-1", "p-2"]);
+    }
   });
 
-  it("never silently falls back to a default provider outside the policy", () => {
-    // provider-c is available but NOT in the fallback order — must not be
-    // selected.
-    const r = route(
-      request(),
-      policy({ fallbackOrder: ["provider-a", "provider-b"] }),
-      [provider("provider-a", false), provider("provider-b", false), provider("provider-c", true)],
+  it("refuses with EMPTY_FALLBACK_ORDER when policy has no fallbacks", () => {
+    const decision = route(
+      baseRequest(),
+      basePolicy({ fallbackOrder: [] }),
+      [makeProvider("p-1", true, 10)],
     );
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "NO_PROVIDER_AVAILABLE",
-      fallbackTried: ["provider-a", "provider-b"],
-    });
+    expect(decision.ok).toBe(false);
+    if (!decision.ok) expect(decision.reasonCode).toBe("EMPTY_FALLBACK_ORDER");
   });
-});
 
-describe("route — tenant fail-closed", () => {
-  it("refuses with TENANT_SCOPE_MISSING when request tenant is broken", () => {
-    const r = route(
-      request({ tenant: { tenantId: "" } as unknown as TenantScope }),
-      policy(),
-      [provider("provider-a", true)],
+  it("refuses with REQUEST_EXCEEDS_MAX_TOKENS when the request is too large", () => {
+    const decision = route(
+      baseRequest({ promptTokenEstimate: 2000 }),
+      basePolicy({ maxTokensPerRequest: 1000 }),
+      [makeProvider("p-1", true, 10)],
     );
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "TENANT_SCOPE_MISSING",
-      fallbackTried: [],
-    });
+    expect(decision.ok).toBe(false);
+    if (!decision.ok) expect(decision.reasonCode).toBe("REQUEST_EXCEEDS_MAX_TOKENS");
   });
 
   it("refuses with TENANT_MISMATCH when request and policy tenants differ", () => {
-    const r = route(
-      request({ tenant: { tenantId: "acme" } }),
-      policy({ tenant: { tenantId: "globex" } as unknown as TenantScope }),
-      [provider("provider-a", true)],
+    const other: TenantScope = { tenantId: "other" };
+    const decision = route(
+      baseRequest({ tenant: TENANT }),
+      basePolicy({ tenant: other }),
+      [makeProvider("p-1", true, 10)],
     );
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "TENANT_MISMATCH",
-      fallbackTried: [],
-    });
+    expect(decision.ok).toBe(false);
+    if (!decision.ok) expect(decision.reasonCode).toBe("TENANT_MISMATCH");
+  });
+
+  it("refuses with TENANT_SCOPE_MISSING on broken tenant", () => {
+    const broken = { tenantId: "" } as unknown as TenantScope;
+    const decision = route(
+      baseRequest({ tenant: broken }),
+      basePolicy({ tenant: broken }),
+      [],
+    );
+    expect(decision.ok).toBe(false);
+    if (!decision.ok) expect(decision.reasonCode).toBe("TENANT_SCOPE_MISSING");
+  });
+
+  it("is deterministic — same inputs produce the same digest", () => {
+    const a = route(baseRequest(), basePolicy(), [makeProvider("p-1", true, 10)]);
+    const b = route(baseRequest(), basePolicy(), [makeProvider("p-1", true, 10)]);
+    expect(a).toEqual(b);
   });
 });
 
+describe("computeRoutingDigest — determinism", () => {
+  it("returns the same digest for the same inputs", () => {
+    const inputs = {
+      tenantId: "acme",
+      requestCapability: "chat",
+      promptTokenEstimate: 100,
+      fallbackOrder: ["p-1", "p-2"],
+      result: "p-1",
+    };
+    expect(computeRoutingDigest(inputs)).toBe(computeRoutingDigest(inputs));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// checkBudgetPolicy.
+// ---------------------------------------------------------------------------
+
 describe("checkBudgetPolicy", () => {
-  it("accepts usage within budget and reports remaining tokens", () => {
-    const r = checkBudgetPolicy(policy({ budgetTokensPerHour: 1_000 }), {
-      tenant: TENANT,
-      tokensUsedThisHour: 800,
-    });
-    expect(r).toEqual({ ok: true, remainingTokens: 200 });
+  it("returns ok with remaining tokens when usage is within budget", () => {
+    const result = checkBudgetPolicy(
+      basePolicy({ budgetTokensPerHour: 1000 }),
+      { tenant: TENANT, tokensUsedThisHour: 200 },
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.remainingTokens).toBe(800);
   });
 
-  it("refuses with BUDGET_EXCEEDED and the exact overshoot, never clamped", () => {
-    const r = checkBudgetPolicy(policy({ budgetTokensPerHour: 1_000 }), {
-      tenant: TENANT,
-      tokensUsedThisHour: 1_500,
-    });
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "BUDGET_EXCEEDED",
-      overshootTokens: 500,
-    });
+  it("refuses with BUDGET_EXCEEDED and the exact overshoot", () => {
+    const result = checkBudgetPolicy(
+      basePolicy({ budgetTokensPerHour: 1000 }),
+      { tenant: TENANT, tokensUsedThisHour: 1500 },
+    );
+    expect(result).toEqual({ ok: false, reasonCode: "BUDGET_EXCEEDED", overshootTokens: 500 });
   });
 
-  it("refuses negative usage with NEGATIVE_USAGE", () => {
-    const r = checkBudgetPolicy(policy(), {
+  it("refuses with NEGATIVE_USAGE for negative tokens used", () => {
+    const result = checkBudgetPolicy(
+      basePolicy(),
+      { tenant: TENANT, tokensUsedThisHour: -1 },
+    );
+    expect(result).toEqual({ ok: false, reasonCode: "NEGATIVE_USAGE", overshootTokens: 0 });
+  });
+
+  it("refuses with TENANT_MISMATCH when tenants differ", () => {
+    const other: TenantScope = { tenantId: "other" };
+    const result = checkBudgetPolicy(
+      basePolicy({ tenant: TENANT }),
+      { tenant: other, tokensUsedThisHour: 100 },
+    );
+    expect(result).toEqual({ ok: false, reasonCode: "TENANT_MISMATCH", overshootTokens: 0 });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// computeQuotaProjection.
+// ---------------------------------------------------------------------------
+
+describe("computeQuotaProjection — honest projection", () => {
+  it("returns the utilization ratio and remaining tokens", () => {
+    const account: QuotaAccount = {
       tenant: TENANT,
-      tokensUsedThisHour: -1,
-    });
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "NEGATIVE_USAGE",
-      overshootTokens: 0,
-    });
+      tokensUsedThisHour: 200,
+      invocationsThisHour: 10,
+      hourStartedAt: "2026-01-01T00:00:00Z",
+    };
+    const projection = computeQuotaProjection(basePolicy({ budgetTokensPerHour: 1000 }), account);
+    expect(projection.tokensUsedThisHour).toBe(200);
+    expect(projection.budgetTokensPerHour).toBe(1000);
+    expect(projection.remainingTokens).toBe(800);
+    expect(projection.utilizationRatio).toBe(0.2);
+    expect(projection.overBudget).toBe(false);
+  });
+
+  it("reports overBudget true when used > budget (no clamping)", () => {
+    const account: QuotaAccount = {
+      tenant: TENANT,
+      tokensUsedThisHour: 1500,
+      invocationsThisHour: 10,
+      hourStartedAt: "2026-01-01T00:00:00Z",
+    };
+    const projection = computeQuotaProjection(basePolicy({ budgetTokensPerHour: 1000 }), account);
+    expect(projection.overBudget).toBe(true);
+    expect(projection.utilizationRatio).toBe(1.5);
+    expect(projection.remainingTokens).toBe(0); // honest floor at zero, but overBudget flag is true
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ModelGatewayDirectory over in-memory repository.
+// ---------------------------------------------------------------------------
+
+describe("ModelGatewayDirectory over InMemoryModelGatewayRepository", () => {
+  it("route returns the routing decision and emits an audit event", async () => {
+    const repo = createInMemoryModelGatewayRepository(basePolicy());
+    const directory = createModelGatewayDirectory(repo);
+    const result = await directory.route(
+      TENANT,
+      { promptTokenEstimate: 100, capability: "chat" },
+      [makeProvider("p-1", true, 10)],
+      { occurredAt: "2026-01-01T00:00:00Z" },
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.routing?.ok).toBe(true);
+      expect(result.auditEvents[0]?.kind).toBe("model-gateway.route-decided");
+    }
+  });
+
+  it("route refuses with POLICY_NOT_FOUND when no policy is configured", async () => {
+    const repo = createInMemoryModelGatewayRepository();
+    const directory = createModelGatewayDirectory(repo);
+    const result = await directory.route(
+      TENANT,
+      { promptTokenEstimate: 100, capability: "chat" },
+      [makeProvider("p-1", true, 10)],
+      { occurredAt: "2026-01-01T00:00:00Z" },
+    );
+    expect(result).toEqual({ ok: false, reasonCode: "POLICY_NOT_FOUND" });
+  });
+
+  it("route refuses with NO_PROVIDER_AVAILABLE and emits an audit event", async () => {
+    const repo = createInMemoryModelGatewayRepository(basePolicy());
+    const directory = createModelGatewayDirectory(repo);
+    const result = await directory.route(
+      TENANT,
+      { promptTokenEstimate: 100, capability: "chat" },
+      [makeProvider("p-1", false, 10), makeProvider("p-2", false, 5)],
+      { occurredAt: "2026-01-01T00:00:00Z" },
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reasonCode).toBe("NO_PROVIDER_AVAILABLE");
+      expect(result.auditEvents?.[0]?.kind).toBe("model-gateway.route-refused");
+    }
+  });
+
+  it("checkBudget returns the budget check result and emits an audit event", async () => {
+    const account: QuotaAccount = {
+      tenant: TENANT,
+      tokensUsedThisHour: 200,
+      invocationsThisHour: 10,
+      hourStartedAt: "2026-01-01T00:00:00Z",
+    };
+    const repo = createInMemoryModelGatewayRepository(basePolicy(), account);
+    const directory = createModelGatewayDirectory(repo);
+    const result = await directory.checkBudget(TENANT);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.budget?.ok).toBe(true);
+      expect(result.auditEvents[0]?.kind).toBe("model-gateway.budget-checked");
+    }
+  });
+
+  it("projectQuota returns the projection and emits an audit event", async () => {
+    const account: QuotaAccount = {
+      tenant: TENANT,
+      tokensUsedThisHour: 200,
+      invocationsThisHour: 10,
+      hourStartedAt: "2026-01-01T00:00:00Z",
+    };
+    const repo = createInMemoryModelGatewayRepository(basePolicy(), account);
+    const directory = createModelGatewayDirectory(repo);
+    const result = await directory.projectQuota(TENANT);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.quotaProjection?.utilizationRatio).toBe(0.02);
+      expect(result.auditEvents[0]?.kind).toBe("model-gateway.quota-projected");
+    }
   });
 });

@@ -1,21 +1,20 @@
 /**
  * @fleetos/external-vendors — External vendor/system adapter seam.
  *
- * Wave 0 lane C (F200C). Pure TypeScript domain package.
+ * Wave 1 lane C (F210C) kernel-grade.
  *
  * Laws:
  *   A1  — external systems NEVER own domain truth. This adapter is a
- *         projection/translation surface only. Domain truth lives in the
- *         authoritative bounded contexts (procurement, vendors, work).
+ *         projection/translation surface only.
  *   A7  — external SDKs stay behind the port.
  *   A8  — tenant isolation, fail-closed.
  *   A20 — no cross-boundary implementation imports.
  *
- * The boundary tests in tests/ encode + assert the no-domain-truth rule:
- * every response from the external system is tagged with kind =
- * "external-projection" — never with authoritative domain id kinds
- * ("quote", "order", etc.). The domain must reconstruct authoritative
- * records from the projection; the adapter does not own them.
+ * Wave 1 kernel-grade additions over Wave 0 (F200C):
+ *   - retry/idempotency contracts at the seam;
+ *   - honest degraded states (UNAVAILABLE vs REF_UNKNOWN);
+ *   - idempotency-key-based deduplication;
+ *   - boundary machine-tests (external systems never own domain truth).
  */
 
 export interface TenantScope {
@@ -53,11 +52,8 @@ export function validateTenantScope(scope: unknown): TenantValidation {
 }
 
 // ---------------------------------------------------------------------------
-// External projection — a translated snapshot from an external system.
-// Tagged kind "external-projection" to assert, in types, that this is NOT
-// a domain authoritative record. The authoritative domain record (Quote,
-// Order, etc.) lives in @fleetos/procurement and is reconstructed from
-// projections by the application layer.
+// ExternalProjection — tagged kind "external-projection" to assert in
+// types that this is NOT a domain authoritative record.
 // ---------------------------------------------------------------------------
 
 export interface ExternalProjection {
@@ -69,33 +65,43 @@ export interface ExternalProjection {
   readonly observedAt: string;
 }
 
-// ---------------------------------------------------------------------------
-// Structural port — ExternalVendorPort. Adapter implementations satisfy
-// this shape; external SDKs never leak into domain contracts (law A7).
-// ---------------------------------------------------------------------------
-
 export interface ExternalQuery {
   readonly tenant: TenantScope;
   readonly sourceSystem: string;
   readonly externalRef: string;
+  readonly idempotencyKey: string;
 }
 
 export type ExternalQueryResult =
-  | { ok: true; projection: ExternalProjection }
-  | { ok: false; reasonCode: ExternalReasonCode };
+  | { readonly ok: true; readonly projection: ExternalProjection; readonly fromCache: boolean }
+  | { readonly ok: false; readonly reasonCode: ExternalReasonCode; readonly attempts: number };
 
 export type ExternalReasonCode =
   | "TENANT_SCOPE_MISSING"
   | "EXTERNAL_SYSTEM_UNAVAILABLE"
-  | "EXTERNAL_REF_UNKNOWN";
+  | "EXTERNAL_REF_UNKNOWN"
+  | "IDEMPOTENCY_KEY_EMPTY";
 
 export interface ExternalVendorPort {
   fetchProjection(query: ExternalQuery): ExternalQueryResult;
 }
 
 // ---------------------------------------------------------------------------
-// Deterministic reference adapter — no network. Returns honest degraded
-// states when the external system is unavailable or the ref is unknown.
+// Retry policy contract.
+// ---------------------------------------------------------------------------
+
+export interface RetryPolicy {
+  readonly maxAttempts: number;
+  readonly backoffMillis: number;
+}
+
+export const DEFAULT_RETRY_POLICY: RetryPolicy = {
+  maxAttempts: 3,
+  backoffMillis: 100,
+};
+
+// ---------------------------------------------------------------------------
+// Deterministic reference adapter — no network.
 // ---------------------------------------------------------------------------
 
 export interface DeterministicExternalVendorAdapterConfig {
@@ -103,41 +109,59 @@ export interface DeterministicExternalVendorAdapterConfig {
   readonly projections: Readonly<
     Record<string, Readonly<Record<string, unknown>>>
   >;
+  readonly retryPolicy?: RetryPolicy;
 }
 
 export function createDeterministicExternalVendorAdapter(
   config: DeterministicExternalVendorAdapterConfig,
 ): ExternalVendorPort {
+  const cache = new Map<string, ExternalProjection>();
+  const policy = config.retryPolicy ?? DEFAULT_RETRY_POLICY;
   return {
     fetchProjection(query: ExternalQuery): ExternalQueryResult {
       const tenant = validateTenantScope(query.tenant);
-      if (!tenant.ok) return { ok: false, reasonCode: "TENANT_SCOPE_MISSING" };
-      if (config.simulateOutage) {
-        return { ok: false, reasonCode: "EXTERNAL_SYSTEM_UNAVAILABLE" };
+      if (!tenant.ok) {
+        return { ok: false, reasonCode: "TENANT_SCOPE_MISSING", attempts: 0 };
       }
-      const payload = config.projections[query.externalRef];
-      if (!payload) {
-        return { ok: false, reasonCode: "EXTERNAL_REF_UNKNOWN" };
+      if (!query.idempotencyKey || query.idempotencyKey.trim().length === 0) {
+        return { ok: false, reasonCode: "IDEMPOTENCY_KEY_EMPTY", attempts: 0 };
       }
-      return {
-        ok: true,
-        projection: {
+      const cacheKey = `${tenant.scope.tenantId}::${query.idempotencyKey}`;
+      const cached = cache.get(cacheKey);
+      if (cached !== undefined) {
+        return { ok: true, projection: cached, fromCache: true };
+      }
+      let attempts = 0;
+      let lastReason: ExternalReasonCode = "EXTERNAL_SYSTEM_UNAVAILABLE";
+      while (attempts < policy.maxAttempts) {
+        attempts++;
+        if (config.simulateOutage) {
+          lastReason = "EXTERNAL_SYSTEM_UNAVAILABLE";
+          continue;
+        }
+        const payload = config.projections[query.externalRef];
+        if (!payload) {
+          lastReason = "EXTERNAL_REF_UNKNOWN";
+          continue;
+        }
+        const projection: ExternalProjection = {
           kind: "external-projection",
           tenant: tenant.scope,
           sourceSystem: query.sourceSystem,
           externalRef: query.externalRef,
           payload,
           observedAt: "1970-01-01T00:00:00Z",
-        },
-      };
+        };
+        cache.set(cacheKey, projection);
+        return { ok: true, projection, fromCache: false };
+      }
+      return { ok: false, reasonCode: lastReason, attempts };
     },
   };
 }
 
 // ---------------------------------------------------------------------------
-// Boundary assertion — external systems never own domain truth. The
-// projection's `kind` must NEVER equal any authoritative domain id kind.
-// This function asserts the boundary at runtime (used by tests).
+// Boundary assertions — external systems never own domain truth.
 // ---------------------------------------------------------------------------
 
 const DOMAIN_ID_KINDS = new Set([

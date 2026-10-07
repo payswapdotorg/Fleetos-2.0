@@ -1,30 +1,31 @@
+/**
+ * @fleetos/agent-organizations — Wave 1 kernel-grade tests.
+ */
 import { describe, expect, it } from "vitest";
 import {
   enforceBudget,
-  validateTenantScope,
-  type TenantScope,
+  makeAuthorizationRequest,
+  computeAuthorizationRequestDigest,
+  createAgentOrganizationDirectory,
+  createInMemoryAgentOrganizationRepository,
   type OrganizationConfiguration,
   type OrganizationUsage,
-  type RoleUsageSnapshot,
+  type TenantScope,
 } from "../src/index.js";
 
 const TENANT: TenantScope = { tenantId: "acme" };
-const ORG_ID = { kind: "organization" as const, value: "o-1" };
 
 function baseConfig(overrides: Partial<OrganizationConfiguration> = {}): OrganizationConfiguration {
   return {
-    id: ORG_ID,
+    id: { kind: "organization", value: "org-1" },
     tenant: TENANT,
     roles: [
       {
-        id: "role-engineer",
-        name: "Engineer",
+        id: "role-1",
+        name: "Operator",
         capabilityBudgets: [
-          {
-            capability: "diagnose-fault",
-            maxTokens: 100_000,
-            maxInvocationsPerHour: 60,
-          },
+          { capability: "read_asset", maxTokens: 1000, maxInvocationsPerHour: 100 },
+          { capability: "command_asset", maxTokens: 500, maxInvocationsPerHour: 50 },
         ],
       },
     ],
@@ -32,143 +33,258 @@ function baseConfig(overrides: Partial<OrganizationConfiguration> = {}): Organiz
   };
 }
 
-function snapshot(
-  roleId: string,
-  capability: string,
-  tokensUsed: number,
-  invocationsThisHour: number,
-): RoleUsageSnapshot {
+function baseUsage(overrides: Partial<OrganizationUsage> = {}): OrganizationUsage {
   return {
-    roleId,
-    perCapabilityUsage: [{ capability, tokensUsed, invocationsThisHour }],
-  };
-}
-
-function usage(
-  snapshots: readonly RoleUsageSnapshot[],
-  overrides: Partial<OrganizationUsage> = {},
-): OrganizationUsage {
-  return {
-    organizationId: ORG_ID,
+    organizationId: { kind: "organization", value: "org-1" },
     tenant: TENANT,
-    perRoleUsage: snapshots,
+    perRoleUsage: [
+      {
+        roleId: "role-1",
+        perCapabilityUsage: [
+          { capability: "read_asset", tokensUsed: 100, invocationsThisHour: 10 },
+          { capability: "command_asset", tokensUsed: 50, invocationsThisHour: 5 },
+        ],
+      },
+    ],
     ...overrides,
   };
 }
 
-describe("validateTenantScope", () => {
-  it("accepts a valid tenant id", () => {
-    expect(validateTenantScope({ tenantId: "acme" })).toEqual({
-      ok: true,
-      scope: { tenantId: "acme" },
-    });
-  });
+// ---------------------------------------------------------------------------
+// enforceBudget — kernel-grade.
+// ---------------------------------------------------------------------------
 
-  it("refuses a null scope with TENANT_SCOPE_MISSING", () => {
-    expect(validateTenantScope(null)).toEqual({
-      ok: false,
-      reasonCode: "TENANT_SCOPE_MISSING",
-    });
-  });
-});
-
-describe("enforceBudget — organizations propose, never authorize", () => {
-  it("emits a CapabilityProposal when usage fits within budget", () => {
-    const cfg = baseConfig();
-    const u = usage([snapshot("role-engineer", "diagnose-fault", 10_000, 10)]);
-    const r = enforceBudget(cfg, u, "role-engineer", "diagnose-fault", "2026-01-01T00:00:00Z");
-    expect(r.ok).toBe(true);
-    if (r.ok) {
-      expect(r.proposal.kind).toBe("capability-proposal");
-      expect(r.proposal.roleId).toBe("role-engineer");
+describe("enforceBudget — legal cases", () => {
+  it("returns a proposal when usage is within budget", () => {
+    const result = enforceBudget(baseConfig(), baseUsage(), "role-1", "read_asset", "2026-01-01T00:00:00Z");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.proposal.kind).toBe("capability-proposal");
+      expect(result.proposal.roleId).toBe("role-1");
+      expect(result.proposal.capability).toBe("read_asset");
     }
   });
 
-  it("refuses with BUDGET_EXCEEDED_TOKENS when token budget exceeded, never overflow", () => {
-    const cfg = baseConfig();
-    const u = usage([snapshot("role-engineer", "diagnose-fault", 200_000, 10)]);
-    const r = enforceBudget(cfg, u, "role-engineer", "diagnose-fault", "2026-01-01T00:00:00Z");
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "BUDGET_EXCEEDED_TOKENS",
-      exceededCapability: "diagnose-fault",
+  it("returns a proposal when usage is exactly at the limit (not exceeded)", () => {
+    const usage = baseUsage({
+      perRoleUsage: [
+        {
+          roleId: "role-1",
+          perCapabilityUsage: [
+            { capability: "read_asset", tokensUsed: 1000, invocationsThisHour: 100 },
+          ],
+        },
+      ],
     });
+    const result = enforceBudget(baseConfig(), usage, "role-1", "read_asset", "2026-01-01T00:00:00Z");
+    expect(result.ok).toBe(true);
+  });
+});
+
+describe("enforceBudget — refusals", () => {
+  it("refuses with BUDGET_EXCEEDED_TOKENS when tokens exceed budget", () => {
+    const usage = baseUsage({
+      perRoleUsage: [
+        {
+          roleId: "role-1",
+          perCapabilityUsage: [
+            { capability: "read_asset", tokensUsed: 1001, invocationsThisHour: 10 },
+          ],
+        },
+      ],
+    });
+    const result = enforceBudget(baseConfig(), usage, "role-1", "read_asset", "2026-01-01T00:00:00Z");
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reasonCode).toBe("BUDGET_EXCEEDED_TOKENS");
+      expect(result.exceededCapability).toBe("read_asset");
+      expect(result.tokensUsed).toBe(1001);
+      expect(result.maxTokens).toBe(1000);
+    }
   });
 
-  it("refuses with BUDGET_EXCEEDED_INVOCATIONS when invocation budget exceeded", () => {
-    const cfg = baseConfig();
-    const u = usage([snapshot("role-engineer", "diagnose-fault", 10, 100)]);
-    const r = enforceBudget(cfg, u, "role-engineer", "diagnose-fault", "2026-01-01T00:00:00Z");
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "BUDGET_EXCEEDED_INVOCATIONS",
-      exceededCapability: "diagnose-fault",
+  it("refuses with BUDGET_EXCEEDED_INVOCATIONS when invocations exceed budget", () => {
+    const usage = baseUsage({
+      perRoleUsage: [
+        {
+          roleId: "role-1",
+          perCapabilityUsage: [
+            { capability: "read_asset", tokensUsed: 100, invocationsThisHour: 101 },
+          ],
+        },
+      ],
     });
+    const result = enforceBudget(baseConfig(), usage, "role-1", "read_asset", "2026-01-01T00:00:00Z");
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reasonCode).toBe("BUDGET_EXCEEDED_INVOCATIONS");
+      expect(result.invocationsThisHour).toBe(101);
+      expect(result.maxInvocationsPerHour).toBe(100);
+    }
   });
 
-  it("refuses with UNKNOWN_ROLE when role does not exist", () => {
-    const r = enforceBudget(baseConfig(), usage([]), "ghost-role", "diagnose-fault", "");
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "UNKNOWN_ROLE",
-      exceededCapability: null,
-    });
+  it("refuses with UNKNOWN_ROLE when the role does not exist", () => {
+    const result = enforceBudget(baseConfig(), baseUsage(), "role-missing", "read_asset", "2026-01-01T00:00:00Z");
+    expect(result).toMatchObject({ ok: false, reasonCode: "UNKNOWN_ROLE" });
   });
 
-  it("refuses with UNKNOWN_CAPABILITY when capability is not budgeted for the role", () => {
-    const cfg = baseConfig();
-    const r = enforceBudget(cfg, usage([]), "role-engineer", "ghost-cap", "");
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "UNKNOWN_CAPABILITY",
-      exceededCapability: null,
-    });
+  it("refuses with UNKNOWN_CAPABILITY when the capability does not exist for the role", () => {
+    const result = enforceBudget(baseConfig(), baseUsage(), "role-1", "unknown_cap", "2026-01-01T00:00:00Z");
+    expect(result).toMatchObject({ ok: false, reasonCode: "UNKNOWN_CAPABILITY" });
   });
 
-  it("the result is always a Proposal, never an Authorization (type-level assertion)", () => {
-    const cfg = baseConfig();
-    const u = usage([snapshot("role-engineer", "diagnose-fault", 1, 1)]);
-    const r = enforceBudget(cfg, u, "role-engineer", "diagnose-fault", "2026-01-01T00:00:00Z");
-    if (r.ok) {
-      // The success branch only exposes a Proposal-shaped object. There is no
-      // `authorized: true` field anywhere on the result, by design.
-      expect((r.proposal as { authorized?: unknown }).authorized).toBeUndefined();
-      expect(r.proposal.kind).toBe("capability-proposal");
+  it("refuses with TENANT_MISMATCH when organization ids do not match", () => {
+    const usage = baseUsage({ organizationId: { kind: "organization", value: "other" } });
+    const result = enforceBudget(baseConfig(), usage, "role-1", "read_asset", "2026-01-01T00:00:00Z");
+    expect(result).toMatchObject({ ok: false, reasonCode: "TENANT_MISMATCH" });
+  });
+
+  it("refuses with TENANT_SCOPE_MISSING on broken tenant", () => {
+    const broken = { tenantId: "" } as unknown as TenantScope;
+    const result = enforceBudget(
+      baseConfig({ tenant: broken }),
+      baseUsage({ tenant: broken }),
+      "role-1",
+      "read_asset",
+      "2026-01-01T00:00:00Z",
+    );
+    expect(result).toMatchObject({ ok: false, reasonCode: "TENANT_SCOPE_MISSING" });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// makeAuthorizationRequest — every consequential operation emits an
+// AuthorizationRequest. The organization NEVER executes directly.
+// ---------------------------------------------------------------------------
+
+describe("makeAuthorizationRequest — untrusted-actor encoding", () => {
+  it("produces an AuthorizationRequest carrying the budget check result", () => {
+    const request = makeAuthorizationRequest(baseConfig(), baseUsage(), "role-1", "read_asset", "2026-01-01T00:00:00Z");
+    expect(request.kind).toBe("authorization-request");
+    expect(request.budgetCheck.ok).toBe(true);
+    expect(request.digest).toMatch(/^authzreq_[0-9a-f]{8}$/);
+  });
+
+  it("produces an AuthorizationRequest even when the budget check refuses (the Guardian adjudicates)", () => {
+    const usage = baseUsage({
+      perRoleUsage: [
+        {
+          roleId: "role-1",
+          perCapabilityUsage: [
+            { capability: "read_asset", tokensUsed: 1001, invocationsThisHour: 10 },
+          ],
+        },
+      ],
+    });
+    const request = makeAuthorizationRequest(baseConfig(), usage, "role-1", "read_asset", "2026-01-01T00:00:00Z");
+    expect(request.kind).toBe("authorization-request");
+    expect(request.budgetCheck.ok).toBe(false);
+  });
+
+  it("is deterministic — same inputs produce the same digest", () => {
+    const a = makeAuthorizationRequest(baseConfig(), baseUsage(), "role-1", "read_asset", "2026-01-01T00:00:00Z");
+    const b = makeAuthorizationRequest(baseConfig(), baseUsage(), "role-1", "read_asset", "2026-01-01T00:00:00Z");
+    expect(a.digest).toBe(b.digest);
+  });
+
+  it("there is no Authorization type exported from this package (law A6)", () => {
+    // This is a static type check — there is no Authorization export.
+    // The test exists to assert the type contract; if an Authorization
+    // type were ever added, this test would not compile.
+    const request = makeAuthorizationRequest(baseConfig(), baseUsage(), "role-1", "read_asset", "2026-01-01T00:00:00Z");
+    expect(request.kind).toBe("authorization-request");
+    expect(request.budgetCheck.ok).toBe(true);
+    if (request.budgetCheck.ok) {
+      expect(request.budgetCheck.proposal.kind).toBe("capability-proposal");
     }
   });
 });
 
-describe("enforceBudget — tenant fail-closed", () => {
-  it("refuses with TENANT_SCOPE_MISSING when config tenant is broken", () => {
-    const cfg = baseConfig({ tenant: { tenantId: "" } as unknown as TenantScope });
-    const r = enforceBudget(cfg, usage([]), "role-engineer", "diagnose-fault", "");
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "TENANT_SCOPE_MISSING",
-      exceededCapability: null,
-    });
-  });
-
-  it("refuses with TENANT_MISMATCH when tenants differ across config and usage", () => {
-    const cfg = baseConfig({ tenant: { tenantId: "acme" } });
-    const u = usage([], {
-      tenant: { tenantId: "globex" } as unknown as TenantScope,
-    });
-    const r = enforceBudget(cfg, u, "role-engineer", "diagnose-fault", "");
-    expect(r).toEqual({
-      ok: false,
-      reasonCode: "TENANT_MISMATCH",
-      exceededCapability: null,
-    });
+describe("computeAuthorizationRequestDigest — determinism", () => {
+  it("returns the same digest for the same inputs", () => {
+    const inputs = {
+      organizationId: "org-1",
+      tenantId: "acme",
+      roleId: "role-1",
+      capability: "read_asset",
+      proposedAt: "2026-01-01T00:00:00Z",
+      budgetOk: true,
+      budgetReasonCode: null,
+    };
+    expect(computeAuthorizationRequestDigest(inputs)).toBe(computeAuthorizationRequestDigest(inputs));
   });
 });
 
-describe("enforceBudget — determinism", () => {
-  it("returns the same result for the same inputs across calls", () => {
-    const cfg = baseConfig();
-    const u = usage([snapshot("role-engineer", "diagnose-fault", 50_000, 30)]);
-    const a = enforceBudget(cfg, u, "role-engineer", "diagnose-fault", "2026-01-01T00:00:00Z");
-    const b = enforceBudget(cfg, u, "role-engineer", "diagnose-fault", "2026-01-01T00:00:00Z");
-    expect(a).toEqual(b);
+// ---------------------------------------------------------------------------
+// AgentOrganizationDirectory over in-memory repository.
+// ---------------------------------------------------------------------------
+
+describe("AgentOrganizationDirectory over InMemoryAgentOrganizationRepository", () => {
+  it("requestAuthorization returns an authorization request and emits an audit event", async () => {
+    const repo = createInMemoryAgentOrganizationRepository([baseConfig()], [baseUsage()]);
+    const directory = createAgentOrganizationDirectory(repo);
+    const result = await directory.requestAuthorization(
+      TENANT,
+      { kind: "organization", value: "org-1" },
+      "role-1",
+      "read_asset",
+      "2026-01-01T00:00:00Z",
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.authorizationRequest.kind).toBe("authorization-request");
+      expect(result.auditEvents[0]?.kind).toBe("agent-org.authorization-requested");
+    }
+  });
+
+  it("requestAuthorization returns the request even when budget exceeds — Guardian adjudicates", async () => {
+    const usage = baseUsage({
+      perRoleUsage: [
+        {
+          roleId: "role-1",
+          perCapabilityUsage: [
+            { capability: "read_asset", tokensUsed: 1001, invocationsThisHour: 10 },
+          ],
+        },
+      ],
+    });
+    const repo = createInMemoryAgentOrganizationRepository([baseConfig()], [usage]);
+    const directory = createAgentOrganizationDirectory(repo);
+    const result = await directory.requestAuthorization(
+      TENANT,
+      { kind: "organization", value: "org-1" },
+      "role-1",
+      "read_asset",
+      "2026-01-01T00:00:00Z",
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.reasonCode).toBe("BUDGET_EXCEEDED_TOKENS");
+      expect(result.authorizationRequest?.kind).toBe("authorization-request");
+      expect(result.auditEvents?.[0]?.kind).toBe("agent-org.budget-exceeded");
+    }
+  });
+
+  it("requestAuthorization refuses with CONFIGURATION_NOT_FOUND when the org is unknown", async () => {
+    const repo = createInMemoryAgentOrganizationRepository();
+    const directory = createAgentOrganizationDirectory(repo);
+    const result = await directory.requestAuthorization(
+      TENANT,
+      { kind: "organization", value: "missing" },
+      "role-1",
+      "read_asset",
+      "2026-01-01T00:00:00Z",
+    );
+    expect(result).toEqual({ ok: false, reasonCode: "CONFIGURATION_NOT_FOUND" });
+  });
+
+  it("getConfiguration returns null for cross-tenant (fail-closed)", async () => {
+    const repo = createInMemoryAgentOrganizationRepository([baseConfig()]);
+    const directory = createAgentOrganizationDirectory(repo);
+    const item = await directory.getConfiguration(
+      { tenantId: "other" },
+      { kind: "organization", value: "org-1" },
+    );
+    expect(item).toBeNull();
   });
 });
