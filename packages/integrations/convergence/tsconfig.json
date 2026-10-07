@@ -1,0 +1,18 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "types": ["node"],
+    "paths": {
+      "@fleetos/model-gateway": ["./node_modules/@fleetos/model-gateway/src/index.ts"],
+      "@fleetos/agent-organizations": ["./node_modules/@fleetos/agent-organizations/src/index.ts"]
+    }
+  },
+  "include": ["src", "tests"]
+}
