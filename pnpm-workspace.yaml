@@ -1,6 +1,7 @@
 packages:
   - packages/*
   - packages/integrations/*
+  - packages/experiences/*
   - apps/agent
   - apps/zcode-cli
   - apps/zcode-cli/packages/*

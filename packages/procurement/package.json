@@ -3,6 +3,9 @@
   "version": "2.0.0-alpha.0",
   "license": "Apache-2.0",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "description": "FleetOS Procurement bounded context — Need, ProcurementDemand, Quote, Order, Fulfillment contracts (exchange semantics, law A16); pure matching, quote lifecycle, order+fulfillment transitions.",
   "scripts": {
     "lint": "oxlint src tests",

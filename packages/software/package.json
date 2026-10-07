@@ -3,6 +3,9 @@
   "version": "2.0.0-alpha.0",
   "license": "Apache-2.0",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "description": "FleetOS Software bounded context — software subscriptions, entitlements, allocations contracts; pure entitlement check (tenant-scoped, fail-closed, over-allocation refused, never clamped).",
   "scripts": {
     "lint": "oxlint src tests",

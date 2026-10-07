@@ -3,6 +3,9 @@
   "version": "2.0.0-alpha.0",
   "license": "Apache-2.0",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "description": "FleetOS Projects bounded context — Project, milestone contracts; project lifecycle and milestone gating (pure).",
   "scripts": {
     "lint": "oxlint src tests",
