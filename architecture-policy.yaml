@@ -1,56 +1,39 @@
-version: 1
+version: 2
 
-# 存量模块先标记为 legacy；新模块或完成迁移的模块设置 managed: true。
+# Transitional policy for the FleetOS 2.0 fork.
+# ZCode modules are legacy substrate until explicitly adopted into the
+# FleetOS bounded-context map. New FleetOS modules become managed as they land.
+
 modules:
-  - id: rpc
+  - id: zcode-rpc
     roots: [packages/rpc/src]
     managed: false
-  - id: shared
+  - id: zcode-shared
     roots: [packages/shared/src]
     managed: false
-  - id: provider
+  - id: zcode-provider
     roots: [packages/provider/src]
     managed: false
-  - id: provider-node
+  - id: zcode-provider-node
     roots: [packages/provider-node/src]
     managed: false
-  - id: services
+  - id: zcode-services
     roots: [packages/services/src]
     managed: false
-  - id: session
-    roots: [packages/services/src/session]
-    managed: false
-    requires: [shared]
-    publicEntrypoints: [packages/services/src/session/contract.ts]
-    owner: conversation
-  - id: storage
-    roots: [packages/services/src/storage]
-    managed: true
-    requires: [shared, rpc, services]
-    publicEntrypoints: [packages/services/src/storage/contract.ts]
-    layers: { domain: domain, app: app, adapters: adapters }
-    layerOrder: [domain, app, adapters]
-    owner: desktop-settings
-  - id: client
+  - id: zcode-client
     roots: [packages/client/src]
     managed: false
-  - id: server
+  - id: zcode-server
     roots: [packages/server/src]
     managed: false
-  - id: zcode-server-cli
-    roots: [packages/zcode-server-cli/src]
-    managed: false
-  - id: ui
+  - id: zcode-ui
     roots: [packages/ui/src]
     managed: false
-  - id: web
+  - id: zcode-web
     roots: [packages/web/src]
     managed: false
-  - id: desktop
+  - id: zcode-desktop
     roots: [packages/desktop/src]
-    managed: false
-  - id: formal-proof
-    roots: [packages/formal-proof/src]
     managed: false
   - id: zcode-cli
     roots: [apps/zcode-cli]
@@ -63,5 +46,11 @@ global:
   forbidCycles: true
   forbidDeepImports: true
   managedOnly: true
+
+# FleetOS bounded contexts are registered here as they are created by Wave 0.
+# The canonical ownership/dependency definition is in:
+# - spec/BOUNDED-CONTEXTS.md
+# - spec/DEPENDENCY-GRAPH.md
+# - spec/worker-ownership.yaml
 
 exceptions: []
