@@ -1,0 +1,24 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "types": ["node"],
+    "paths": {
+      "@fleetos/work": ["./node_modules/@fleetos/work/src/index.ts"],
+      "@fleetos/projects": ["./node_modules/@fleetos/projects/src/index.ts"],
+      "@fleetos/workloads": ["./node_modules/@fleetos/workloads/src/index.ts"],
+      "@fleetos/procurement": ["./node_modules/@fleetos/procurement/src/index.ts"],
+      "@fleetos/vendors": ["./node_modules/@fleetos/vendors/src/index.ts"],
+      "@fleetos/software": ["./node_modules/@fleetos/software/src/index.ts"],
+      "@fleetos/agent-organizations": ["./node_modules/@fleetos/agent-organizations/src/index.ts"],
+      "@fleetos/model-gateway": ["./node_modules/@fleetos/model-gateway/src/index.ts"]
+    }
+  },
+  "include": ["src", "tests"]
+}
