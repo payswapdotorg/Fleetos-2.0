@@ -15,7 +15,6 @@ import {
   type Result,
   type SubmitCommandInput,
 } from "../src/index.js";
-import type { TenantContext } from "@fleetos/kernel";
 import { ctxFor, NOW, TENANT_A, TENANT_B } from "./helpers.js";
 
 function command(overrides: Partial<SubmitCommandInput> = {}): SubmitCommandInput {
