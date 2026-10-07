@@ -251,3 +251,7 @@ function stableDigest(s: string): string {
 export function referenceUncertainty(): UncertaintyInterval {
   return { lower: -1, upper: 1, confidence: 0.5, method: "reference.constant" };
 }
+
+// ---------- Wave 1 (F210B) kernel extensions ----------
+
+export * from "./feature-projection.ts";

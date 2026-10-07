@@ -100,3 +100,7 @@ export function isArenaEvaluationProposal(v: unknown): v is ArenaEvaluationPropo
     typeof r.proposalId === "string" &&
     typeof r.tenant === "object" && r.tenant !== null;
 }
+
+// ---------- Wave 1 (F210B) kernel extensions ----------
+
+export * from "./degraded.ts";

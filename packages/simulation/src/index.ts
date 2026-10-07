@@ -121,3 +121,7 @@ export function buildComparison(runIds: readonly string[], metric: string, compu
     computedAt,
   };
 }
+
+// ---------- Wave 1 (F210B) kernel extensions ----------
+
+export * from "./adoption.ts";

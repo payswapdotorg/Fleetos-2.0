@@ -267,3 +267,9 @@ export function proposeAction(intent: ActionIntent): ActionRecord {
     stateHistory: [],
   };
 }
+
+// ---------- Wave 1 (F210B) kernel extensions ----------
+
+export * from "./idempotency.ts";
+export * from "./audit.ts";
+export * from "./compensation.ts";

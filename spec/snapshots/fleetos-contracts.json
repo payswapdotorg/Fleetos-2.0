@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "head": "30446fd2995f22ddc879202263b8fb74aa36576a",
-  "generatedAt": "2026-10-07T06:29:36.972Z",
+  "head": "686d9bd875a906aaaa9ee3a06c987daf86a93e6c",
+  "generatedAt": "2026-10-07T08:03:36.904Z",
   "packages": {
     "fleetos-identity": {
       "owner": "worker-a",
@@ -271,11 +271,17 @@
     "fleetos-security": {
       "owner": "worker-b",
       "files": [
-        "packages/security/src/index.ts"
+        "packages/security/src/index.ts",
+        "packages/security/src/lifecycle.ts",
+        "packages/security/src/posture.ts"
       ],
       "exports": [
         "FindingConfidence:type",
         "FindingKind:type",
+        "FindingLifecycleState:type",
+        "FindingSuppression:interface",
+        "FindingWithLifecycle:interface",
+        "LifecycleTransition:interface",
         "RemediationProposal:interface",
         "SecurityFinding:interface",
         "SecurityPosture:interface",
@@ -283,21 +289,37 @@
         "TriageReasonCode:type",
         "TriageResult:interface",
         "computePosture:function",
+        "computePostureWorstWins:function",
+        "expireSuppressions:function",
+        "honestUnknownPosture:function",
+        "initLifecycle:function",
+        "isEffectivelyOpen:function",
         "proposeRemediation:function",
+        "resolveFinding:function",
+        "suppressFinding:function",
         "triageSeverity:function"
       ]
     },
     "fleetos-policy": {
       "owner": "worker-b",
       "files": [
+        "packages/policy/src/adoption.ts",
         "packages/policy/src/boundary.ts",
         "packages/policy/src/capability.ts",
+        "packages/policy/src/decision-record.ts",
         "packages/policy/src/guardian.ts",
         "packages/policy/src/index.ts",
-        "packages/policy/src/policy.ts"
+        "packages/policy/src/ledger.ts",
+        "packages/policy/src/policy.ts",
+        "packages/policy/src/repository.ts"
       ],
       "exports": [
+        "ActorKind:type",
+        "AdoptionAuthorizationRequest:interface",
+        "AdoptionAuthorizationResult:type",
         "AdoptionReasonCode:type",
+        "AdoptionRecord:interface",
+        "AdoptionRefusalReason:type",
         "AuthorityKind:type",
         "BoundaryViolation:interface",
         "Capability:interface",
@@ -305,77 +327,145 @@
         "CapabilityAdoptionProposal:interface",
         "CapabilityCategory:type",
         "CapabilityRisk:type",
+        "DecisionLedgerEntry:interface",
+        "DecisionLedgerVerification:interface",
+        "DecisionRecord:interface",
+        "DelegationChainEntry:interface",
         "GuardianContext:interface",
         "GuardianDecision:interface",
         "GuardianReasonCode:type",
         "IdempotencyContract:interface",
+        "InMemoryPolicyRepository:class",
+        "JustificationFact:interface",
         "LANE_ALLOWED_FLEETOS_PACKAGES:variable",
+        "LedgerBreakReason:type",
         "MissionRefLike:interface",
         "Policy:interface",
         "PolicyEvaluation:interface",
+        "PolicyRepositoryPort:interface",
         "PolicyRule:interface",
         "PolicyRuleId:type",
         "PolicyVerdict:type",
+        "PrecedenceMode:type",
+        "PrecedenceResolution:interface",
         "ResourceScope:interface",
+        "Sha256Port:type",
         "SideEffect:interface",
         "TenantScopeLike:interface",
         "VerificationContract:interface",
+        "appendDecision:function",
         "assertNoForbiddenImports:function",
+        "assertNoSelfExecutionPath:function",
         "authorizeAdoption:function",
+        "authorizeAdoptionWorkflow:function",
+        "buildDecisionRecord:function",
+        "computeLedgerEntryDigest:function",
+        "computeRecordDigest:function",
         "evaluateCapability:function",
         "extractSpecifiers:function",
+        "fnv1a:function",
+        "hasHumanDelegation:function",
+        "hashDelegationChain:function",
         "isCapability:function",
-        "scanSources:function"
+        "resolvePrecedence:function",
+        "scanSources:function",
+        "tamperEntry:function",
+        "verifyDecisionLedger:function"
       ]
     },
     "fleetos-actions": {
       "owner": "worker-b",
       "files": [
+        "packages/actions/src/audit.ts",
+        "packages/actions/src/compensation.ts",
+        "packages/actions/src/idempotency.ts",
         "packages/actions/src/index.ts"
       ],
       "exports": [
+        "ActionAuditEvent:interface",
+        "ActionAuditEventKind:type",
+        "ActionAuditSinkPort:interface",
         "ActionIntent:interface",
         "ActionRecord:interface",
         "ActionState:type",
         "AdvanceRefusalReason:type",
         "AdvanceResult:type",
+        "CompensationContract:interface",
+        "CompensationKind:type",
+        "CompensationReasonCode:type",
+        "CompensationResult:interface",
+        "DispatchAck:interface",
         "ExecutionResult:interface",
         "IdempotencyKey:interface",
+        "IdempotencyLedgerPort:interface",
+        "InMemoryActionAuditSink:class",
+        "InMemoryIdempotencyLedger:class",
         "MissionRefLike:interface",
         "StateTransition:interface",
         "TenantScopeLike:interface",
         "VerificationRecord:interface",
         "advanceActionState:function",
-        "proposeAction:function"
+        "attemptCompensation:function",
+        "buildCompensationContract:function",
+        "buildIdempotencyKey:function",
+        "cancelAction:function",
+        "dispatchWithIdempotency:function",
+        "emitAuditEvent:function",
+        "emitAuditTrail:function",
+        "proposeAction:function",
+        "stateToEventKind:function",
+        "transitionDigest:function",
+        "verifyAuditTrail:function"
       ]
     },
     "fleetos-execution": {
       "owner": "worker-b",
       "files": [
-        "packages/execution/src/index.ts"
+        "packages/execution/src/index.ts",
+        "packages/execution/src/queue.ts",
+        "packages/execution/src/verification.ts"
       ],
       "exports": [
         "AuthorizationRefusalReason:type",
         "AuthorizedCommand:interface",
         "CommandPayload:interface",
         "CommandTransportPort:interface",
+        "DrainResult:interface",
+        "ExecutionDegradedState:type",
+        "ExecutionQueuePort:interface",
         "ExecutionResult:interface",
         "ExecutionState:type",
+        "InMemoryExecutionQueue:class",
         "MissionRefLike:interface",
+        "QueueEntry:interface",
         "TenantScopeLike:interface",
+        "VerificationHook:type",
+        "VerificationOutcome:interface",
+        "VerifiedExecution:interface",
+        "assertExecutionNeverAuthorizes:function",
         "authorizeCommand:function",
+        "drainQueue:function",
         "executeCommand:function",
+        "executeWithVerification:function",
+        "makeQueueEntry:function",
         "makeReferenceTransport:function",
-        "referenceCapability:function"
+        "makeReferenceVerificationHook:function",
+        "referenceCapability:function",
+        "verifyAtLeastOnceIdempotencyIntersection:function"
       ]
     },
     "fleetos-evidence": {
       "owner": "worker-b",
       "files": [
-        "packages/evidence/src/index.ts"
+        "packages/evidence/src/artifact-store.ts",
+        "packages/evidence/src/index.ts",
+        "packages/evidence/src/traceability.ts"
       ],
       "exports": [
         "ActorRef:interface",
+        "ArtifactStorePort:interface",
+        "BundleAssemblyInput:interface",
+        "BundleCompletenessResult:interface",
         "CapabilityVersionRef:interface",
         "ChainBreakReason:type",
         "ChainVerificationRecord:interface",
@@ -383,11 +473,21 @@
         "EvidenceBundle:interface",
         "EvidenceChainEntry:interface",
         "EvidenceMetadata:interface",
+        "InMemoryArtifactStore:class",
         "MissionRefLike:interface",
+        "REQUIRED_LINK_KINDS:variable",
         "Sha256Port:type",
         "TenantScopeLike:interface",
+        "TraceabilityBreakReason:type",
+        "TraceabilityChain:interface",
+        "TraceabilityLink:interface",
+        "TraceabilityLinkKind:type",
+        "TraceabilityVerification:interface",
         "appendEvidence:function",
+        "assembleBundle:function",
         "buildArtifact:function",
+        "buildCompleteChain:function",
+        "buildTraceabilityChain:function",
         "bytesToHex:function",
         "computeBundleDigest:function",
         "computeEntryDigest:function",
@@ -395,12 +495,15 @@
         "hexToBytes:function",
         "sha256Hex:function",
         "utf8Bytes:function",
-        "verifyEvidenceChain:function"
+        "verifyBundleCompleteness:function",
+        "verifyEvidenceChain:function",
+        "verifyTraceabilityChain:function"
       ]
     },
     "fleetos-predictive": {
       "owner": "worker-b",
       "files": [
+        "packages/predictive/src/feature-projection.ts",
         "packages/predictive/src/index.ts"
       ],
       "exports": [
@@ -415,20 +518,29 @@
         "ProvenanceDigest:interface",
         "SemanticKind:type",
         "TenantScopeLike:interface",
+        "TimeSeriesObservation:interface",
         "UncertaintyInterval:interface",
+        "WindowedFeatureSet:interface",
+        "assertNoAuthoritativeWritePath:function",
         "buildCounterfactual:function",
+        "buildCounterfactualWithWidenedUncertainty:function",
         "buildObserved:function",
         "isHypothetical:function",
         "isObserved:function",
         "isPredicted:function",
+        "predictWithDegradation:function",
+        "projectWindowedFeatures:function",
         "referencePredict:function",
-        "referenceUncertainty:function"
+        "referenceUncertainty:function",
+        "toFeatureProjection:function",
+        "widenUncertainty:function"
       ]
     },
     "fleetos-world-model": {
       "owner": "worker-b",
       "files": [
-        "packages/world-model/src/index.ts"
+        "packages/world-model/src/index.ts",
+        "packages/world-model/src/widening.ts"
       ],
       "exports": [
         "AssetRef:interface",
@@ -436,13 +548,18 @@
         "WorldModelAdapter:interface",
         "WorldModelRepresentation:interface",
         "assertHypotheticalMarker:function",
-        "makeReferenceWorldModelAdapter:function"
+        "buildCounterfactualWithWidenedUncertainty:function",
+        "counterfactualUncertaintyIsWider:function",
+        "makeReferenceWorldModelAdapter:function",
+        "makeWideningReferenceAdapter:function",
+        "widenUncertaintyForCounterfactual:function"
       ]
     },
     "fleetos-world-context": {
       "owner": "worker-b",
       "files": [
-        "packages/world-context/src/index.ts"
+        "packages/world-context/src/index.ts",
+        "packages/world-context/src/windowing.ts"
       ],
       "exports": [
         "ObservationProvenance:interface",
@@ -450,17 +567,25 @@
         "ProjectRef:interface",
         "TenantScopeLike:interface",
         "WORLD_CONTEXT_SCHEMA_VERSION:variable",
+        "WindowedProjectProjection:interface",
+        "WindowedWorkloadProjection:interface",
         "WorkItemRef:interface",
         "WorkloadProjection:interface",
+        "filterMatureObservations:function",
         "hasValidSchemaVersion:function",
+        "isObservationMature:function",
         "projectProject:function",
-        "projectWorkload:function"
+        "projectWindowedProject:function",
+        "projectWindowedWorkload:function",
+        "projectWorkload:function",
+        "verifyWindowIntegrity:function"
       ]
     },
     "fleetos-learning": {
       "owner": "worker-b",
       "files": [
-        "packages/learning/src/index.ts"
+        "packages/learning/src/index.ts",
+        "packages/learning/src/join.ts"
       ],
       "exports": [
         "CapabilityAdoptionProposal:interface",
@@ -468,9 +593,15 @@
         "CapabilityVersionRef:interface",
         "CertificationRef:interface",
         "EvaluationCase:interface",
+        "JoinedOutcome:interface",
         "OutcomeObservation:interface",
+        "PredictedRef:interface",
         "TenantScopeLike:interface",
+        "assertNoAdoptFunction:function",
+        "computeEvaluationSummary:function",
         "evaluateCapability:function",
+        "generateAdoptionProposalFromEvaluation:function",
+        "joinOutcomesWithPredictions:function",
         "markProposalAuthorized:function",
         "markProposalRejected:function",
         "proposeAdoption:function"
@@ -479,33 +610,50 @@
     "fleetos-simulation": {
       "owner": "worker-b",
       "files": [
+        "packages/simulation/src/adoption.ts",
         "packages/simulation/src/index.ts"
       ],
       "exports": [
         "ExperimentalComparison:interface",
         "ExperimentalRunOutput:interface",
+        "SimulationAdoptionProposal:interface",
+        "SimulationDegradedState:type",
+        "SimulationResult:type",
         "SimulationScenario:interface",
         "SimulationStep:interface",
         "SimulationWorld:interface",
         "TenantScopeLike:interface",
+        "assertNoAdoptFunction:function",
         "buildComparison:function",
+        "generateSimulationAdoptionProposal:function",
         "isExperimental:function",
-        "runSimulation:function"
+        "isSimulationAdoptionProposal:function",
+        "runSimulation:function",
+        "runSimulationWithDegradation:function"
       ]
     },
     "fleetos-arena": {
       "owner": "worker-b",
       "files": [
+        "packages/integrations/arena/src/degraded.ts",
         "packages/integrations/arena/src/index.ts"
       ],
       "exports": [
         "ArenaAdapter:interface",
+        "ArenaAdoptionProposal:interface",
+        "ArenaDegradedState:type",
         "ArenaEvaluationProposal:interface",
         "ArenaEvaluationRequest:interface",
+        "ArenaEvaluationResult:type",
         "CapabilityVersionRef:interface",
         "EvaluationCase:interface",
         "TenantScopeLike:interface",
+        "assertNoSubmitOrAdopt:function",
+        "evaluateWithDegradation:function",
+        "generateArenaAdoptionProposal:function",
+        "isArenaAdoptionProposal:function",
         "isArenaEvaluationProposal:function",
+        "makeHonestReferenceArenaAdapter:function",
         "makeReferenceArenaAdapter:function"
       ]
     },

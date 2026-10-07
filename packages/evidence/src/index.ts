@@ -272,3 +272,8 @@ export function computeBundleDigest(
   const parts = `${bundleId}|${tenantId}|${[...evidenceIds].sort().join(",")}`;
   return sha256Hex(utf8Bytes(parts), port);
 }
+
+// ---------- Wave 1 (F210B) kernel extensions ----------
+
+export * from "./artifact-store.ts";
+export * from "./traceability.ts";
