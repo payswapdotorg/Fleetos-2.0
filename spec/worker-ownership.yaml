@@ -23,6 +23,7 @@ workers:
       - packages/workflow/**
       - packages/scheduler/**
       - packages/integrations/convergence/**
+      - packages/experiences/control-tower/**
       - infrastructure/**
       - spec/**
       - docs/**
@@ -54,6 +55,7 @@ workers:
       - packages/maintenance/**
       - packages/connectivity/**
       - packages/integrations/adcos/**
+      - packages/experiences/asset-field/**
       - apps/agent/**
     responsibilities:
       - device-twin
@@ -80,6 +82,7 @@ workers:
       - packages/learning/**
       - packages/simulation/**
       - packages/integrations/arena/**
+      - packages/experiences/safety-intel/**
     responsibilities:
       - guardian
       - authorization
@@ -105,6 +108,7 @@ workers:
       - packages/integrations/aurum/**
       - packages/integrations/apify/**
       - packages/integrations/vendors/**
+      - packages/experiences/work-commerce/**
     responsibilities:
       - projects
       - workloads
