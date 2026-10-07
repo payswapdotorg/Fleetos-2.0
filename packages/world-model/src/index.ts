@@ -14,17 +14,27 @@
 
 import type {
   HypotheticalValue,
+  ModelPort,
+  Prediction,
   PredictedValue,
+  ProjectionHorizon,
+  ProjectionResult,
   ProvenanceDigest,
   TenantScopeLike,
+  TwinStateInput,
   UncertaintyInterval,
 } from "@fleetos/predictive";
 
 export type {
   HypotheticalValue,
+  ModelPort,
+  Prediction,
   PredictedValue,
+  ProjectionHorizon,
+  ProjectionResult,
   ProvenanceDigest,
   TenantScopeLike,
+  TwinStateInput,
   UncertaintyInterval,
 };
 
@@ -140,3 +150,7 @@ function stableDigest(s: string): string {
 // ---------- Wave 1 (F210B) kernel extensions ----------
 
 export * from "./widening.ts";
+
+// ---------- Wave 3 (F230B) world state fold ----------
+
+export * from "./world-fold.ts";

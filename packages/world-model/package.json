@@ -6,7 +6,8 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./widening": "./src/widening.ts"
+    "./widening": "./src/widening.ts",
+    "./world-fold": "./src/world-fold.ts"
   },
   "scripts": {
     "lint": "oxlint src",
