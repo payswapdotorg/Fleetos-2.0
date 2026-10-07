@@ -180,3 +180,9 @@ export function proposeRemediation(
 
 export * from "./lifecycle.ts";
 export * from "./posture.ts";
+
+// ---------- Wave 2 (F220B) operational extensions ----------
+
+export * from "./intake.ts";
+export * from "./posture-fold.ts";
+export * from "./remediation.ts";

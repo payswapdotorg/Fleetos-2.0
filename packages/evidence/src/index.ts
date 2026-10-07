@@ -277,3 +277,7 @@ export function computeBundleDigest(
 
 export * from "./artifact-store.ts";
 export * from "./traceability.ts";
+
+// ---------- Wave 2 (F220B) operational extensions ----------
+
+export * from "./canonical-bundle.ts";

@@ -273,3 +273,7 @@ export function proposeAction(intent: ActionIntent): ActionRecord {
 export * from "./idempotency.ts";
 export * from "./audit.ts";
 export * from "./compensation.ts";
+
+// ---------- Wave 2 (F220B) operational extensions ----------
+
+export * from "./plan.ts";
