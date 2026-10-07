@@ -255,3 +255,7 @@ export function referenceUncertainty(): UncertaintyInterval {
 // ---------- Wave 1 (F210B) kernel extensions ----------
 
 export * from "./feature-projection.ts";
+
+// ---------- Wave 3 (F230B) reference twin model ----------
+
+export * from "./reference-model.ts";

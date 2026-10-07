@@ -114,3 +114,7 @@ export function hasValidSchemaVersion<P extends { readonly schemaVersion: string
 // ---------- Wave 1 (F210B) kernel extensions ----------
 
 export * from "./windowing.ts";
+
+// ---------- Wave 3 (F230B) context assembly ----------
+
+export * from "./assembly.ts";
