@@ -1,5 +1,5 @@
 {
-  "name": "zcode",
+  "name": "fleetos-2.0",
   "version": "3.14.3",
   "private": true,
   "license": "Apache-2.0",
@@ -44,7 +44,10 @@
     "architecture:check": "node scripts/architecture/architecture-check.mjs check",
     "architecture:report": "node scripts/architecture/architecture-check.mjs report",
     "architecture:baseline:update": "node scripts/architecture/architecture-check.mjs baseline:update",
-    "architecture:context": "node scripts/architecture/architecture-check.mjs context"
+    "architecture:context": "node scripts/architecture/architecture-check.mjs context",
+    "fleetos:source-of-truth": "node scripts/fleetos/source-of-truth-check.mjs",
+    "fleetos:architecture": "pnpm run fleetos:source-of-truth && pnpm run architecture:check",
+    "fleetos:verify": "pnpm run fleetos:source-of-truth && pnpm run lint && pnpm run typecheck && pnpm run build"
   },
   "dependencies": {
     "border-beam": "^1.0.1",
@@ -89,5 +92,9 @@
       "@ai-sdk/openai-compatible@2.0.60": "patches/@ai-sdk__openai-compatible@2.0.60.patch",
       "@ai-sdk/anthropic@3.0.81": "patches/@ai-sdk__anthropic@3.0.81.patch"
     }
-  }
+  },
+  "description": "FleetOS 2.0 — AI-native Operations OS built on the ZCode execution substrate.",
+  "product": "FleetOS",
+  "fleetosArchitecture": "2.0.0",
+  "fleetosSourceOfTruth": "FLEETOS-SOURCE-OF-TRUTH.md"
 }
