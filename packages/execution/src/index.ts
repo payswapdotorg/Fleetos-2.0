@@ -184,3 +184,9 @@ export function referenceCapability(id: string): Capability {
 
 export * from "./queue.ts";
 export * from "./verification.ts";
+
+// ---------- Wave 2 (F220B) operational extensions ----------
+
+export * from "./command-queue.ts";
+export * from "./ledger.ts";
+export * from "./reference-transport.ts";

@@ -7,7 +7,10 @@
   "exports": {
     ".": "./src/index.ts",
     "./queue": "./src/queue.ts",
-    "./verification": "./src/verification.ts"
+    "./verification": "./src/verification.ts",
+    "./command-queue": "./src/command-queue.ts",
+    "./ledger": "./src/ledger.ts",
+    "./reference-transport": "./src/reference-transport.ts"
   },
   "scripts": {
     "lint": "oxlint src",

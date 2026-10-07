@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./idempotency": "./src/idempotency.ts",
     "./audit": "./src/audit.ts",
-    "./compensation": "./src/compensation.ts"
+    "./compensation": "./src/compensation.ts",
+    "./plan": "./src/plan.ts"
   },
   "scripts": {
     "lint": "oxlint src",

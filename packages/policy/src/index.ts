@@ -21,3 +21,8 @@ export * from "./repository.ts";
 export * from "./decision-record.ts";
 export * from "./ledger.ts";
 export * from "./adoption.ts";
+
+// ---------- Wave 2 (F220B) operational extensions ----------
+
+export * from "./rules-engine.ts";
+export * from "./grant-chain.ts";
