@@ -8,3 +8,5 @@
 
 export * from "./contracts.js";
 export * from "./directory.js";
+export * from "./vendor-lifecycle.js";
+export * from "./capability-catalog.js";

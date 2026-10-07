@@ -11,3 +11,4 @@
 
 export * from "./contracts.js";
 export * from "./directory.js";
+export * from "./allocation-lifecycle.js";
