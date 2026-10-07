@@ -1,0 +1,129 @@
+version: 1
+
+principles:
+  worker_count: 3
+  max_active_work_item_per_worker: 1
+  shared_contract_owner: tl
+  cross_worker_imports: forbidden_in_implementation
+  cross_worker_integration: tl
+  source_of_truth: repository
+
+workers:
+  tl:
+    role: tech-lead
+    owns:
+      - apps/web/**
+      - apps/desktop/**
+      - apps/cli/**
+      - packages/control-plane/**
+      - packages/kernel/**
+      - packages/ui/**
+      - packages/search/**
+      - packages/mission/**
+      - packages/workflow/**
+      - packages/scheduler/**
+      - packages/integrations/**
+      - infrastructure/**
+      - spec/**
+      - docs/**
+      - scripts/**
+      - .github/**
+      - package.json
+      - pnpm-workspace.yaml
+      - architecture-policy.yaml
+      - AGENTS.md
+    responsibilities:
+      - architecture-conformance
+      - shared-contracts
+      - dependency-graph
+      - worker-dispatch
+      - cross-worker-integration
+      - deployment
+      - production-acceptance
+      - repo-source-of-truth-maintenance
+
+  worker-a:
+    role: edge-and-asset
+    owns:
+      - packages/identity/**
+      - packages/tenancy/**
+      - packages/assets/**
+      - packages/observations/**
+      - packages/health/**
+      - packages/recovery/**
+      - packages/maintenance/**
+      - packages/connectivity/**
+      - apps/agent/**
+    responsibilities:
+      - device-twin
+      - edge-agent
+      - observations
+      - health
+      - recovery
+      - maintenance
+      - connectivity
+      - field-mode foundations
+
+  worker-b:
+    role: safety-and-intelligence
+    owns:
+      - packages/security/**
+      - packages/policy/**
+      - packages/actions/**
+      - packages/execution/**
+      - packages/evidence/**
+      - packages/predictive/**
+      - packages/world-model/**
+      - packages/world-context/**
+      - packages/learning/**
+      - packages/simulation/**
+    responsibilities:
+      - guardian
+      - authorization
+      - execution
+      - evidence
+      - predictive-twin
+      - world-model
+      - evaluation
+      - simulation
+
+  worker-c:
+    role: work-and-commerce
+    owns:
+      - packages/work/**
+      - packages/projects/**
+      - packages/workloads/**
+      - packages/procurement/**
+      - packages/vendors/**
+      - packages/software/**
+      - packages/agent-organizations/**
+      - packages/model-gateway/**
+    responsibilities:
+      - projects
+      - workloads
+      - procurement
+      - vendors
+      - software
+      - agent organizations
+      - model routing/gateway
+
+rules:
+  contracts:
+    - workers must propose shared contract changes to tl
+    - only tl edits shared canonical contracts
+    - contract changes require architecture impact note and regression tests
+
+  integration:
+    - workers must not modify another worker's owned path
+    - cross-context tests may bind real implementations at test composition sites
+    - application composition belongs to tl
+
+  emergency:
+    - security-critical fixes may temporarily cross ownership only with tl authorization
+    - temporary cross-ownership changes must be documented and reverted or formally transferred immediately
+
+  concurrency:
+    - independent work items run concurrently
+    - dependency edges are explicit in the work catalog
+    - WIP is limited by worker ownership, not by the number of available tasks
+    - workers prepare next ready item while TL integrates current item when this does not touch another active work item
