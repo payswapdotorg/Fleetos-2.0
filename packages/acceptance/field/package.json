@@ -1,0 +1,36 @@
+{
+  "name": "@fleetos/acceptance-field",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./journeys": "./src/journeys/index.ts",
+    "./runner": "./src/runner.ts",
+    "./report": "./src/report.ts"
+  },
+  "scripts": {
+    "lint": "oxlint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/identity": "workspace:*",
+    "@fleetos/tenancy": "workspace:*",
+    "@fleetos/assets": "workspace:*",
+    "@fleetos/observations": "workspace:*",
+    "@fleetos/health": "workspace:*",
+    "@fleetos/recovery": "workspace:*",
+    "@fleetos/maintenance": "workspace:*",
+    "@fleetos/connectivity": "workspace:*",
+    "@fleetos/adcos": "workspace:*",
+    "@fleetos/sim-worlds": "workspace:*",
+    "@fleetos/experience-asset-field": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^2.1.9"
+  }
+}
