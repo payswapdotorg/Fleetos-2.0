@@ -1,0 +1,86 @@
+/**
+ * Every journey runs as a test: build a fresh deterministic world, execute
+ * the typed steps against the REAL lane packages, and require the journey
+ * to pass with every assertion green. Failing assertions are printed for
+ * diagnosis — never swallowed.
+ */
+
+import { describe, expect, it } from "vitest";
+import { JOURNEYS } from "../src/journeys/index.js";
+import { runJourney } from "../src/runner.js";
+import { canonicalJson } from "../src/journey-contracts.js";
+
+async function runAndDiagnose(journeyId: string) {
+  const journey = JOURNEYS.find((j) => j.id === journeyId);
+  if (journey === undefined) throw new Error(`unknown journey ${journeyId}`);
+  const { outcome } = await runJourney(journey);
+  if (!outcome.passed) {
+    const failed = outcome.assertionOutcomes
+      .filter((a) => !a.ok)
+      .map((a) => `${a.assertionId} actual=${canonicalJson(a.actual)} expected=${canonicalJson(a.expected)}`)
+      .join("; ");
+    const notExecuted = outcome.stepOutcomes.filter((s) => !s.executed).map((s) => s.stepId);
+    throw new Error(`journey ${journeyId} failed — assertions: [${failed}] notExecuted: [${notExecuted.join(",")}]`);
+  }
+  return outcome;
+}
+
+describe("the work/commerce/project journey corpus", () => {
+  for (const journey of JOURNEYS) {
+    it(`journey ${journey.id} passes end to end`, async () => {
+      const outcome = await runAndDiagnose(journey.id);
+      expect(outcome.passed).toBe(true);
+      expect(outcome.stepOutcomes.every((s) => s.executed && s.ok)).toBe(true);
+      expect(outcome.assertionOutcomes.every((a) => a.ok)).toBe(true);
+    });
+  }
+
+  it("create-work-order: the board digest is the view's own FNV-1a digest", async () => {
+    const { facts } = await runJourney(JOURNEYS[0]!);
+    expect(facts.get("workBoard.digest")).toMatch(/^workboard_[0-9a-f]{8}$/);
+  });
+
+  it("approve-execute: nine steps execute in order", async () => {
+    const outcome = await runAndDiagnose("approve-execute-work-order");
+    expect(outcome.stepOutcomes.length).toBe(9);
+    expect(outcome.stepOutcomes.map((s) => s.stepId)).toEqual([
+      "s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9",
+    ]);
+  });
+
+  it("stage-gated-project: the gate view digest is stable-shaped", async () => {
+    const { facts } = await runJourney(JOURNEYS[2]!);
+    expect(facts.get("stageGate.digest")).toMatch(/^stagegates_[0-9a-f]{8}$/);
+  });
+
+  it("workload-allocation: the rollup digest is stable-shaped", async () => {
+    const { facts } = await runJourney(JOURNEYS[3]!);
+    expect(facts.get("wlRollup.digest")).toMatch(/^workload_[0-9a-f]{8}$/);
+  });
+
+  it("procure-spine: the quote score view carries the bps decomposition digest", async () => {
+    const { facts } = await runJourney(JOURNEYS[4]!);
+    expect(facts.get("quotes.digest")).toMatch(/^quotescore_[0-9a-f]{8}$/);
+  });
+
+  it("vendor-management: the KPI rollup digest is stable-shaped", async () => {
+    const { facts } = await runJourney(JOURNEYS[7]!);
+    expect(facts.get("kpi.digest")).toMatch(/^vendorkpi_[0-9a-f]{8}$/);
+  });
+
+  it("software-entitlements: the seat view digest is stable-shaped", async () => {
+    const { facts } = await runJourney(JOURNEYS[8]!);
+    expect(facts.get("seats.digest")).toMatch(/^seats_[0-9a-f]{8}$/);
+  });
+
+  it("org-optimization-review: the usage rollup digest is stable-shaped", async () => {
+    const { facts } = await runJourney(JOURNEYS[11]!);
+    expect(facts.get("usageRollup.digest")).toMatch(/^usagerollup_[0-9a-f]{8}$/);
+  });
+
+  it("cross-role-handoff: twenty-three steps execute and the chain closes", async () => {
+    const outcome = await runAndDiagnose("cross-role-handoff");
+    expect(outcome.stepOutcomes.length).toBe(23);
+    expect(outcome.passed).toBe(true);
+  });
+});

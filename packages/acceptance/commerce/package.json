@@ -1,0 +1,38 @@
+{
+  "name": "@fleetos/acceptance-commerce",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./journeys": "./src/journeys/index.js",
+    "./runner": "./src/runner.ts",
+    "./report": "./src/report.ts"
+  },
+  "description": "FleetOS Wave 7 acceptance lane C — machine-run work/commerce/project journeys over the REAL worker-C lane packages' public entry points.",
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/work": "workspace:*",
+    "@fleetos/projects": "workspace:*",
+    "@fleetos/workloads": "workspace:*",
+    "@fleetos/procurement": "workspace:*",
+    "@fleetos/vendors": "workspace:*",
+    "@fleetos/software": "workspace:*",
+    "@fleetos/agent-organizations": "workspace:*",
+    "@fleetos/model-gateway": "workspace:*",
+    "@fleetos/experience-work-commerce": "workspace:*",
+    "@fleetos/external-vendors": "workspace:*",
+    "@fleetos/apify": "workspace:*",
+    "@fleetos/aurum": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^1.6.0"
+  }
+}
