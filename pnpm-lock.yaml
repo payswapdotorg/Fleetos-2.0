@@ -935,6 +935,25 @@ importers:
         specifier: ^2.1.9
         version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
 
+  packages/experiences/engineering-lab:
+    dependencies:
+      '@fleetos/agent-organizations':
+        specifier: workspace:*
+        version: link:../../agent-organizations
+      '@fleetos/sim-worlds':
+        specifier: workspace:*
+        version: link:../../sim-worlds
+      '@fleetos/simulation':
+        specifier: workspace:*
+        version: link:../../simulation
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
+
   packages/experiences/safety-intel:
     dependencies:
       '@fleetos/actions':
