@@ -1,0 +1,33 @@
+{
+  "name": "@fleetos/integration-health",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./health-assembly": "./src/health-assembly.ts",
+    "./retry-law": "./src/retry-law.ts",
+    "./idempotency-law": "./src/idempotency-law.ts",
+    "./convergence": "./src/convergence.ts"
+  },
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/adcos": "workspace:*",
+    "@fleetos/connectivity": "workspace:*",
+    "@fleetos/integrations/arena": "workspace:*",
+    "@fleetos/learning": "workspace:*",
+    "@fleetos/aurum": "workspace:*",
+    "@fleetos/apify": "workspace:*",
+    "@fleetos/external-vendors": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^2.1.9"
+  }
+}
