@@ -615,6 +615,25 @@ importers:
 
   apps/zcode-cli/tools/typescript: {}
 
+  packages/acceptance/adoption:
+    dependencies:
+      '@fleetos/acceptance-commerce':
+        specifier: workspace:*
+        version: link:../commerce
+      '@fleetos/acceptance-field':
+        specifier: workspace:*
+        version: link:../field
+      '@fleetos/acceptance-security':
+        specifier: workspace:*
+        version: link:../security
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^1.6.0
+        version: 1.6.1(@types/node@25.6.0)(lightningcss@1.32.0)
+
   packages/acceptance/commerce:
     dependencies:
       '@fleetos/agent-organizations':
