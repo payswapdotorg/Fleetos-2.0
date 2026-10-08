@@ -4,11 +4,22 @@
 - **Owner:** Worker B (Safety + Intelligence)
 - **Base commit:** `15289ec` (branch `work/f250b`, the TL's Wave-5 dispatch commit)
 - **Branch:** `work/f250b`
-- **Date:** 2026-10-07
-- **Session note:** single agent session (Task `1-b`, agent `Worker B (F250B)`).
-  Baselines machine-re-verified BEFORE the first edit; every gate below was
-  run in this session after the last edit. Nothing was claimed that was not
-  run (HONESTY LAW).
+- **Date:** 2026-10-07 (implementation) / 2026-10-08 (continuation verification)
+- **Session note:** CONTINUATION session (Task `1-b`, agent `Worker B (F250B)`).
+  The prior session wrote the full implementation, committed it as `a56f8f1`
+  with the packet commit message and pushed — but hit its deadline BEFORE the
+  worklog entry. This session inherited that state: `git status` clean, no
+  stashes; it machine-verified the TRUE HEAD baseline from a clean state
+  (both packages' full suites green at `a56f8f1`, counts below), re-ran the
+  pre-existing (base-`15289ec`-identical) test files to re-verify the
+  baselines (arena 24, learning 25 — green), reviewed EVERY committed file
+  against the packet, re-ran every gate, made ONE comment-only precision fix
+  (two doc lines in `adoption-lifecycle.ts` that misstated the legal
+  rejection domain as "proposed|guardian-review"; the exported, machine-tested
+  `ADOPTION_TRANSITIONS` table correctly allows rejection only from
+  `guardian-review` — zero behavior change, §8), committed the follow-up and
+  appended the worklog entry. Nothing below is claimed that was not run
+  (HONESTY LAW).
 
 ## 1. Owned paths touched
 
@@ -35,7 +46,7 @@ packages/integrations/arena/src/certification.ts        (new, 285 lines)
 packages/integrations/arena/tests/{case-registry,evaluation-runs,proposal-scoring,certification}.test.ts (new)
 packages/learning/src/outcome-intake.ts                (new, 265 lines)
 packages/learning/src/evaluation-summary.ts             (new, 184 lines)
-packages/learning/src/adoption-lifecycle.ts             (new, 384 lines)
+packages/learning/src/adoption-lifecycle.ts             (new; 384 lines at `a56f8f1`, 387 after the continuation session's comment-precision fix — still ≤ 400)
 packages/learning/tests/{outcome-intake,evaluation-summary,adoption-lifecycle}.test.ts (new)
 packages/integrations/arena/{src/degraded.ts,src/index.ts,package.json} (modified, ADDITIVE)
 packages/learning/{src/index.ts,package.json}           (modified, ADDITIVE)
@@ -367,6 +378,11 @@ Found 0 warnings and 0 errors.
 Finished in 12ms on 5 files using 2 threads.
 ```
 
+Both packages' `test` + `typecheck` + `lint` gates were RE-RUN in the
+continuation session at the final commit (after the comment-only fix) with
+identical results: arena 94/94 + typecheck exit 0 + lint 0/0; learning 78/78
++ typecheck exit 0 + lint 0/0.
+
 ## 5. Boundary verification (machine-tested)
 
 The packet's own-lane self-check, run exactly as specified:
@@ -508,7 +524,11 @@ and threw at runtime — fixed with a real module-private `Symbol()`; (4) two
 fixture evaluationIds collided (the Wave-0 `evaluateCapability` derives ids
 from tenant+capability) — fixtures now override `evaluationId`. All were
 fixture/API-shape corrections caught by the tests themselves; no reverts, no
-scope drops, no failed gate after the fixes.
+scope drops, no failed gate after the fixes. Continuation-session finding:
+two doc-comment lines in `adoption-lifecycle.ts` misstated the legal
+rejection domain ("proposed|guardian-review") vs the machine-tested
+`ADOPTION_TRANSITIONS` table (rejection only from `guardian-review`) —
+corrected comment-only; zero behavior change; all gates re-run green.
 
 ## 9. Verification commands for TL re-run
 

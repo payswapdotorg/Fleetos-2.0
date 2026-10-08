@@ -10,8 +10,9 @@
  *     `GuardianAuthorization` record; this module verifies its shape and
  *     applies the existing `markProposalAuthorized` law. Agents, workflows
  *     and models cannot self-authorize.
- *   - rejectAdoption: proposed|guardian-review -> rejected, with a reason
- *     code (via the existing `markProposalRejected`).
+ *   - rejectAdoption: guardian-review -> rejected, with a reason code
+ *     (via the existing `markProposalRejected`). Rejection requires Guardian
+ *     review first — rejecting from "proposed" is an illegal transition.
  *   - completeAdoption: authorized -> adopted, evidence-gated.
  *   - withdrawAdoption: proposed|guardian-review|authorized -> withdrawn.
  *   - rejected / adopted / withdrawn are TERMINAL.
@@ -259,7 +260,9 @@ export function authorizeAdoption(
   };
 }
 
-/** proposed|guardian-review -> rejected, with a reason code (idempotent). */
+/** guardian-review -> rejected, with a reason code (idempotent). Rejecting
+ * from "proposed" is illegal — the packet lifecycle routes every rejection
+ * through Guardian review first. */
 export function rejectAdoption(record: AdoptionLifecycleRecord, rejection: AdoptionRejection): LifecycleResult {
   if (rejection.note === "" || rejection.rejectedBy === "") {
     return { ok: false, code: "invalid-input", reason: "rejection requires a non-empty note and rejecter" };
