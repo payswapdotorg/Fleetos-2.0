@@ -615,6 +615,52 @@ importers:
 
   apps/zcode-cli/tools/typescript: {}
 
+  packages/acceptance/security:
+    dependencies:
+      '@fleetos/actions':
+        specifier: workspace:*
+        version: link:../../actions
+      '@fleetos/arena':
+        specifier: workspace:*
+        version: link:../../integrations/arena
+      '@fleetos/evidence':
+        specifier: workspace:*
+        version: link:../../evidence
+      '@fleetos/execution':
+        specifier: workspace:*
+        version: link:../../execution
+      '@fleetos/experience-safety-intel':
+        specifier: workspace:*
+        version: link:../../experiences/safety-intel
+      '@fleetos/learning':
+        specifier: workspace:*
+        version: link:../../learning
+      '@fleetos/policy':
+        specifier: workspace:*
+        version: link:../../policy
+      '@fleetos/predictive':
+        specifier: workspace:*
+        version: link:../../predictive
+      '@fleetos/security':
+        specifier: workspace:*
+        version: link:../../security
+      '@fleetos/simulation':
+        specifier: workspace:*
+        version: link:../../simulation
+      '@fleetos/world-context':
+        specifier: workspace:*
+        version: link:../../world-context
+      '@fleetos/world-model':
+        specifier: workspace:*
+        version: link:../../world-model
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
+
   packages/actions:
     dependencies:
       '@fleetos/policy':
