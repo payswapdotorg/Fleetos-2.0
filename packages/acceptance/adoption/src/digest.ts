@@ -1,0 +1,86 @@
+/**
+ * @fleetos/acceptance-adoption — local digest + canonical-JSON helpers.
+ *
+ * LOCAL COPY of the acceptance family's FNV-1a digest convention (the
+ * canonical home is TL-owned tower-core; each acceptance package keeps a
+ * local copy — same structural seam decision as F270A `determinism.ts` and
+ * F270B/C `journey-contracts.ts`; see docs/evidence/F260A §S1). Hoisting
+ * this into a shared digest contract remains a TL decision.
+ *
+ * Pure deterministic TS. No clock, no randomness, no network.
+ */
+
+const FNV_OFFSET = 0x811c9dc5;
+const FNV_PRIME = 0x01000193;
+
+/** 32-bit FNV-1a over a UTF-16 string, hex, zero-padded to 8 chars. */
+export function fnv1a(s: string): string {
+  let h = FNV_OFFSET;
+  for (let i = 0; i < s.length; i += 1) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, FNV_PRIME) >>> 0;
+  }
+  return h.toString(16).padStart(8, "0");
+}
+
+/** Digest-part vocabulary — unit-separator-joined before hashing. */
+export type DigestPart = string | number | boolean | null | undefined;
+
+function partToString(part: DigestPart): string {
+  return part === undefined ? "" : String(part);
+}
+
+/** FNV-1a over unit-separator-joined parts (the sim-worlds convention). */
+export function fnv1a32(parts: ReadonlyArray<DigestPart>): string {
+  return fnv1a(parts.map(partToString).join(""));
+}
+
+/**
+ * Canonical JSON for digesting: object keys recursively sorted (input key
+ * order is irrelevant), arrays kept in order, `undefined` members skipped
+ * (JSON.stringify semantics). Accepts only JSON-shaped values.
+ */
+export function canonicalJson(value: unknown): string {
+  return stableStringify(value);
+}
+
+function stableStringify(value: unknown): string {
+  if (value === null) return "null";
+  switch (typeof value) {
+    case "string":
+      return JSON.stringify(value);
+    case "number":
+    case "boolean":
+      return String(value);
+    case "object": {
+      if (Array.isArray(value)) {
+        return `[${value.map((v) => stableStringify(v ?? null)).join(",")}]`;
+      }
+      const record = value as Record<string, unknown>;
+      const keys = Object.keys(record)
+        .filter((k) => record[k] !== undefined)
+        .sort();
+      const body = keys
+        .map((k) => `${JSON.stringify(k)}:${stableStringify(record[k])}`)
+        .join(",");
+      return `{${body}}`;
+    }
+    default:
+      return "null";
+  }
+}
+
+/** Deep structural equality via canonical serialization (order-insensitive). */
+export function deepEquals(a: unknown, b: unknown): boolean {
+  return stableStringify(a) === stableStringify(b);
+}
+
+/** Byte-identity comparison via canonical serialization. */
+export function byteIdentical(a: unknown, b: unknown): boolean {
+  return stableStringify(a) === stableStringify(b);
+}
+
+/** Scope-prefixed digest over canonical JSON — the report digest form. */
+export function digestOf(scope: string, parts: object): string {
+  return fnv1a(`${scope}|v1|${stableStringify(parts)}`);
+}

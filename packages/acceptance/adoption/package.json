@@ -1,0 +1,29 @@
+{
+  "name": "@fleetos/acceptance-adoption",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./industries": "./src/industries.ts",
+    "./run": "./src/adoption-run.ts",
+    "./report": "./src/report.ts"
+  },
+  "description": "FleetOS Wave 7 TL lane — full industry adoption simulation + deployment acceptance: 10 industries, 30 firm workspaces, deterministic verdicts (SWITCH-ONLY/MAIN-INTERFACE/COMPLEMENT/RETAIN) over the REAL F270A/F270B/F270C acceptance corpora.",
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/acceptance-commerce": "workspace:*",
+    "@fleetos/acceptance-field": "workspace:*",
+    "@fleetos/acceptance-security": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^1.6.0"
+  }
+}
