@@ -2,6 +2,7 @@ packages:
   - packages/*
   - packages/integrations/*
   - packages/experiences/*
+  - packages/acceptance/*
   - apps/agent
   - apps/zcode-cli
   - apps/zcode-cli/packages/*

@@ -59,6 +59,7 @@ workers:
       - packages/integrations/adcos/**
       - packages/experiences/asset-field/**
       - packages/sim-worlds/**
+      - packages/acceptance/field/**
       - apps/agent/**
     responsibilities:
       - device-twin
@@ -86,6 +87,7 @@ workers:
       - packages/simulation/**
       - packages/integrations/arena/**
       - packages/experiences/safety-intel/**
+      - packages/acceptance/security/**
     responsibilities:
       - guardian
       - authorization
@@ -112,6 +114,7 @@ workers:
       - packages/integrations/apify/**
       - packages/integrations/vendors/**
       - packages/experiences/work-commerce/**
+      - packages/acceptance/commerce/**
     responsibilities:
       - projects
       - workloads
