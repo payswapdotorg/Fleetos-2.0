@@ -1,0 +1,30 @@
+{
+  "name": "@fleetos/experience-engineering-lab",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./lab-state": "./src/lab-state.ts",
+    "./experiment-views": "./src/experiment-views.ts",
+    "./benchmark-views": "./src/benchmark-views.ts",
+    "./optimization-views": "./src/optimization-views.ts",
+    "./command-intents": "./src/command-intents.ts"
+  },
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/sim-worlds": "workspace:*",
+    "@fleetos/simulation": "workspace:*",
+    "@fleetos/agent-organizations": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^2.1.9"
+  }
+}
