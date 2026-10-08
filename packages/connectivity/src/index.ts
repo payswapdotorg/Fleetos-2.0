@@ -2,3 +2,7 @@ export * from "./connectivity.js";
 export * from "./kernel.js";
 export * from "./posture.js";
 export * from "./posture-machine.js";
+export * from "./intent-lifecycle.js";
+export * from "./intent-journal.js";
+export * from "./intent-registry.js";
+export * from "./posture-rollup.js";
