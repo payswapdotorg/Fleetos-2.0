@@ -16,3 +16,8 @@ export * from "./roles.js";
 export * from "./budgets.js";
 export * from "./org-config.js";
 export * from "./org-snapshots.js";
+export * from "./optimization-inputs.js";
+export * from "./role-allocator.js";
+export * from "./budget-rebalancer.js";
+export * from "./routing-optimizer.js";
+export * from "./what-if.js";

@@ -37,11 +37,17 @@ const LANE_ROOTS = [
   "packages/integrations/vendors",
 ] as const;
 
-// The ONLY @fleetos/* packages this lane may import from. In Wave 0 this is
-// intentionally empty: each worker-c package is self-contained and may not
-// import even its sibling worker-c packages at runtime (each is an
-// independent bounded-context skeleton).
-const FLEETOS_ALLOWLIST: readonly string[] = [];
+// The ONLY @fleetos/* packages this lane may import from. Wave 0 kept this
+// empty: each worker-c package was a self-contained bounded-context
+// skeleton. F260C (TL packet, Wave 6 lane C) explicitly authorizes
+// `@fleetos/agent-organizations` to build on the REAL model-gateway
+// implementations (usage-ledger excerpt verification + registry/routing/
+// fallback-ladder reuse through the PUBLIC entry point). This allowlist
+// entry is that authorization made machine-checked — it is the ONLY
+// intra-lane runtime dependency and is surfaced as a contract delta for
+// TL adjudication in docs/evidence/F260C/report.md. Every other lane
+// package remains self-contained.
+const FLEETOS_ALLOWLIST: readonly string[] = ["@fleetos/model-gateway"];
 
 const FORBIDDEN_PREFIXES = ["@zcode/"];
 
@@ -132,5 +138,22 @@ describe("lane C boundary scan", () => {
       if (typeof manifest.name === "string") declared.push(manifest.name);
     }
     expect(declared.sort()).toEqual(expected.sort());
+  });
+
+  it("scopes the model-gateway seam to agent-organizations only", async () => {
+    // F260C authorization narrowed to a machine check: ONLY
+    // packages/agent-organizations may import @fleetos/model-gateway.
+    const violators: string[] = [];
+    for (const laneRoot of LANE_ROOTS) {
+      if (laneRoot === "packages/agent-organizations") continue;
+      const files = await walk(join(REPO_ROOT, laneRoot));
+      for (const file of files) {
+        const imports = await collectImports(file);
+        if (imports.includes("@fleetos/model-gateway")) {
+          violators.push(relative(REPO_ROOT, file));
+        }
+      }
+    }
+    expect(violators, `model-gateway imports outside agent-organizations:\n${violators.join("\n")}`).toEqual([]);
   });
 });
