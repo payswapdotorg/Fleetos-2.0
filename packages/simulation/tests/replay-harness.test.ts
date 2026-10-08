@@ -4,17 +4,13 @@
  * fail-closed, the ModelPort seam.
  */
 import { describe, it, expect } from "vitest";
-import { makeReferenceModelPort } from "@fleetos/predictive";
 import type { ModelPort, ProjectionResult } from "@fleetos/predictive";
 import { checkpointWorld } from "@fleetos/world-model";
 import { replayJournal, resumeReplay, isReplayRun } from "../src/replay-harness.ts";
 import {
-  CONTEXT_FIELDS,
-  ENVELOPE,
   INVOCATION,
   OTHER_TENANT,
   TENANT,
-  standardCase,
   standardJournal,
   steepCase,
 } from "./benchmark-fixtures.ts";
