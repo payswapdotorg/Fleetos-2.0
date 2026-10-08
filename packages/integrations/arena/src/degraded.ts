@@ -19,12 +19,25 @@ import type {
 } from "./index.ts";
 import { makeReferenceArenaAdapter } from "./index.ts";
 
-/** Arena degraded state — honest, machine-stable. */
+/** Arena degraded state — honest, machine-stable.
+ *
+ * Wave 5 (F250B) EXTENDS the vocabulary (never duplicates it) with the
+ * evaluation-pipeline states: partial/foreign case results, the evidence
+ * floor, unscored runs, and revoked certifications. All pre-existing
+ * members keep their meaning; consumers only reading the Wave-1 members
+ * are unaffected (additive union extension).
+ */
 export type ArenaDegradedState =
   | "empty_case_set"
   | "tenant_mismatch"
   | "capability_missing"
-  | "adapter_unavailable";
+  | "adapter_unavailable"
+  // Wave 5 (F250B) additions:
+  | "partial_case_set"
+  | "foreign_case_result"
+  | "insufficient_evidence"
+  | "run_not_scored"
+  | "certification_revoked";
 
 /** Arena evaluation result — either a proposal or a degraded state. */
 export type ArenaEvaluationResult =

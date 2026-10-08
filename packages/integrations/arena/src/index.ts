@@ -104,3 +104,10 @@ export function isArenaEvaluationProposal(v: unknown): v is ArenaEvaluationPropo
 // ---------- Wave 1 (F210B) kernel extensions ----------
 
 export * from "./degraded.ts";
+
+// ---------- Wave 5 (F250B) operational-truth extensions ----------
+
+export * from "./case-registry.ts";
+export * from "./evaluation-runs.ts";
+export * from "./proposal-scoring.ts";
+export * from "./certification.ts";

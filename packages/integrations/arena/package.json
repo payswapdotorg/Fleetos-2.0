@@ -4,7 +4,13 @@
   "private": true,
   "license": "Apache-2.0",
   "type": "module",
-  "exports": { ".": "./src/index.ts" },
+  "exports": {
+    ".": "./src/index.ts",
+    "./case-registry": "./src/case-registry.ts",
+    "./evaluation-runs": "./src/evaluation-runs.ts",
+    "./proposal-scoring": "./src/proposal-scoring.ts",
+    "./certification": "./src/certification.ts"
+  },
   "scripts": {
     "lint": "oxlint src",
     "typecheck": "tsc -p tsconfig.json --noEmit",

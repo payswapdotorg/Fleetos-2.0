@@ -167,3 +167,9 @@ export function markProposalRejected(proposal: CapabilityAdoptionProposal): Capa
 // ---------- Wave 1 (F210B) kernel extensions ----------
 
 export * from "./join.ts";
+
+// ---------- Wave 5 (F250B) operational-truth extensions ----------
+
+export * from "./outcome-intake.ts";
+export * from "./evaluation-summary.ts";
+export * from "./adoption-lifecycle.ts";
