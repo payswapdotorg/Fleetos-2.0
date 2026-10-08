@@ -6,13 +6,23 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./adoption": "./src/adoption.ts"
+    "./adoption": "./src/adoption.ts",
+    "./benchmark-definition": "./src/benchmark-definition.ts",
+    "./replay-harness": "./src/replay-harness.ts",
+    "./scoring": "./src/scoring.ts",
+    "./safety-benchmarks": "./src/safety-benchmarks.ts",
+    "./benchmark-report": "./src/benchmark-report.ts"
   },
   "scripts": {
     "lint": "oxlint src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "build": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/predictive": "workspace:*",
+    "@fleetos/world-context": "workspace:*",
+    "@fleetos/world-model": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^6.0.2",
