@@ -14,7 +14,7 @@ import {
 describe("journey corpus shape", () => {
   it("has at least 12 distinct journeys", () => {
     expect(JOURNEYS.length).toBeGreaterThanOrEqual(12);
-    expect(JOURNEYS.length).toBe(14);
+    expect(JOURNEYS.length).toBe(15);
   });
 
   it("is assembled from the three journey files without loss", () => {

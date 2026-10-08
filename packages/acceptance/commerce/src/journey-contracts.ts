@@ -50,6 +50,7 @@ export const JOURNEY_CAPABILITIES: readonly string[] = [
   "optimization-review",
   "cross-role-handoff",
   "tenant-isolation",
+  "settlement-adapter",
 ] as const;
 
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
@@ -165,7 +166,12 @@ export type OrgStep =
   | (JourneyStepBase & { readonly kind: "org-what-if" })
   | (JourneyStepBase & { readonly kind: "org-budget-board"; readonly computedAt: string });
 
-export type JourneyStep = WorkStep | CommerceStep | OrgStep;
+export type AurumStep =
+  | (JourneyStepBase & { readonly kind: "aurum-invoke"; readonly intent: string; readonly idempotencyKey: string; readonly foreignTenant?: boolean })
+  | (JourneyStepBase & { readonly kind: "aurum-outage-invoke"; readonly intent: string; readonly idempotencyKey: string })
+  | (JourneyStepBase & { readonly kind: "aurum-boundary"; readonly projectionKind: string });
+
+export type JourneyStep = WorkStep | CommerceStep | OrgStep | AurumStep;
 
 // ---------------------------------------------------------------------------
 // The journey.

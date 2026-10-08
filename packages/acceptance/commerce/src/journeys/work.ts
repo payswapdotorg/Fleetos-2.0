@@ -138,7 +138,7 @@ export const workloadAllocationJourney: AcceptanceJourney = {
     eq("a5", "wl.lifecycle.reservedUnits", 4, "committing reserved exactly the record's 4 units"),
     eq("a6", "wl.window.invalidCount", 1, "the inverted window is invalid"),
     eq("a7", "wl.window.overlapCount", 1, "exactly one overlap pair is detected"),
-    eq("a8", "wl.window.overlapPairs", ["w-1&w-2"], "the overlap pair is reported lexically"),
+    deq("a8", "wl.window.overlapPairs", ["w-1&w-2"], "the overlap pair is reported lexically"),
     eq("a9", "wl.window.tieBreakRule", "window-id-lexical", "the overlap carries the deterministic tie-break rule"),
     eq("a10", "wlRollup.ok", true, "the REAL workload rollup view builds"),
     eq("a11", "wlRollup.usedUnits", 10, "the rollup shows 10 used units"),
