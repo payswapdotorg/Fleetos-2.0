@@ -15,41 +15,15 @@
  *   - honest degraded states (UNAVAILABLE vs REF_UNKNOWN);
  *   - idempotency-key-based deduplication;
  *   - boundary machine-tests (external systems never own domain truth).
+ *
+ * Wave 5 operational-truth grade (F250C): tenant validation extracted to
+ * `./tenant.js`; external vendor catalog sync + capability verification +
+ * commercial scorecards. Public surface unchanged — Wave 1 exports are
+ * preserved and the additions are purely additive.
  */
 
-export interface TenantScope {
-  readonly tenantId: string;
-}
-
-export type TenantValidation =
-  | { ok: true; scope: TenantScope }
-  | { ok: false; reasonCode: TenantReasonCode };
-
-export type TenantReasonCode =
-  | "TENANT_SCOPE_MISSING"
-  | "TENANT_ID_EMPTY"
-  | "TENANT_ID_TOO_LONG"
-  | "TENANT_ID_INVALID_CHARS";
-
-const TENANT_PATTERN = /^[A-Za-z0-9_-]+$/;
-
-export function validateTenantScope(scope: unknown): TenantValidation {
-  if (scope === null || typeof scope !== "object") {
-    return { ok: false, reasonCode: "TENANT_SCOPE_MISSING" };
-  }
-  const candidate = scope as Record<string, unknown>;
-  const tenantId = candidate["tenantId"];
-  if (typeof tenantId !== "string" || tenantId.length === 0) {
-    return { ok: false, reasonCode: "TENANT_ID_EMPTY" };
-  }
-  if (tenantId.length > 128) {
-    return { ok: false, reasonCode: "TENANT_ID_TOO_LONG" };
-  }
-  if (!TENANT_PATTERN.test(tenantId)) {
-    return { ok: false, reasonCode: "TENANT_ID_INVALID_CHARS" };
-  }
-  return { ok: true, scope: { tenantId } };
-}
+export * from "./tenant.js";
+import { validateTenantScope, type TenantScope } from "./tenant.js";
 
 // ---------------------------------------------------------------------------
 // ExternalProjection — tagged kind "external-projection" to assert in
@@ -185,3 +159,12 @@ export function projectionDoesNotOwnDomainTruth(
 ): boolean {
   return !DOMAIN_ID_KINDS.has(p.kind);
 }
+
+// ---------------------------------------------------------------------------
+// Wave 5 (F250C) — operational-truth grade additions.
+// ---------------------------------------------------------------------------
+
+export * from "./digest.js";
+export * from "./catalog-sync.js";
+export * from "./verification.js";
+export * from "./scorecards.js";

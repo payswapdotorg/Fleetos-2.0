@@ -1,5 +1,5 @@
 /**
- * @fleetos/aurum — Aurum adapter seam (Wave 1 kernel-grade).
+ * @fleetos/aurum — Aurum adapter seam.
  *
  * Laws:
  *   A1  — no business truth in adapter.
@@ -7,45 +7,18 @@
  *   A8  — tenant isolation, fail-closed.
  *   A20 — no cross-boundary implementation imports.
  *
- * Wave 1 kernel-grade additions over Wave 0 (F200C):
- *   - retry/idempotency contracts at the seam;
- *   - honest degraded states (UNAVAILABLE vs DEGRADED vs REFUSED);
- *   - idempotency-key-based deduplication.
+ * Wave 1 kernel-grade (F200C/F210C): retry/idempotency contracts at the
+ * seam; honest degraded states; idempotency-key deduplication.
+ *
+ * Wave 5 operational-truth grade (F250C): tenant validation + digest
+ * helpers extracted to dedicated modules; delta-sync engine
+ * (sync-session + delta-apply + sync-reconciliation). Public surface is
+ * unchanged — the Wave 1 exports are preserved and the additions are
+ * purely additive.
  */
 
-export interface TenantScope {
-  readonly tenantId: string;
-}
-
-export type TenantValidation =
-  | { ok: true; scope: TenantScope }
-  | { ok: false; reasonCode: TenantReasonCode };
-
-export type TenantReasonCode =
-  | "TENANT_SCOPE_MISSING"
-  | "TENANT_ID_EMPTY"
-  | "TENANT_ID_TOO_LONG"
-  | "TENANT_ID_INVALID_CHARS";
-
-const TENANT_PATTERN = /^[A-Za-z0-9_-]+$/;
-
-export function validateTenantScope(scope: unknown): TenantValidation {
-  if (scope === null || typeof scope !== "object") {
-    return { ok: false, reasonCode: "TENANT_SCOPE_MISSING" };
-  }
-  const candidate = scope as Record<string, unknown>;
-  const tenantId = candidate["tenantId"];
-  if (typeof tenantId !== "string" || tenantId.length === 0) {
-    return { ok: false, reasonCode: "TENANT_ID_EMPTY" };
-  }
-  if (tenantId.length > 128) {
-    return { ok: false, reasonCode: "TENANT_ID_TOO_LONG" };
-  }
-  if (!TENANT_PATTERN.test(tenantId)) {
-    return { ok: false, reasonCode: "TENANT_ID_INVALID_CHARS" };
-  }
-  return { ok: true, scope: { tenantId } };
-}
+export * from "./tenant.js";
+import { validateTenantScope, type TenantScope } from "./tenant.js";
 
 // ---------------------------------------------------------------------------
 // Structural port — AurumPort.
@@ -159,3 +132,12 @@ export function aurumDoesNotOwnDomainTruth(
   if (typeof p.kind !== "string") return true;
   return !domainKinds.includes(p.kind);
 }
+
+// ---------------------------------------------------------------------------
+// Wave 5 (F250C) — delta-sync engine at operational-truth grade.
+// ---------------------------------------------------------------------------
+
+export * from "./digest.js";
+export * from "./delta-apply.js";
+export * from "./sync-session.js";
+export * from "./sync-reconciliation.js";
