@@ -25,6 +25,7 @@ workers:
       - packages/integrations/convergence/**
       - packages/experiences/control-tower/**
       - packages/experiences/engineering-lab/**
+      - packages/acceptance/adoption/**
       - packages/integrations/health/**
       - infrastructure/**
       - spec/**
