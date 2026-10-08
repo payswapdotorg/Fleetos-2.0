@@ -6,7 +6,10 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./join": "./src/join.ts"
+    "./join": "./src/join.ts",
+    "./outcome-intake": "./src/outcome-intake.ts",
+    "./evaluation-summary": "./src/evaluation-summary.ts",
+    "./adoption-lifecycle": "./src/adoption-lifecycle.ts"
   },
   "scripts": {
     "lint": "oxlint src",
