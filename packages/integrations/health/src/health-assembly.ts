@@ -50,7 +50,7 @@ import {
   type ArenaAdapter,
   type ArenaDegradedState,
   type ArenaEvaluationRequest,
-} from "@fleetos/integrations/arena";
+} from "@fleetos/arena";
 import { summarizeCapabilityEvaluations, type CapabilityEvaluation } from "@fleetos/learning";
 import { reconcileProjectionSet, type ExternalProjectionSnapshot, type ProjectionStore } from "@fleetos/aurum";
 import { foldRunJournal, verifyRunJournalChain, type RunJournal } from "@fleetos/apify";

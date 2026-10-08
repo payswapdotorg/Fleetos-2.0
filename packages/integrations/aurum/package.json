@@ -3,7 +3,13 @@
   "version": "2.0.0-alpha.0",
   "license": "Apache-2.0",
   "type": "module",
-  "description": "FleetOS Aurum adapter seam — structural port + deterministic reference adapter (no network), honest degraded states.",
+  "exports": {
+    ".": "./src/index.ts",
+    "./sync-session": "./src/sync-session.ts",
+    "./delta-apply": "./src/delta-apply.ts",
+    "./sync-reconciliation": "./src/sync-reconciliation.ts"
+  },
+  "description": "FleetOS Aurum adapter seam \u2014 structural port + deterministic reference adapter (no network), honest degraded states.",
   "scripts": {
     "lint": "oxlint src tests",
     "typecheck": "tsc -p tsconfig.json --noEmit",

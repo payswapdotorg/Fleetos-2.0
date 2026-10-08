@@ -3,7 +3,7 @@
  *
  * The integration-plane composition package over the seven Wave-5 adapter
  * lanes (`@fleetos/adcos`, `@fleetos/connectivity`,
- * `@fleetos/integrations/arena`, `@fleetos/learning`, `@fleetos/aurum`,
+ * `@fleetos/arena`, `@fleetos/learning`, `@fleetos/aurum`,
  * `@fleetos/apify`, `@fleetos/external-vendors`):
  *
  *   - `health-assembly` — the tenant-scoped integration-plane health view

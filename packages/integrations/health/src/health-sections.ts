@@ -29,7 +29,7 @@ import type {
   AdapterHealthReasonCode,
   SessionHealthSummary,
 } from "@fleetos/adcos";
-import type { ArenaDegradedState } from "@fleetos/integrations/arena";
+import type { ArenaDegradedState } from "@fleetos/arena";
 import type { CapabilityEvaluationSummary } from "@fleetos/learning";
 import type { ReconciliationClass, ReconciliationReport } from "@fleetos/aurum";
 import type { RunRegistryState } from "@fleetos/apify";

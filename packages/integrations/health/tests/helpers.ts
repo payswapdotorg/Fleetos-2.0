@@ -41,7 +41,7 @@ import {
   type VendorCatalog,
   type VendorMetricRecord,
 } from "@fleetos/external-vendors";
-import type { ArenaEvaluationRequest } from "@fleetos/integrations/arena";
+import type { ArenaEvaluationRequest } from "@fleetos/arena";
 import { evaluateCapability, type CapabilityEvaluation } from "@fleetos/learning";
 import type { IntegrationHealthState } from "../src/health-assembly.js";
 

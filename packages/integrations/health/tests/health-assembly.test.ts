@@ -16,7 +16,7 @@ import {
   rollupAdapterHealth,
 } from "@fleetos/adcos";
 import { defaultHeartbeatTtl, rollupFleetPosture } from "@fleetos/connectivity";
-import { makeReferenceArenaAdapter, evaluateWithDegradation } from "@fleetos/integrations/arena";
+import { makeReferenceArenaAdapter, evaluateWithDegradation } from "@fleetos/arena";
 import { summarizeCapabilityEvaluations } from "@fleetos/learning";
 import { reconcileProjectionSet } from "@fleetos/aurum";
 import { foldRunJournal } from "@fleetos/apify";

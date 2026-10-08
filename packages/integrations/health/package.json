@@ -20,7 +20,7 @@
   "dependencies": {
     "@fleetos/adcos": "workspace:*",
     "@fleetos/connectivity": "workspace:*",
-    "@fleetos/integrations/arena": "workspace:*",
+    "@fleetos/arena": "workspace:*",
     "@fleetos/learning": "workspace:*",
     "@fleetos/aurum": "workspace:*",
     "@fleetos/apify": "workspace:*",

@@ -1103,6 +1103,37 @@ importers:
         specifier: ^2.1.9
         version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
 
+  packages/integrations/health:
+    dependencies:
+      '@fleetos/adcos':
+        specifier: workspace:*
+        version: link:../adcos
+      '@fleetos/apify':
+        specifier: workspace:*
+        version: link:../apify
+      '@fleetos/arena':
+        specifier: workspace:*
+        version: link:../arena
+      '@fleetos/aurum':
+        specifier: workspace:*
+        version: link:../aurum
+      '@fleetos/connectivity':
+        specifier: workspace:*
+        version: link:../../connectivity
+      '@fleetos/external-vendors':
+        specifier: workspace:*
+        version: link:../vendors
+      '@fleetos/learning':
+        specifier: workspace:*
+        version: link:../../learning
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
+
   packages/integrations/vendors:
     devDependencies:
       typescript:

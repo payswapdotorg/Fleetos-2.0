@@ -108,7 +108,7 @@ import { z } from "apps/web/thing";
     );
     expect(v1).toHaveLength(0);
     const v2 = assertNoForbiddenImports(
-      'import { y } from "@fleetos/integrations/arena";',
+      'import { y } from "@fleetos/arena";',
       "y.ts",
     );
     expect(v2).toHaveLength(0);
@@ -135,7 +135,7 @@ import { z } from "apps/web/thing";
 
   it("the lane allowlist contains exactly the 11 worker-b packages", () => {
     expect(LANE_ALLOWED_FLEETOS_PACKAGES).toHaveLength(11);
-    expect(LANE_ALLOWED_FLEETOS_PACKAGES).toContain("@fleetos/integrations/arena");
+    expect(LANE_ALLOWED_FLEETOS_PACKAGES).toContain("@fleetos/arena");
   });
 });
 

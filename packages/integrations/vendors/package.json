@@ -3,7 +3,13 @@
   "version": "2.0.0-alpha.0",
   "license": "Apache-2.0",
   "type": "module",
-  "description": "FleetOS external vendor/system adapter seam — structural port + deterministic reference adapter; external systems never own domain truth (encoded + tested at the boundary).",
+  "exports": {
+    ".": "./src/index.ts",
+    "./catalog-sync": "./src/catalog-sync.ts",
+    "./verification": "./src/verification.ts",
+    "./scorecards": "./src/scorecards.ts"
+  },
+  "description": "FleetOS external vendor/system adapter seam \u2014 structural port + deterministic reference adapter; external systems never own domain truth (encoded + tested at the boundary).",
   "scripts": {
     "lint": "oxlint src tests",
     "typecheck": "tsc -p tsconfig.json --noEmit",

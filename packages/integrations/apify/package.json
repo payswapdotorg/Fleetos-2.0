@@ -3,7 +3,13 @@
   "version": "2.0.0-alpha.0",
   "license": "Apache-2.0",
   "type": "module",
-  "description": "FleetOS Apify adapter seam — structural port + deterministic reference adapter; scraping/actor jobs stay typed as PROPOSALS unless authorized (Guardian path is out-of-lane — structural seam).",
+  "exports": {
+    ".": "./src/index.ts",
+    "./job-lifecycle": "./src/job-lifecycle.ts",
+    "./result-ingestion": "./src/result-ingestion.ts",
+    "./run-registry": "./src/run-registry.ts"
+  },
+  "description": "FleetOS Apify adapter seam \u2014 structural port + deterministic reference adapter; scraping/actor jobs stay typed as PROPOSALS unless authorized (Guardian path is out-of-lane \u2014 structural seam).",
   "scripts": {
     "lint": "oxlint src tests",
     "typecheck": "tsc -p tsconfig.json --noEmit",

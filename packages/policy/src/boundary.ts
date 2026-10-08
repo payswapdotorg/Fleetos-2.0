@@ -30,7 +30,7 @@ export const LANE_ALLOWED_FLEETOS_PACKAGES: readonly string[] = [
   "@fleetos/world-context",
   "@fleetos/learning",
   "@fleetos/simulation",
-  "@fleetos/integrations/arena",
+  "@fleetos/arena",
 ];
 
 /** Regex for any @zcode/* import. */
@@ -93,7 +93,7 @@ export function assertNoForbiddenImports(
     if (spec.startsWith("@fleetos/")) {
       // Allow subpath imports like "@fleetos/policy/capability" — check the
       // package root (the segment(s) up to the first "/" after @fleetos/).
-      // For "@fleetos/integrations/arena", the package root has TWO segments.
+      // For "@fleetos/arena", the package root has TWO segments.
       const allowed = LANE_ALLOWED_FLEETOS_PACKAGES.some((pkg) => spec === pkg || spec.startsWith(`${pkg}/`));
       if (!allowed) {
         violations.push({
