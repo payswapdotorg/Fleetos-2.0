@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "head": "ea472a23863cfe0223aa4bfc26702047931b276d",
-  "generatedAt": "2026-10-08T02:31:11.639Z",
+  "head": "bf0ac5083312a5b6dfb8d05077f7a11852066c06",
+  "generatedAt": "2026-10-08T03:31:53.359Z",
   "packages": {
     "fleetos-kernel": {
       "owner": "tl",
