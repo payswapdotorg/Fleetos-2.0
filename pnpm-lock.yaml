@@ -661,6 +661,49 @@ importers:
         specifier: ^1.6.0
         version: 1.6.1(@types/node@25.6.0)(lightningcss@1.32.0)
 
+  packages/acceptance/field:
+    dependencies:
+      '@fleetos/adcos':
+        specifier: workspace:*
+        version: link:../../integrations/adcos
+      '@fleetos/assets':
+        specifier: workspace:*
+        version: link:../../assets
+      '@fleetos/connectivity':
+        specifier: workspace:*
+        version: link:../../connectivity
+      '@fleetos/experience-asset-field':
+        specifier: workspace:*
+        version: link:../../experiences/asset-field
+      '@fleetos/health':
+        specifier: workspace:*
+        version: link:../../health
+      '@fleetos/identity':
+        specifier: workspace:*
+        version: link:../../identity
+      '@fleetos/maintenance':
+        specifier: workspace:*
+        version: link:../../maintenance
+      '@fleetos/observations':
+        specifier: workspace:*
+        version: link:../../observations
+      '@fleetos/recovery':
+        specifier: workspace:*
+        version: link:../../recovery
+      '@fleetos/sim-worlds':
+        specifier: workspace:*
+        version: link:../../sim-worlds
+      '@fleetos/tenancy':
+        specifier: workspace:*
+        version: link:../../tenancy
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@25.6.0)(lightningcss@1.32.0)(msw@2.13.3(@types/node@25.6.0)(typescript@6.0.2))
+
   packages/actions:
     dependencies:
       '@fleetos/policy':
