@@ -1,0 +1,19 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "types": ["node"],
+    "paths": {
+      "@fleetos/aurum": ["./node_modules/@fleetos/aurum/src/index.ts"],
+      "@fleetos/apify": ["./node_modules/@fleetos/apify/src/index.ts"],
+      "@fleetos/external-vendors": ["./node_modules/@fleetos/external-vendors/src/index.ts"],
+      "@fleetos/integrations/arena": ["./node_modules/@fleetos/integrations/arena/src/index.ts"]
+    }
+  },
+  "include": ["src", "tests"]
+}
