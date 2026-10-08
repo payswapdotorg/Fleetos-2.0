@@ -11,7 +11,10 @@ import {
   canonicalEquals,
   canonicalJson,
   fnv1a,
+  toJourneyReport,
+  verifyJourneyReport,
 } from "../src/journey-contracts.ts";
+import type { JourneyReport } from "../src/journey-contracts.ts";
 import { SECURITY_JOURNEYS } from "../src/journeys/index.ts";
 import { isoOfEpochMs, BASE_MS, NOW_MS } from "../src/journeys/fixture-world.ts";
 import { runJourney } from "../src/runner.ts";
@@ -140,5 +143,48 @@ describe("F270B deterministic helpers", () => {
     expect(canonicalEquals({ a: 1 }, { a: 2 })).toBe(false);
     expect(canonicalEquals([1, 2], [2, 1])).toBe(false);
     expect(canonicalEquals(null, null)).toBe(true);
+  });
+});
+
+describe("F270B journey report (double-digest form)", () => {
+  const outcome = runJourney(SECURITY_JOURNEYS[0]!).outcome;
+  const report = toJourneyReport(outcome);
+
+  it("wraps an outcome with a report digest distinct from the inner digest", () => {
+    expect(report.reportDigest).toMatch(/^[0-9a-f]{8}$/);
+    expect(report.reportDigest).not.toBe(report.digest);
+    expect(report.journeyId).toBe(outcome.journeyId);
+    expect(report.pass).toBe(outcome.pass);
+  });
+
+  it("verifyJourneyReport accepts a genuine report", () => {
+    expect(verifyJourneyReport(report)).toBe(true);
+  });
+
+  it("every corpus outcome converts to a report that verifies", () => {
+    for (const j of SECURITY_JOURNEYS) {
+      const r = toJourneyReport(runJourney(j).outcome);
+      expect(verifyJourneyReport(r), j.journeyId).toBe(true);
+    }
+  });
+
+  it("tampering with any presented field breaks the report digest", () => {
+    const flipPass: JourneyReport = { ...report, pass: !report.pass };
+    expect(verifyJourneyReport(flipPass)).toBe(false);
+    const editedStep: JourneyReport = {
+      ...report,
+      steps: report.steps.map((s, i) => (i === 0 ? { ...s, detail: "forged" } : s)),
+    };
+    expect(verifyJourneyReport(editedStep)).toBe(false);
+  });
+
+  it("tampering with the INNER digest also breaks the report digest", () => {
+    const forgedInner: JourneyReport = { ...report, digest: "deadbeef" };
+    expect(verifyJourneyReport(forgedInner)).toBe(false);
+  });
+
+  it("a forged report digest is detected", () => {
+    const forged: JourneyReport = { ...report, reportDigest: "deadbeef" };
+    expect(verifyJourneyReport(forged)).toBe(false);
   });
 });

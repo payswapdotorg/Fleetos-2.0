@@ -5,7 +5,12 @@
  * Guardian and opens the REAL ceilings view:
  *   - low-risk read -> ALLOW (matched rule);
  *   - high-risk execution -> REQUIRE_APPROVAL;
- *   - irreversible -> REQUIRE_APPROVAL (operator authority);
+ *   - irreversible -> BLOCK: the tenant policy's own rule
+ *     `rule.block_irreversible_without_operator` (priority 90) matches the
+ *     risk range AND the operator's authority, and its verdict is BLOCK —
+ *     this policy refuses irreversible actions outright (re-derived from the
+ *     REAL engine: a matching BLOCK rule beats the default, and authority
+ *     presence only gates rule MATCHING, never the verdict);
  *   - autonomous agent on high risk -> BLOCK (self-authorization, law A5);
  *   - cross-tenant policy -> BLOCK (law A8);
  *   - the ordered rule engine yields the full adjudication trace + audit ref;

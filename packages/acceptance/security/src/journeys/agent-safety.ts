@@ -4,10 +4,14 @@
  * An autonomous agent operates ONLY through capabilities granted to it:
  *   - the REAL grant chain: issue a root grant, derive a child grant,
  *     verify the chain (depth 2);
- *   - REVOCATION PROPAGATES: revoking the root deterministically
- *     invalidates the derived grant — `verifyGrantChain` then refuses with
- *     `grant.ancestor-revoked` and the agent's active-grant read is EMPTY
- *     (an agent CANNOT act on a revoked capability);
+ *   - REVOCATION PROPAGATES: `revokeGrant` deterministically revokes root
+ *     AND derived grants in one step — the child's `revocationReason` names
+ *     the root cause (`propagated:grant-agent-root`) — so `verifyGrantChain`
+ *     afterwards refuses the child with `grant.revoked` (the queried grant
+ *     itself is revoked; `grant.ancestor-revoked` is only reachable for an
+ *     ancestor revoked WITHOUT propagation, a state `revokeGrant` never
+ *     produces) and the agent's active-grant read is EMPTY (an agent CANNOT
+ *     act on a revoked capability);
  *   - the Guardian blocks an autonomous actor on non-low-risk capabilities
  *     (law A5 — self-authorization unrepresentable), while the same actor
  *     WITH human.approval authority is escalated to REQUIRE_APPROVAL;

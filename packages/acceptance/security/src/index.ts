@@ -6,7 +6,7 @@
  *   - `./journey-contracts` — the journey contract (fixed 7-persona +
  *     13-capability vocabularies, typed steps, declarative read-model
  *     assertions, JourneyOutcome with per-assertion actual-vs-expected,
- *     digest + verify);
+ *     digest + verify, JourneyReport double-digest form);
  *   - `./journeys` — the 13-journey corpus driving the REAL public entry
  *     points of this lane's packages;
  *   - `./runner` — the deterministic journey runner;

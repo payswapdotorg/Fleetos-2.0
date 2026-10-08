@@ -244,3 +244,32 @@ export function verifyJourneyOutcome(outcome: JourneyOutcome): boolean {
   const { digest, ...rest } = outcome;
   return journeyOutcomeDigest(rest) === digest;
 }
+
+// ---------------------------------------------------------------------------
+// Journey report — the double-digest presentation form
+// ---------------------------------------------------------------------------
+
+/** A journey outcome in its report form (double-digest covered). */
+export interface JourneyReport extends JourneyOutcome {
+  /** Digest over the WHOLE outcome (including its inner digest). */
+  readonly reportDigest: string;
+}
+
+/** Turn a journey outcome into its report form (double-digest covered). */
+export function toJourneyReport(outcome: JourneyOutcome): JourneyReport {
+  return { ...outcome, reportDigest: fnv1a(`journey-report|v1|${canonicalJson(outcome)}`) };
+}
+
+/**
+ * Verify a journey report — BOTH digests must hold: the outer report digest
+ * covers the presented content verbatim (including the inner digest), and
+ * the inner digest covers the semantic content. Tampering with any
+ * presented field breaks at least one of them.
+ */
+export function verifyJourneyReport(report: JourneyReport): boolean {
+  const { reportDigest, ...outcome } = report;
+  return (
+    fnv1a(`journey-report|v1|${canonicalJson(outcome)}`) === reportDigest &&
+    verifyJourneyOutcome(outcome)
+  );
+}

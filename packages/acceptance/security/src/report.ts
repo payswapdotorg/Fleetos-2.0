@@ -113,24 +113,34 @@ export function verifyAcceptanceReport(report: AcceptanceReport): boolean {
   return acceptanceReportDigest(rest) === digest;
 }
 
-/** Honest zero-inflation check: every nonzero matrix cell has a passing journey. */
+/**
+ * Honest zero-inflation check (exact accounting): every matrix cell must
+ * EQUAL the number of passing journeys claiming that (persona, capability)
+ * cell — no inflated counts, and no passing journey silently uncounted.
+ */
 export function coverageCellsBackedByPassingJourneys(
   report: AcceptanceReport,
   outcomes: readonly JourneyOutcome[],
 ): boolean {
-  const byId = new Map(outcomes.map((o) => [o.journeyId, o]));
+  const counts = new Map<string, number>();
+  for (const o of outcomes) {
+    if (!o.pass) continue;
+    for (const capability of o.capabilities) {
+      const key = `${o.persona}=${capability}`;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+  }
   for (const [persona, row] of Object.entries(report.coverage.matrix)) {
     for (const [capability, count] of Object.entries(row)) {
-      if (count === 0) continue;
-      const backed = outcomes.some(
-        (o) =>
-          o.pass &&
-          o.persona === persona &&
-          o.capabilities.includes(capability as JourneyCapability) &&
-          byId.get(o.journeyId) !== undefined,
-      );
-      if (!backed) return false;
+      if (count !== (counts.get(`${persona}=${capability}`) ?? 0)) return false;
     }
+  }
+  // Every counted (persona, capability) pair must have a cell in the matrix.
+  for (const key of counts.keys()) {
+    const eq = key.indexOf("=");
+    const persona = key.slice(0, eq);
+    const capability = key.slice(eq + 1);
+    if (report.coverage.matrix[persona]?.[capability] === undefined) return false;
   }
   return true;
 }
