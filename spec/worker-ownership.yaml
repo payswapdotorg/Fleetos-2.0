@@ -24,6 +24,7 @@ workers:
       - packages/scheduler/**
       - packages/integrations/convergence/**
       - packages/experiences/control-tower/**
+      - packages/experiences/engineering-lab/**
       - packages/integrations/health/**
       - infrastructure/**
       - spec/**
