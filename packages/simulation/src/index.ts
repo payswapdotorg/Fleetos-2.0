@@ -125,3 +125,17 @@ export function buildComparison(runIds: readonly string[], metric: string, compu
 // ---------- Wave 1 (F210B) kernel extensions ----------
 
 export * from "./adoption.ts";
+
+// ---------- Wave 6 (F260B) predictive evaluation/replay/safety benchmarks ----------
+//
+// These modules bind the intelligence plane's REAL public entry points
+// (@fleetos/predictive reference model + ModelPort, @fleetos/world-model
+// journal/checkpoints/staleness, @fleetos/world-context tenant-safe assembly)
+// to produce EVALUATION EVIDENCE ONLY (law A11 — EXPERIMENTAL markers on
+// every artifact; benchmarks are never operational truth and never self-adopt).
+
+export * from "./benchmark-definition.ts";
+export * from "./replay-harness.ts";
+export * from "./scoring.ts";
+export * from "./safety-benchmarks.ts";
+export * from "./benchmark-report.ts";
