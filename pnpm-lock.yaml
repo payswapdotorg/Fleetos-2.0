@@ -615,6 +615,52 @@ importers:
 
   apps/zcode-cli/tools/typescript: {}
 
+  packages/acceptance/commerce:
+    dependencies:
+      '@fleetos/agent-organizations':
+        specifier: workspace:*
+        version: link:../../agent-organizations
+      '@fleetos/apify':
+        specifier: workspace:*
+        version: link:../../integrations/apify
+      '@fleetos/aurum':
+        specifier: workspace:*
+        version: link:../../integrations/aurum
+      '@fleetos/experience-work-commerce':
+        specifier: workspace:*
+        version: link:../../experiences/work-commerce
+      '@fleetos/external-vendors':
+        specifier: workspace:*
+        version: link:../../integrations/vendors
+      '@fleetos/model-gateway':
+        specifier: workspace:*
+        version: link:../../model-gateway
+      '@fleetos/procurement':
+        specifier: workspace:*
+        version: link:../../procurement
+      '@fleetos/projects':
+        specifier: workspace:*
+        version: link:../../projects
+      '@fleetos/software':
+        specifier: workspace:*
+        version: link:../../software
+      '@fleetos/vendors':
+        specifier: workspace:*
+        version: link:../../vendors
+      '@fleetos/work':
+        specifier: workspace:*
+        version: link:../../work
+      '@fleetos/workloads':
+        specifier: workspace:*
+        version: link:../../workloads
+    devDependencies:
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^1.6.0
+        version: 1.6.1(@types/node@25.6.0)(lightningcss@1.32.0)
+
   packages/actions:
     dependencies:
       '@fleetos/policy':
