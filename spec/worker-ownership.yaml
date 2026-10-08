@@ -57,6 +57,7 @@ workers:
       - packages/connectivity/**
       - packages/integrations/adcos/**
       - packages/experiences/asset-field/**
+      - packages/sim-worlds/**
       - apps/agent/**
     responsibilities:
       - device-twin
