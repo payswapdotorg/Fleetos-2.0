@@ -6,7 +6,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./journeys": "./src/journeys/index.js",
+    "./journeys": "./src/journeys/index.ts",
     "./runner": "./src/runner.ts",
     "./report": "./src/report.ts"
   },

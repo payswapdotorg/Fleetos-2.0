@@ -69,6 +69,7 @@ import type {
   IngestedJobResult,
 } from "@fleetos/apify";
 import { openRateBudgetLedger } from "@fleetos/apify";
+import { createDeterministicAurumAdapter, type AurumPort } from "@fleetos/aurum";
 import type {
   UsageLedgerEntry,
   BudgetCheckPort,
@@ -134,6 +135,10 @@ export interface JourneyState {
     job: ActorJobRecord | null;
     rateLedger: RateBudgetLedger;
     results: IngestedJobResult[];
+  };
+  readonly aurum: {
+    port: AurumPort;
+    outagePort: AurumPort;
   };
   readonly org: {
     journal: OrgJournalEntry[];
@@ -222,6 +227,17 @@ export function buildJourneyWorld(): JourneyState {
   if (!registry.ok) throw new Error("world: openVerificationRegistry refused");
   const rate = openRateBudgetLedger(tenant, "2026-W01", 10);
   if (!rate.ok) throw new Error("world: openRateBudgetLedger refused");
+
+  // The REAL deterministic Aurum adapters (no network): a healthy port with
+  // two configured intents and an outage port that always refuses. The
+  // per-journey cache lives inside the adapter — a fresh world per run keeps
+  // every journey deterministic while idempotent re-invokes hit the cache.
+  const aurumResponses: Readonly<Record<string, Readonly<Record<string, unknown>>>> = {
+    "settle-invoice": { kind: "aurum-projection", settlementStatus: "settled", amountMinorUnits: 250_000 },
+    "fetch-balance": { kind: "aurum-projection", balanceMinorUnits: 1_250_000 },
+  };
+  const aurumPort = createDeterministicAurumAdapter({ simulateOutage: false, responses: aurumResponses });
+  const aurumOutagePort = createDeterministicAurumAdapter({ simulateOutage: true, responses: aurumResponses });
 
   return {
     tenant,
@@ -330,6 +346,7 @@ export function buildJourneyWorld(): JourneyState {
     },
     external: { catalog: externalCatalog.catalog, registry: registry.registry, metrics: [] },
     apify: { job: null, rateLedger: rate.ledger, results: [] },
+    aurum: { port: aurumPort, outagePort: aurumOutagePort },
     org: {
       journal: [],
       usage: [],

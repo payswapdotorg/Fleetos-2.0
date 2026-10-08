@@ -74,8 +74,19 @@ describe("the work/commerce/project journey corpus", () => {
   });
 
   it("org-optimization-review: the usage rollup digest is stable-shaped", async () => {
-    const { facts } = await runJourney(JOURNEYS[11]!);
+    const { facts } = await runJourney(JOURNEYS[12]!);
     expect(facts.get("usageRollup.digest")).toMatch(/^usagerollup_[0-9a-f]{8}$/);
+  });
+
+  it("aurum-settlement-seam: idempotent invokes flip fromCache and a foreign tenant misses the cache", async () => {
+    const journey = JOURNEYS.find((j) => j.id === "aurum-settlement-seam")!;
+    const { facts } = await runJourney(journey);
+    const log = facts.get("aurum.kindLog") as readonly string[];
+    expect(log[0]).toBe("true:fresh:0:aurum-projection");
+    expect(log[1]).toBe("true:cached:0:aurum-projection");
+    expect(log[5]).toBe("true:fresh:0:aurum-projection");
+    expect(facts.get("aurum.attempts")).toBe(3);
+    expect(facts.get("aurum.reasonCode")).toBe("AURUM_UNAVAILABLE");
   });
 
   it("cross-role-handoff: twenty-three steps execute and the chain closes", async () => {

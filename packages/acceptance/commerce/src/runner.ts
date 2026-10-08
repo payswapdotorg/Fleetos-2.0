@@ -25,9 +25,12 @@ import {
 } from "./journey-contracts.js";
 import { buildJourneyWorld, type JourneyState } from "./journey-world.js";
 import { runWorkStep } from "./drivers-work.js";
-import { runCommerceStep } from "./drivers-commerce.js";
+import { runProcurementStep } from "./drivers-procurement.js";
+import { runVendorStep } from "./drivers-vendors.js";
+import { runExternalStep } from "./drivers-external.js";
 import { runOrgStep } from "./drivers-org.js";
-import type { CommerceStep, OrgStep, WorkStep } from "./journey-contracts.js";
+import { runAurumStep } from "./drivers-aurum.js";
+import type { AurumStep, CommerceStep, OrgStep, WorkStep } from "./journey-contracts.js";
 
 const WORK_KINDS: ReadonlySet<string> = new Set([
   "work-create", "work-assign", "work-transition", "work-board",
@@ -36,22 +39,35 @@ const WORK_KINDS: ReadonlySet<string> = new Set([
   "workload-apply", "workload-lifecycle", "workload-window-check", "workload-rollup-view",
 ]);
 
-const COMMERCE_KINDS: ReadonlySet<string> = new Set([
+const PROCUREMENT_KINDS: ReadonlySet<string> = new Set([
   "demand-flow", "quote-create", "quote-transition", "quote-supersede", "quote-score-view",
   "award-quote", "order-transition", "fulfillment-transition", "spine-board", "reconcile",
+]);
+
+const VENDOR_KINDS: ReadonlySet<string> = new Set([
   "vendor-lifecycle", "vendor-verify-capability", "vendor-exposure", "vendor-kpi-view",
   "entitlement-check", "grant-assign", "grant-revoke", "seat-view",
+]);
+
+const EXTERNAL_KINDS: ReadonlySet<string> = new Set([
   "catalog-import", "catalog-verify", "catalog-metrics", "catalog-scorecards", "catalog-revoke",
   "apify-job-create", "apify-job-authorize", "apify-job-schedule", "apify-job-transition",
   "apify-ingest-result", "apify-attach-evidence",
 ]);
 
+const AURUM_KINDS: ReadonlySet<string> = new Set([
+  "aurum-invoke", "aurum-outage-invoke", "aurum-boundary",
+]);
+
 export async function executeStep(
-  step: WorkStep | CommerceStep | OrgStep,
+  step: WorkStep | CommerceStep | OrgStep | AurumStep,
   state: JourneyState,
 ): Promise<Record<string, FactValue>> {
   if (WORK_KINDS.has(step.kind)) return runWorkStep(step as WorkStep, state);
-  if (COMMERCE_KINDS.has(step.kind)) return runCommerceStep(step as CommerceStep, state);
+  if (PROCUREMENT_KINDS.has(step.kind)) return runProcurementStep(step as CommerceStep, state);
+  if (VENDOR_KINDS.has(step.kind)) return runVendorStep(step as CommerceStep, state);
+  if (EXTERNAL_KINDS.has(step.kind)) return runExternalStep(step as CommerceStep, state);
+  if (AURUM_KINDS.has(step.kind)) return runAurumStep(step as AurumStep, state);
   return runOrgStep(step as OrgStep, state);
 }
 

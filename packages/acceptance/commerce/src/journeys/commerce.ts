@@ -1,10 +1,10 @@
 /**
  * @fleetos/acceptance-commerce — commerce journeys.
  *
- * Journeys 5-9 of the corpus: the procurement spine, quote scoring,
- * order reconciliation, vendor management and software entitlements.
- * Every assertion targets a fact extracted from the REAL package outputs
- * by the step drivers.
+ * Journeys 5-10 of the corpus: the procurement spine, quote scoring,
+ * order reconciliation, vendor management, software entitlements and the
+ * Aurum settlement-adapter seam. Every assertion targets a fact extracted
+ * from the REAL package outputs by the step drivers.
  */
 
 import type { AcceptanceJourney, FactValue } from "../journey-contracts.js";
@@ -185,10 +185,46 @@ export const softwareEntitlementsJourney: AcceptanceJourney = {
   ],
 };
 
+export const settlementAdapterJourney: AcceptanceJourney = {
+  id: "aurum-settlement-seam",
+  persona: "finance-controller",
+  capability: "settlement-adapter",
+  goal: "Drive the Aurum settlement adapter seam: idempotent invokes with cache hits, honest degraded/unavailable states, tenant-scoped idempotency separation, and the never-owns-domain-truth boundary.",
+  steps: [
+    { stepId: "s1", kind: "aurum-invoke", intent: "settle-invoice", idempotencyKey: "idem-settle-1" },
+    { stepId: "s2", kind: "aurum-invoke", intent: "settle-invoice", idempotencyKey: "idem-settle-1" },
+    { stepId: "s3", kind: "aurum-invoke", intent: "fetch-balance", idempotencyKey: "idem-balance-1" },
+    { stepId: "s4", kind: "aurum-invoke", intent: "unknown-intent", idempotencyKey: "idem-unknown-1" },
+    { stepId: "s5", kind: "aurum-invoke", intent: "settle-invoice", idempotencyKey: "" },
+    { stepId: "s6", kind: "aurum-invoke", intent: "settle-invoice", idempotencyKey: "idem-settle-1", foreignTenant: true },
+    { stepId: "s7", kind: "aurum-outage-invoke", intent: "settle-invoice", idempotencyKey: "idem-outage-1" },
+    { stepId: "s8", kind: "aurum-boundary", projectionKind: "aurum-projection" },
+    { stepId: "s9", kind: "aurum-boundary", projectionKind: "order" },
+  ],
+  assertions: [
+    deq("a1", "aurum.kindLog", [
+      "true:fresh:0:aurum-projection",
+      "true:cached:0:aurum-projection",
+      "true:fresh:0:aurum-projection",
+      "false:AURUM_DEGRADED:3:-",
+      "false:IDEMPOTENCY_KEY_EMPTY:0:-",
+      "true:fresh:0:aurum-projection",
+      "false:AURUM_UNAVAILABLE:3:-",
+    ], "the full adapter seam: fresh → idempotent cache hit → fresh; an unknown intent degrades honestly after all 3 attempts; an empty key refuses; the SAME key under a foreign tenant is a SEPARATE cache entry (tenant-scoped idempotency); an outage exhausts the retries"),
+    eq("a2", "aurum.ok", false, "the final outage invoke refuses"),
+    eq("a3", "aurum.reasonCode", "AURUM_UNAVAILABLE", "the outage refusal carries the adapter's honest reason code"),
+    eq("a4", "aurum.attempts", 3, "all three retry attempts were made before giving up"),
+    deq("a5", "aurum.boundaryLog", ["true:true", "false:false"], "the aurum-projection kind passes both boundary checks; a domain kind (order) fails them — the adapter never owns domain truth"),
+    eq("a6", "aurum.isProjection", false, "an order-shaped payload is NOT an aurum projection"),
+    eq("a7", "aurum.doesNotOwnTruth", false, "a domain-kind payload FAILS the never-owns-domain-truth boundary (the check catches violations)"),
+  ],
+};
+
 export const COMMERCE_JOURNEYS: readonly AcceptanceJourney[] = [
   procureSpineJourney,
   quoteScoringJourney,
   orderReconciliationJourney,
   vendorManagementJourney,
   softwareEntitlementsJourney,
+  settlementAdapterJourney,
 ];

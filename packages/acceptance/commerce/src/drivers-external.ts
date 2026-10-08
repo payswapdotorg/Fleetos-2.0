@@ -27,6 +27,7 @@ import {
   completeActorJob,
   failActorJob,
   expireActorJob,
+  accountRateBudget,
   ingestJobResult,
   attachEvidenceBundle,
   verifyJobManifest,
@@ -55,6 +56,11 @@ export async function runExternalStep(step: CommerceStep, state: JourneyState): 
         return { "catalog.ok": false, "catalog.reasonCode": result.reasonCode, "catalog.detail": result.detail };
       }
       state.external.catalog = result.catalog;
+      logPush(
+        state,
+        "catalog.importLog",
+        `${result.imported.length}:${[...result.imported].join(",") || "-"}:${[...result.duplicatesSkipped].join(",") || "-"}:${[...result.staleSkipped].join(",") || "-"}`,
+      );
       return {
         "catalog.ok": true,
         "catalog.imported": result.imported.length,
@@ -75,11 +81,13 @@ export async function runExternalStep(step: CommerceStep, state: JourneyState): 
         expiresAt: CLOCK.t3,
       });
       if (!result.ok) {
+        logPush(state, "xverify.log", `false:${result.reasonCode}`);
         return { "xverify.ok": false, "xverify.reasonCode": result.reasonCode, "xverify.detail": result.detail };
       }
       state.external.catalog = result.catalog;
       state.external.registry = result.registry;
       const claim = result.catalog.entries.get(step.externalId)?.capabilityClaims.find((c) => c.capability === step.capability);
+      logPush(state, "xverify.log", `true:${result.record.state}`);
       return {
         "xverify.ok": true,
         "xverify.claimState": claim?.state ?? null,
@@ -119,6 +127,7 @@ export async function runExternalStep(step: CommerceStep, state: JourneyState): 
       if (!result.ok) {
         return { "scorecards.ok": false, "scorecards.reasonCode": result.reasonCode, "scorecards.detail": result.detail };
       }
+      logPush(state, "scorecards.bpsLog", result.rollups.map((r) => String(r.aggregatedBps)).join(","));
       return {
         "scorecards.ok": true,
         "scorecards.rollupCount": result.rollups.length,
@@ -200,21 +209,25 @@ export async function runExternalStep(step: CommerceStep, state: JourneyState): 
       const result = scheduleActorJob(job, state.apify.rateLedger, step.units, CLOCK.t2);
       if (result.job.ok) {
         state.apify.job = result.job.job;
-        state.apify.rateLedger = result.budget.ok ? result.budget.ledger : state.apify.rateLedger;
+        if (result.budget.ok) state.apify.rateLedger = result.budget.ledger;
       }
       logPush(
         state,
         "apify.statusLog",
         `${job.jobId}:${result.job.ok ? result.job.job.status : result.job.reasonCode}`,
       );
+      // The REAL ledger accounting as it stands AFTER the step — a refused
+      // reservation leaves the ledger untouched, and its honest utilization
+      // (plus the ceiling-not-authorization note) is still the REAL output.
+      const accounting = accountRateBudget(state.apify.rateLedger);
       return {
         "apify.ok": result.job.ok,
         "apify.status": result.job.ok ? result.job.job.status : null,
         "apify.reasonCode": result.job.ok ? null : result.job.reasonCode,
         "apify.reservedUnits": result.job.ok ? (result.job.job.reservedUnits ?? -1) : -1,
-        "apify.budgetSpent": result.budget.ok ? result.budget.accounting.spentUnits : state.apify.rateLedger.spentUnits,
-        "apify.budgetUtilizationBps": result.budget.ok ? result.budget.accounting.utilizationBps : -1,
-        "apify.budgetNote": result.budget.ok ? result.budget.accounting.note : null,
+        "apify.budgetSpent": accounting.spentUnits,
+        "apify.budgetUtilizationBps": accounting.utilizationBps,
+        "apify.budgetNote": accounting.note,
         "apify.budgetOvershootUnits": result.budget.ok ? null : (result.budget.overshootUnits ?? null),
       };
     }
@@ -283,7 +296,15 @@ export async function runExternalStep(step: CommerceStep, state: JourneyState): 
       );
       if (!attached.ok) {
         logPush(state, "apifyEvidence.log", `${step.bundleId}:refused:${attached.reasonCode}`);
-        return { "apifyEvidence.ok": false, "apifyEvidence.reasonCode": attached.reasonCode };
+        // The refused attach still leaves the REAL result set observable:
+        // surface the partition so the quarantine invariants stay assertable.
+        const refusalPartition = partitionByState(state.apify.results);
+        return {
+          "apifyEvidence.ok": false,
+          "apifyEvidence.reasonCode": attached.reasonCode,
+          "apifyEvidence.usableCount": refusalPartition.usable.length,
+          "apifyEvidence.quarantinedCount": refusalPartition.quarantined.length,
+        };
       }
       state.apify.results = state.apify.results.map((r, i) => (i === state.apify.results.length - 1 ? attached.result : r));
       logPush(state, "apifyEvidence.log", `${step.bundleId}:usable`);
