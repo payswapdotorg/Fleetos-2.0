@@ -680,6 +680,49 @@ importers:
         specifier: ^1.6.0
         version: 1.6.1(@types/node@25.6.0)(lightningcss@1.32.0)
 
+  packages/acceptance/convergence:
+    dependencies:
+      '@fleetos/acceptance-adoption':
+        specifier: workspace:*
+        version: link:../adoption
+      '@fleetos/acceptance-commerce':
+        specifier: workspace:*
+        version: link:../commerce
+      '@fleetos/acceptance-field':
+        specifier: workspace:*
+        version: link:../field
+      '@fleetos/acceptance-release':
+        specifier: workspace:*
+        version: link:../release
+      '@fleetos/acceptance-security':
+        specifier: workspace:*
+        version: link:../security
+      '@fleetos/agent-organizations':
+        specifier: workspace:*
+        version: link:../../agent-organizations
+      '@fleetos/assets':
+        specifier: workspace:*
+        version: link:../../assets
+      '@fleetos/model-gateway':
+        specifier: workspace:*
+        version: link:../../model-gateway
+      '@fleetos/world-model':
+        specifier: workspace:*
+        version: link:../../world-model
+    devDependencies:
+      '@fleetos/observations':
+        specifier: workspace:*
+        version: link:../../observations
+      '@fleetos/world-context':
+        specifier: workspace:*
+        version: link:../../world-context
+      typescript:
+        specifier: ^6.0.2
+        version: 6.0.2
+      vitest:
+        specifier: ^1.6.0
+        version: 1.6.1(@types/node@25.6.0)(lightningcss@1.32.0)
+
   packages/acceptance/field:
     dependencies:
       '@fleetos/adcos':
@@ -840,6 +883,9 @@ importers:
 
   packages/assets:
     devDependencies:
+      '@fleetos/observations':
+        specifier: workspace:*
+        version: link:../observations
       typescript:
         specifier: ^6.0.2
         version: 6.0.2
