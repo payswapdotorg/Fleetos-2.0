@@ -8,9 +8,10 @@
  * inert CommandDraft intents bound to the control plane by the TL.
  *
  * Subpath exports (one per deliverable module): ./asset-views,
- * ./field-mode, ./ops-views, ./command-intents. This barrel additionally
- * exposes the shared read-model vocabulary (state slice, staleness,
- * redaction).
+ * ./field-mode, ./ops-views, ./command-intents, and (Wave 10, F300A)
+ * ./host — the WAVE10-HOST-CONTRACT HostSurface seam. This barrel
+ * additionally exposes the shared read-model vocabulary (state slice,
+ * staleness, redaction).
  */
 
 export * from "./asset-views.js";

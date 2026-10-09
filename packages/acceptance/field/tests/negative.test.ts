@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { enrollNewAssetJourney, trustworthyStateJourney } from "../src/journeys/index.js";
+import { enrollNewAssetJourney, trustworthyStateJourney, hostRoleLensTenantFailClosedJourney } from "../src/journeys/index.js";
 import { executeJourney } from "../src/runner.js";
 import { verifyJourneyOutcome } from "../src/journey-contracts.js";
 import { makeHandoffCarrier, verifyHandoffCarrier } from "../src/handoff.js";
@@ -73,6 +73,34 @@ describe("fail-detection negative fixtures", () => {
     expect(verifyJourneyOutcome(tampered)).toBe(false);
     const tamperedSteps = { ...outcome, steps: outcome.steps.slice(0, 1) };
     expect(verifyJourneyOutcome(tamperedSteps)).toBe(false);
+  });
+
+  it("the host role-lens gate never soft-passes: an unmarked refused intent fails the journey", () => {
+    // The role-lens journey marks t3 (technician enroll intent) expectRefusal.
+    // Stripping the marker makes the runner treat the REAL refusal as a
+    // failure — the presentation gate cannot be silently bypassed.
+    const broken = {
+      ...hostRoleLensTenantFailClosedJourney,
+      steps: hostRoleLensTenantFailClosedJourney.steps.map((s) =>
+        s.id === "t3" ? { ...s, expectRefusal: undefined } : s,
+      ),
+    };
+    const { outcome } = executeJourney(broken);
+    expect(outcome.passed).toBe(false);
+    expect(outcome.steps.find((s) => s.id === "t3")?.ok).toBe(false);
+    expect(outcome.steps.find((s) => s.id === "t3")?.note).toBe("intent-not-offered-to-role");
+  });
+
+  it("a host context probe that unexpectedly succeeds FAILS (no fake refusals)", () => {
+    const broken = {
+      ...hostRoleLensTenantFailClosedJourney,
+      steps: hostRoleLensTenantFailClosedJourney.steps.map((s) =>
+        s.id === "t10" ? { ...s, expectRefusal: true } : s,
+      ),
+    };
+    const { outcome } = executeJourney(broken);
+    expect(outcome.steps.find((s) => s.id === "t10")?.ok).toBe(false);
+    expect(outcome.passed).toBe(false);
   });
 
   it("tenancy fail-closed INSIDE journeys: the foreign-tenant taint refuses every view", () => {

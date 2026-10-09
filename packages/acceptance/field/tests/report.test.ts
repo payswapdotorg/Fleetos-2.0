@@ -12,10 +12,10 @@ import { CAPABILITIES, PERSONAS } from "../src/journey-contracts.js";
 describe("acceptance report assembly", () => {
   const report = assembleAcceptanceReport(FIELD_JOURNEYS);
 
-  it("aggregates the corpus honestly: 14 journeys, 0 failures", () => {
+  it("aggregates the corpus honestly: 20 journeys (14 + 6 F300A host-integration), 0 failures", () => {
     expect(report.schemaVersion).toBe(1);
-    expect(report.aggregate.journeys).toBe(14);
-    expect(report.aggregate.passed).toBe(14);
+    expect(report.aggregate.journeys).toBe(20);
+    expect(report.aggregate.passed).toBe(20);
     expect(report.aggregate.failed).toBe(0);
     expect(report.aggregate.failedSteps).toBe(0);
     expect(report.aggregate.failedAssertions).toBe(0);
@@ -44,8 +44,11 @@ describe("acceptance report assembly", () => {
     expect(covered.length).toBe(pairs.size);
     for (const cell of covered) {
       expect(pairs.has(`${cell.persona}|${cell.capability}`)).toBe(true);
-      expect(cell.journeys).toBe(1);
-      expect(cell.passing).toBe(1);
+      // A cell may hold MORE than one distinct journey (F300A adds a second
+      // field-technician host-integration journey); every journey in a
+      // covered cell must pass.
+      expect(cell.journeys).toBeGreaterThanOrEqual(1);
+      expect(cell.passing).toBe(cell.journeys);
     }
   });
 

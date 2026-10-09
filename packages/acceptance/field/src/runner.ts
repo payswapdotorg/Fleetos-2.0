@@ -26,6 +26,7 @@ import { executeCareOperation } from "./ops/care-ops.js";
 import { executeEdgeOperation } from "./ops/edge-ops.js";
 import { executeViewOperation } from "./ops/view-ops.js";
 import { executeMissionOperation } from "./ops/mission-ops.js";
+import { executeHostOperation } from "./ops/host-ops.js";
 import type { OpExecution } from "./ops/common.js";
 import { TENANT, T0 } from "./fixtures.js";
 
@@ -68,6 +69,7 @@ const EDGE_OPS = new Set([
   "intent.validate",
 ]);
 const MISSION_OPS = new Set(["mission.run-stages", "mission.resume"]);
+const HOST_OPS = new Set(["host.build-view-models", "host.intent-draft", "host.context-probe"]);
 
 function executeOperation(step: JourneyStep, ctx: JourneyContext): OpExecution {
   const kind = step.op.kind;
@@ -75,6 +77,7 @@ function executeOperation(step: JourneyStep, ctx: JourneyContext): OpExecution {
   if (CARE_OPS.has(kind)) return executeCareOperation(step.op, ctx);
   if (EDGE_OPS.has(kind)) return executeEdgeOperation(step.op, ctx);
   if (MISSION_OPS.has(kind)) return executeMissionOperation(step.op, ctx);
+  if (HOST_OPS.has(kind)) return executeHostOperation(step.op, ctx);
   return executeViewOperation(step.op, ctx);
 }
 

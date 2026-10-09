@@ -9,7 +9,8 @@
     "./asset-views": "./src/asset-views.ts",
     "./field-mode": "./src/field-mode.ts",
     "./ops-views": "./src/ops-views.ts",
-    "./command-intents": "./src/command-intents.ts"
+    "./command-intents": "./src/command-intents.ts",
+    "./host": "./src/host/index.ts"
   },
   "scripts": {
     "lint": "oxlint src",
