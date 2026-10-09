@@ -2060,6 +2060,9 @@ importers:
         specifier: workspace:*
         version: link:../predictive
     devDependencies:
+      '@fleetos/world-context':
+        specifier: workspace:*
+        version: link:../world-context
       typescript:
         specifier: ^6.0.2
         version: 6.0.2

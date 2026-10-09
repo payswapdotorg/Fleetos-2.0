@@ -154,3 +154,8 @@ export * from "./widening.ts";
 // ---------- Wave 3 (F230B) world state fold ----------
 
 export * from "./world-fold.ts";
+
+// ---------- Wave 9 (F290B) JEPA family (deterministic latent-space
+// prediction — the structural analogue, never learned weights) ----------
+
+export * from "./jepa/index.ts";
