@@ -173,7 +173,7 @@ describe("F270B journey runner", () => {
   });
 
   it("tenancy is fail-closed INSIDE journeys: the fixture tenant is isolated", () => {
-    const { facts } = runJourney(SECURITY_JOURNEYS[SECURITY_JOURNEYS.length - 1]!);
+    const { facts } = runJourney(SECURITY_JOURNEYS.find((j) => j.journeyId === "security.tenant-fail-closed")!);
     expect(facts["views.offenderNamed"]).toBe("finding-foreign");
     expect(facts["posture.readRefused"]).toBe("posture.tenant-mismatch");
     expect(TENANT.tenantId).toBe("acme-ops");

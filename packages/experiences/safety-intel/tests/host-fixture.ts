@@ -96,9 +96,10 @@ function iso(ms: number): string {
   const { y, m, d } = civilFromDays(days);
   const hh = Math.floor(rem / 3_600_000);
   const mi = Math.floor((rem - hh * 3_600_000) / 60_000);
-  const ss = Math.floor(rem - hh * 3_600_000 - mi * 60_000);
+  const ss = Math.floor((rem - hh * 3_600_000 - mi * 60_000) / 1_000);
+  const msec = rem - hh * 3_600_000 - mi * 60_000 - ss * 1_000;
   const p2 = (n: number): string => String(n).padStart(2, "0");
-  return `${String(y).padStart(4, "0")}-${p2(m)}-${p2(d)}T${p2(hh)}:${p2(mi)}:${p2(ss)}.000Z`;
+  return `${String(y).padStart(4, "0")}-${p2(m)}-${p2(d)}T${p2(hh)}:${p2(mi)}:${p2(ss)}.${String(msec).padStart(3, "0")}Z`;
 }
 
 export function hostCtx(over: Partial<HostTenantContext> = {}): HostTenantContext {
