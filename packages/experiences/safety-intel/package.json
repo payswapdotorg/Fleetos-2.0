@@ -11,7 +11,8 @@
     "./inspect-views": "./src/inspect-views.ts",
     "./advisory-cards": "./src/advisory-cards.ts",
     "./command-intents": "./src/command-intents.ts",
-    "./staleness-cards": "./src/staleness-cards.ts"
+    "./staleness-cards": "./src/staleness-cards.ts",
+    "./host": "./src/host/index.ts"
   },
   "scripts": {
     "lint": "oxlint src",

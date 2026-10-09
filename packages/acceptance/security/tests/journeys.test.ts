@@ -200,4 +200,51 @@ describe("F270B journey spot checks (REAL behaviors)", () => {
     expect(facts["adoption.crossOk"]).toBe(false);
     expect(facts["caseset.crossOk"]).toBe(false);
   });
+
+  it("guardian e2e: a blocked decision never authorizes a command (Guardian never bypassed)", () => {
+    const { facts } = runJourney(journey("security.guardian-e2e"));
+    expect(facts["authorize.blockedOk"]).toBe(false);
+    expect(facts["authorize.blockedReason"]).toBe("refused.block_verdict");
+    expect(facts["intent.draft"]).toBe(true);
+    expect(facts["remediation.finalState"]).toBe("verified");
+    expect(facts["audit.trailVerified"]).toBe(true);
+  });
+
+  it("guardian e2e: the end-to-end chain completes with verification + audit", () => {
+    const { facts } = runJourney(journey("security.guardian-e2e"));
+    expect(facts["finding.admitted"]).toBe(1);
+    expect(facts["evidence.chainVerified"]).toBe(true);
+    expect(facts["execution.finalStatus"]).toBe("completed");
+    expect(facts["action.finalState"]).toBe("recorded");
+    expect(facts["action.verificationVerified"]).toBe(true);
+    expect(facts["audit.tamperedVerified"]).toBe(false);
+  });
+
+  it("mission replay: deterministic replay with divergence detection + fail-closed refusals", () => {
+    const { facts } = runJourney(journey("security.mission-replay"));
+    expect(facts["replay.timelineLength"]).toBe(10);
+    expect(facts["replay.deterministic"]).toBe(true);
+    expect(facts["diverge.kindField"]).toBe("kind");
+    expect(facts["foreign.journalReason"]).toBe("replay.tenant-mismatch");
+    expect(facts["foreign.brokenReason"]).toBe("replay.ledger-refused");
+  });
+
+  it("predictive honesty: JEPA labeled structural, never trained; unknown models refused", () => {
+    const { facts } = runJourney(journey("security.predictive-honesty"));
+    expect(facts["class.jepa.modelClass"]).toBe("deterministic-structural-reference");
+    expect(facts["class.jepa.trainedValidated"]).toBe(false);
+    expect(facts["registry.trainedCount"]).toBe(0);
+    expect(facts["class.unknownReason"]).toBe("honesty.unknown-model-identity");
+    expect(facts["route.unknownModelReason"]).toBe("advisory.model-honesty-refused");
+  });
+
+  it("host surface: contract laws hold over the real composed slice", () => {
+    const { facts } = runJourney(journey("security.host-surface"));
+    expect(facts["surface.id"]).toBe("safety-intel");
+    expect(facts["surface.routeCount"]).toBe(7);
+    expect(facts["vm.deterministic"]).toBe(true);
+    expect(facts["intent.draftMarker"]).toBe(true);
+    expect(facts["tenant.findingCode"]).toBe("views.cross-tenant-finding");
+    expect(facts["tenant.predictionCode"]).toBe("advisory.cross-tenant-prediction");
+  });
 });

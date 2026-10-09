@@ -1,5 +1,6 @@
 /**
- * @fleetos/acceptance-security — journey contracts (Wave 7 lane B, F270B).
+ * @fleetos/acceptance/security — journey contracts (Wave 7 lane B, F270B;
+ * extended Wave 10 lane B, F300B).
  *
  * A journey is DATA + assertions, never imperative glue that can hide
  * failures:
@@ -15,7 +16,9 @@
  *   - the capability vocabulary is FIXED and mirrors the F270B deliverable
  *     list (investigate/evidence/Guardian/plans/execution/reasoning/advice/
  *     counterfactual/inspect/learning/benchmarks/agent-safety + the
- *     tenant-isolation cross-cut);
+ *     tenant-isolation cross-cut) EXTENDED at F300B with the Wave 10 lane B
+ *     deliverables (Guardian journey end-to-end, mission replay, predictive
+ *     honesty, host-surface integration) — 17 entries, grow-only;
  *   - a journey may only declare packages from THIS lane (verified by the
  *     boundary self-check in tests).
  *
@@ -39,7 +42,7 @@ export const JOURNEY_PERSONAS = [
 ] as const;
 export type JourneyPersona = (typeof JOURNEY_PERSONAS)[number];
 
-/** The fixed capability vocabulary (the F270B deliverable list). */
+/** The fixed capability vocabulary (the F270B + F300B deliverable lists). */
 export const JOURNEY_CAPABILITIES = [
   "investigate-findings",
   "understand-evidence",
@@ -54,6 +57,11 @@ export const JOURNEY_CAPABILITIES = [
   "benchmark-trust",
   "agent-safety",
   "tenant-isolation",
+  // ---- F300B extensions (Wave 10 lane B deliverables) ----
+  "guardian-e2e-authorization",
+  "mission-replay",
+  "predictive-honesty",
+  "host-surface-integration",
 ] as const;
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
 

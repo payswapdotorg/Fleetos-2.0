@@ -57,7 +57,7 @@ describe("F270B acceptance report", () => {
 
   it("carries the persona x capability coverage matrix", () => {
     expect(report.coverage.personas.length).toBe(7);
-    expect(report.coverage.capabilities.length).toBe(13);
+    expect(report.coverage.capabilities.length).toBe(17);
     const cells = Object.values(report.coverage.matrix).flatMap((row) => Object.values(row));
     expect(cells.every((c) => c >= 0)).toBe(true);
     expect(cells.some((c) => c > 0)).toBe(true);
@@ -89,7 +89,7 @@ describe("F270B acceptance report", () => {
 
   it("honest gap lists appear when a capability has no passing journey", () => {
     const empty = assembleAcceptanceReport([]);
-    expect(empty.uncoveredCapabilities.length).toBe(13);
+    expect(empty.uncoveredCapabilities.length).toBe(17);
     expect(empty.uncoveredPersonas.length).toBe(7);
     expect(empty.totalJourneys).toBe(0);
   });

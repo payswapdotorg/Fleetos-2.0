@@ -32,3 +32,7 @@ export * from "./command-intents.ts";
 // ---------- Wave 8 (F280B) propagated-staleness advisory cards ----------
 
 export * from "./staleness-cards.ts";
+
+// ---------- Wave 10 (F300B) HostSurface adapter (subpath "./host") ----------
+
+export * from "./host/index.ts";
