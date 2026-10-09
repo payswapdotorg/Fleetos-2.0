@@ -21,3 +21,4 @@ export * from "./role-allocator.js";
 export * from "./budget-rebalancer.js";
 export * from "./routing-optimizer.js";
 export * from "./what-if.js";
+export * from "./industries/index.js";
