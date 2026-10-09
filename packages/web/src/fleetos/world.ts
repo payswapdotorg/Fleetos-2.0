@@ -38,6 +38,7 @@ import {
   type SecuritySeverity,
 } from "@fleetos/security";
 import type { ExperienceStateSlice } from "@fleetos/experience-asset-field";
+import { runWorld, type FleetWorld, type WorldEvent } from "@fleetos/sim-worlds";
 
 export const T0 = 1_774_000_000_000;
 
@@ -290,4 +291,79 @@ export function buildWorld(): Map<string, TenantWorld> {
   const m = new Map<string, TenantWorld>();
   for (const t of TENANTS) m.set(t.id, buildTenantWorld(t));
   return m;
+}
+
+// ---------------------------------------------------------------------------
+// Engineering Lab — a REAL deterministic simulation run (TL-owned surface).
+// Experimental evidence only: outputs never self-execute, never adopt.
+// ---------------------------------------------------------------------------
+
+export const LAB_WORLD: FleetWorld = {
+  worldId: "world_fleetos-lab-01",
+  tenantId: "tnt_acme-logistics",
+  version: 1,
+  description: "FleetOS shell lab: two assets, jittered telemetry, fault stream.",
+  seed: "fleetos-lab-seed-01",
+  timeUnitMs: 1_000,
+  healthPolicy: { downAfterSteps: 3, recoveryGraceSteps: 2 },
+  assets: [
+    { assetId: "ast_lab-alpha", assetClass: "pump", failureRateBps: 1 },
+    { assetId: "ast_lab-beta", assetClass: "valve", failureRateBps: 1 },
+  ],
+  devices: [
+    {
+      deviceId: "dev_lab-flow-b2",
+      assetId: "ast_lab-beta",
+      dropoutBps: 1,
+      emitEverySteps: 2,
+      streams: [{ kind: "telemetry.flow", unit: "lpm", baseValue: 120, jitterMinOffset: -5, jitterMaxOffset: 5 }],
+    },
+    {
+      deviceId: "dev_lab-thermo-a1",
+      assetId: "ast_lab-alpha",
+      dropoutBps: 1,
+      emitEverySteps: 1,
+      streams: [
+        { kind: "telemetry.temp", unit: "C", baseValue: 40, jitterMinOffset: -2, jitterMaxOffset: 2 },
+        { kind: "event.fault", unit: "code", baseValue: 7, jitterMinOffset: 0, jitterMaxOffset: 0 },
+      ],
+    },
+  ],
+  links: [{ linkId: "lnk_lab-a-b", endpoints: ["dev_lab-thermo-a1", "dev_lab-flow-b2"], uptimeBps: 9_999 }],
+  maintenancePolicies: [
+    {
+      policyId: "pol_lab-alpha",
+      assetId: "ast_lab-alpha",
+      windowEverySteps: 12,
+      windowLengthSteps: 2,
+      serviceLevel: "standard",
+      mtbfSteps: 24,
+    },
+  ],
+  initialHealthPostures: [
+    { assetId: "ast_lab-alpha", posture: "healthy" },
+    { assetId: "ast_lab-beta", posture: "healthy" },
+  ],
+};
+
+export interface LabRun {
+  readonly ok: boolean;
+  readonly step: number;
+  readonly eventCount: number;
+  readonly lastDigest: string;
+  readonly events: readonly WorldEvent[];
+}
+
+export function runLab(steps: number): LabRun {
+  const r = runWorld(LAB_WORLD, steps);
+  if (!r.ok) {
+    return { ok: false, step: 0, eventCount: 0, lastDigest: "", events: [] };
+  }
+  return {
+    ok: true,
+    step: r.state.step,
+    eventCount: r.events.length,
+    lastDigest: r.state.lastDigest,
+    events: r.events,
+  };
 }

@@ -20,7 +20,7 @@ import {
 import { buildFindingViews } from "@fleetos/experience-safety-intel";
 import { buildWorkBoard } from "@fleetos/experience-work-commerce";
 import { assembleFleetOverview } from "@fleetos/experience-asset-field";
-import { buildWorld, TENANTS, T0, type TenantWorld } from "./world.js";
+import { buildWorld, runLab, TENANTS, T0, type TenantWorld } from "./world.js";
 import { FleetCommandPath, type SubmissionRecord } from "./commandPath.js";
 
 declare const __FLEETOS_COMMIT__: string;
@@ -429,16 +429,51 @@ function CommercePage({ tw }: { tw: TenantWorld }) {
 }
 
 function LabPage() {
+  const lab = useMemo(() => runLab(24), []);
+  const emissions = lab.events.filter((e) => e.kind === "observation-emitted").slice(0, 14);
+  const failures = lab.events.filter((e) => e.kind === "asset-failed");
+  const maintenance = lab.events.filter((e) =>
+    e.kind === "maintenance-due" || e.kind === "maintenance-started" || e.kind === "maintenance-completed",
+  );
   return (
     <div className="fos-grid">
       <section className="fos-card fos-span2">
-        <h2>Engineering Lab</h2>
-        <p className="fos-note">
-          Simulation worlds, benchmarks and experiments run through the real Engineering Lab package
-          (<code>@fleetos/experience-engineering-lab</code>). The lane surfaces mount here with the
-          F300 deliveries; this surface shows the shell state honestly in the interim.
-        </p>
-        <EmptyView what="experiment" />
+        <h2>Engineering Lab — deterministic simulation run (experimental evidence only)</h2>
+        {!lab.ok ? (
+          <RefusalView code="world-refused" detail="the lab world failed validation" />
+        ) : (
+          <>
+            <div className="fos-counters">
+              <div><b>{lab.step}</b><span>steps advanced</span></div>
+              <div><b>{lab.eventCount}</b><span>events</span></div>
+              <div><b>{failures.length}</b><span>asset failures</span></div>
+              <div><b>{maintenance.length}</b><span>maintenance events</span></div>
+            </div>
+            <p className="fos-note">
+              Real <code>@fleetos/sim-worlds</code> engine over a fixed seeded world
+              (world_fleetos-lab-01, seed fleetos-lab-seed-01): same world + seed ⇒
+              byte-identical trajectory. Outputs are EXPERIMENTAL EVIDENCE ONLY — they never
+              self-execute and never adopt into operational state.
+            </p>
+            <pre className="fos-digest">state digest: {lab.lastDigest}</pre>
+          </>
+        )}
+      </section>
+      <section className="fos-card fos-span2">
+        <h2>Emitted observations (first 14)</h2>
+        <table className="fos-table">
+          <thead><tr><th>seq</th><th>device</th><th>stream</th><th>value</th><th>unit</th></tr></thead>
+          <tbody>
+            {emissions.map((e, i) =>
+              e.kind === "observation-emitted" ? (
+                <tr key={i}>
+                  <td>{e.observationSeq}</td><td>{e.deviceId}</td><td>{e.streamKind}</td>
+                  <td>{e.value}</td><td>{e.unit}</td>
+                </tr>
+              ) : null,
+            )}
+          </tbody>
+        </table>
       </section>
     </div>
   );

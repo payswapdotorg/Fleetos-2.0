@@ -19,6 +19,7 @@
     "@fleetos/kernel": "workspace:*",
     "@fleetos/observations": "workspace:*",
     "@fleetos/security": "workspace:*",
+    "@fleetos/sim-worlds": "workspace:*",
     "@fleetos/work": "workspace:*",
     "@zcode/client": "workspace:*",
     "@zcode/shared": "workspace:*",

@@ -2062,6 +2062,9 @@ importers:
       '@fleetos/security':
         specifier: workspace:*
         version: link:../security
+      '@fleetos/sim-worlds':
+        specifier: workspace:*
+        version: link:../sim-worlds
       '@fleetos/work':
         specifier: workspace:*
         version: link:../work
