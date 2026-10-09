@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./feature-projection": "./src/feature-projection.ts",
-    "./reference-model": "./src/reference-model.ts"
+    "./reference-model": "./src/reference-model.ts",
+    "./staleness-propagation": "./src/staleness-propagation.ts"
   },
   "scripts": {
     "lint": "oxlint src",

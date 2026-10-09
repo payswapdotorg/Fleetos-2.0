@@ -181,6 +181,11 @@ export function proposeRemediation(
 export * from "./lifecycle.ts";
 export * from "./posture.ts";
 
+// ---------- Wave 8 (F280B) security/audit hardening ----------
+
+export * from "./audit-ledger.ts";
+export * from "./finding-storms.ts";
+
 // ---------- Wave 2 (F220B) operational extensions ----------
 
 export * from "./intake.ts";

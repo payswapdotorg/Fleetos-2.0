@@ -10,7 +10,9 @@
     "./posture": "./src/posture.ts",
     "./intake": "./src/intake.ts",
     "./posture-fold": "./src/posture-fold.ts",
-    "./remediation": "./src/remediation.ts"
+    "./remediation": "./src/remediation.ts",
+    "./audit-ledger": "./src/audit-ledger.ts",
+    "./finding-storms": "./src/finding-storms.ts"
   },
   "scripts": {
     "lint": "oxlint src",

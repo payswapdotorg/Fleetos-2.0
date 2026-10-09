@@ -26,3 +26,8 @@ export * from "./adoption.ts";
 
 export * from "./rules-engine.ts";
 export * from "./grant-chain.ts";
+
+// ---------- Wave 8 (F280B) disaster-recovery hardening ----------
+
+export * from "./capability-store.ts";
+export * from "./capability-store-dr.ts";
