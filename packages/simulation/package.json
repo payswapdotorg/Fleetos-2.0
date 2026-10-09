@@ -11,7 +11,8 @@
     "./replay-harness": "./src/replay-harness.ts",
     "./scoring": "./src/scoring.ts",
     "./safety-benchmarks": "./src/safety-benchmarks.ts",
-    "./benchmark-report": "./src/benchmark-report.ts"
+    "./benchmark-report": "./src/benchmark-report.ts",
+    "./benchmark-integrity": "./src/benchmark-integrity.ts"
   },
   "scripts": {
     "lint": "oxlint src",

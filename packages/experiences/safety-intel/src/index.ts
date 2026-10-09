@@ -28,3 +28,7 @@ export * from "./guardian-views.ts";
 export * from "./inspect-views.ts";
 export * from "./advisory-cards.ts";
 export * from "./command-intents.ts";
+
+// ---------- Wave 8 (F280B) propagated-staleness advisory cards ----------
+
+export * from "./staleness-cards.ts";

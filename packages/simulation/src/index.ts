@@ -139,3 +139,7 @@ export * from "./replay-harness.ts";
 export * from "./scoring.ts";
 export * from "./safety-benchmarks.ts";
 export * from "./benchmark-report.ts";
+
+// ---------- Wave 8 (F280B) benchmark integrity hardening ----------
+
+export * from "./benchmark-integrity.ts";

@@ -10,7 +10,8 @@
     "./guardian-views": "./src/guardian-views.ts",
     "./inspect-views": "./src/inspect-views.ts",
     "./advisory-cards": "./src/advisory-cards.ts",
-    "./command-intents": "./src/command-intents.ts"
+    "./command-intents": "./src/command-intents.ts",
+    "./staleness-cards": "./src/staleness-cards.ts"
   },
   "scripts": {
     "lint": "oxlint src",

@@ -190,3 +190,8 @@ export * from "./verification.ts";
 export * from "./command-queue.ts";
 export * from "./ledger.ts";
 export * from "./reference-transport.ts";
+
+// ---------- Wave 8 (F280B) audit/replay hardening ----------
+
+export * from "./incident-audit.ts";
+export * from "./incident-replay.ts";

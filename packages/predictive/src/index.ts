@@ -259,3 +259,7 @@ export * from "./feature-projection.ts";
 // ---------- Wave 3 (F230B) reference twin model ----------
 
 export * from "./reference-model.ts";
+
+// ---------- Wave 8 (F280B) advisory staleness propagation ----------
+
+export * from "./staleness-propagation.ts";

@@ -15,7 +15,9 @@
     "./ledger": "./src/ledger.ts",
     "./adoption": "./src/adoption.ts",
     "./rules-engine": "./src/rules-engine.ts",
-    "./grant-chain": "./src/grant-chain.ts"
+    "./grant-chain": "./src/grant-chain.ts",
+    "./capability-store": "./src/capability-store.ts",
+    "./capability-store-dr": "./src/capability-store-dr.ts"
   },
   "scripts": {
     "lint": "oxlint src",

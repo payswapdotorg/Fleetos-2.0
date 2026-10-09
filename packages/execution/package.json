@@ -10,7 +10,9 @@
     "./verification": "./src/verification.ts",
     "./command-queue": "./src/command-queue.ts",
     "./ledger": "./src/ledger.ts",
-    "./reference-transport": "./src/reference-transport.ts"
+    "./reference-transport": "./src/reference-transport.ts",
+    "./incident-audit": "./src/incident-audit.ts",
+    "./incident-replay": "./src/incident-replay.ts"
   },
   "scripts": {
     "lint": "oxlint src",
@@ -19,7 +21,9 @@
     "build": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@fleetos/policy": "workspace:*"
+    "@fleetos/actions": "workspace:*",
+    "@fleetos/policy": "workspace:*",
+    "@fleetos/security": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^6.0.2",

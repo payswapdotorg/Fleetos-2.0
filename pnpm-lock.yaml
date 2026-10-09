@@ -1016,9 +1016,15 @@ importers:
 
   packages/execution:
     dependencies:
+      '@fleetos/actions':
+        specifier: workspace:*
+        version: link:../actions
       '@fleetos/policy':
         specifier: workspace:*
         version: link:../policy
+      '@fleetos/security':
+        specifier: workspace:*
+        version: link:../security
     devDependencies:
       typescript:
         specifier: ^6.0.2
