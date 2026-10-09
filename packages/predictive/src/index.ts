@@ -85,7 +85,7 @@ export interface UncertaintyInterval {
   readonly lower: number;
   readonly upper: number;
   readonly confidence: number; // 0..1
-  readonly method: "bootstrap" | "conformal" | "ensemble" | "reference.constant";
+  readonly method: "bootstrap" | "conformal" | "ensemble" | "reference.constant" | "jepa.latent-sqrt";
 }
 
 export interface ProvenanceDigest {

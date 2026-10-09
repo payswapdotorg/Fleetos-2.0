@@ -7,7 +7,8 @@
   "exports": {
     ".": "./src/index.ts",
     "./widening": "./src/widening.ts",
-    "./world-fold": "./src/world-fold.ts"
+    "./world-fold": "./src/world-fold.ts",
+    "./jepa": "./src/jepa/index.ts"
   },
   "scripts": {
     "lint": "oxlint src",
@@ -19,6 +20,7 @@
     "@fleetos/predictive": "workspace:*"
   },
   "devDependencies": {
+    "@fleetos/world-context": "workspace:*",
     "typescript": "^6.0.2",
     "vitest": "^2.1.9"
   }
