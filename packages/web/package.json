@@ -16,6 +16,7 @@
     "@fleetos/experience-safety-intel": "workspace:*",
     "@fleetos/experience-work-commerce": "workspace:*",
     "@fleetos/health": "workspace:*",
+    "@fleetos/identity": "workspace:*",
     "@fleetos/kernel": "workspace:*",
     "@fleetos/observations": "workspace:*",
     "@fleetos/security": "workspace:*",

@@ -21,6 +21,8 @@ import { buildFindingViews } from "@fleetos/experience-safety-intel";
 import { buildWorkBoard } from "@fleetos/experience-work-commerce";
 import { assembleFleetOverview } from "@fleetos/experience-asset-field";
 import { buildWorld, runLab, TENANTS, T0, type TenantWorld } from "./world.js";
+import { assetFieldHostSurface } from "@fleetos/experience-asset-field/host";
+import { makeTenantContext } from "@fleetos/identity";
 import { FleetCommandPath, type SubmissionRecord } from "./commandPath.js";
 
 declare const __FLEETOS_COMMIT__: string;
@@ -255,20 +257,37 @@ function TowerPage({ tw }: { tw: TenantWorld }) {
 }
 
 function FieldPage({ tw }: { tw: TenantWorld }) {
-  const overview = assembleFleetOverview(tw.slice, { now: T0 + 10_000 });
-  if (!overview.ok) return <RefusalView code="fleet-overview-refused" detail={String(overview.detail ?? overview.refused)} />;
-  const o = overview.view;
+  // F301 convergence: the REAL lane HostSurface (F300A) — the contract §2 seam.
+  const ctxR = makeTenantContext({
+    tenantId: tw.tenantId,
+    actorId: "act_shell-operator",
+    roleId: "role_fleet-operator",
+    establishedAt: T0 + 10_000,
+  });
+  const host = ctxR.ok ? assetFieldHostSurface.buildViewModels(tw.slice, ctxR.context) : null;
+  if (!ctxR.ok) return <RefusalView code={`context-refused/${ctxR.reason}`} detail="" />;
+  if (!host || !host.ok) {
+    return <RefusalView code={`host-refused/${host ? String(host.rejected) : "no-host"}`} detail={host?.detail ?? ""} />;
+  }
+  const vm = host.models;
+  const overview = vm.fleetOverview;
   return (
     <div className="fos-grid">
       <section className="fos-card fos-span2">
-        <h2>Fleet overview — {tw.tenantId}</h2>
-        <div className="fos-counters">
-          <div><b>{o.counters.assets}</b><span>assets ({o.counters.active} active)</span></div>
-          <div><b>{o.counters.devices}</b><span>devices</span></div>
-          <div><b>{o.counters.fresh}</b><span>fresh</span></div>
-          <div><b>{o.counters.stale}</b><span>stale</span></div>
-        </div>
-        <pre className="fos-digest">overview digest: {o.digest}</pre>
+        <h2>Fleet overview — {tw.tenantId} <span className="fos-badge">via F300A HostSurface</span></h2>
+        {overview.ok ? (
+          <>
+            <div className="fos-counters">
+              <div><b>{overview.view.counters.assets}</b><span>assets ({overview.view.counters.active} active)</span></div>
+              <div><b>{overview.view.counters.devices}</b><span>devices</span></div>
+              <div><b>{overview.view.counters.fresh}</b><span>fresh</span></div>
+              <div><b>{overview.view.counters.stale}</b><span>stale</span></div>
+            </div>
+            <pre className="fos-digest">overview digest: {overview.view.digest} · host bundle digest: {vm.digest}</pre>
+          </>
+        ) : (
+          <RefusalView code="fleet-overview-refused" detail={String(overview.detail ?? overview.rejected)} />
+        )}
       </section>
       <section className="fos-card">
         <h2>Assets (real directory)</h2>
@@ -282,15 +301,26 @@ function FieldPage({ tw }: { tw: TenantWorld }) {
         </table>
       </section>
       <section className="fos-card">
-        <h2>Devices & enrollment</h2>
+        <h2>Device 360 (host sheets, assetId order)</h2>
         <table className="fos-table">
-          <thead><tr><th>device</th><th>asset</th><th>serial</th></tr></thead>
+          <thead><tr><th>asset</th><th>outcome</th></tr></thead>
           <tbody>
-            {tw.devices.map((d) => (
-              <tr key={d.id}><td>{d.id}</td><td>{d.assetId}</td><td>{d.serial}</td></tr>
+            {vm.device360.map((s) => (
+              <tr key={s.assetId}>
+                <td>{s.assetId}</td>
+                <td>{s.outcome.ok ? `${s.outcome.view.displayName} · ${s.outcome.view.lifecycle} · posture ${s.outcome.view.posture}` : `REFUSED ${String(s.outcome.rejected)}`}</td>
+              </tr>
             ))}
           </tbody>
         </table>
+      </section>
+      <section className="fos-card fos-span2">
+        <h2>Health board / recovery timeline / maintenance (host view models)</h2>
+        <ul className="fos-list">
+          <li>health board: {vm.healthBoard.ok ? `${vm.healthBoard.view.rows.length} rows · fleet: ${vm.healthBoard.view.fleet.assets} assets, ${vm.healthBoard.view.fleet.critical} critical, ${vm.healthBoard.view.fleet.warning} warning` : `REFUSED ${String(vm.healthBoard.rejected)}`}</li>
+          <li>recovery timeline: {vm.recoveryTimeline.ok ? `${vm.recoveryTimeline.view.cases.length} case timeline(s), ${vm.recoveryTimeline.view.open} open` : `REFUSED ${String(vm.recoveryTimeline.rejected)}`}</li>
+          <li>maintenance board: {vm.maintenanceBoard.ok ? `${vm.maintenanceBoard.view.scheduled.length} scheduled · ${vm.maintenanceBoard.view.inProgress.length} in progress · ${vm.maintenanceBoard.view.completed.length} completed` : `REFUSED ${String(vm.maintenanceBoard.rejected)}`}</li>
+        </ul>
       </section>
       <section className="fos-card fos-span2">
         <h2>Observation timeline (ingested through the real pipeline)</h2>
@@ -308,16 +338,12 @@ function FieldPage({ tw }: { tw: TenantWorld }) {
         </table>
       </section>
       <section className="fos-card fos-span2">
-        <h2>Health findings (real triage)</h2>
-        {tw.healthFindings.length === 0 ? (
-          <EmptyView what="health-finding" />
-        ) : (
-          <ul className="fos-list">
-            {tw.healthFindings.map((f, i) => (
-              <li key={i}>{String(f.deviceId)} — {f.code} — {f.severity}</li>
-            ))}
-          </ul>
-        )}
+        <h2>Route limitation markers (honest, per contract §2)</h2>
+        <ul className="fos-list fos-mono">
+          {vm.routeLimitations.map((r) => (
+            <li key={r.routeId}>{r.routeId}: {r.markers.length ? r.markers.join(", ") : "(none)"}</li>
+          ))}
+        </ul>
       </section>
     </div>
   );
@@ -507,6 +533,18 @@ function CommandsPage(props: {
     setLast(r.ok ? `ENQUEUED ${r.ack.commandId} (duplicate=${r.ack.duplicate})` : `REFUSED ${r.refused}: ${r.detail}`);
     onSubmit();
   };
+  const submitRemediation = () => {
+    const proposal = tw.remediations[0];
+    if (!proposal) { setLast("No remediation proposal in this demo composition."); return; }
+    const r = cmdPath.submitRemediationRequest(ctx, {
+      proposalId: proposal.proposalId,
+      findingIds: [...proposal.findingIds],
+      remediationKind: proposal.remediationKind,
+      reason: "risk-reduction",
+    });
+    setLast(r.ok ? `ENQUEUED ${r.ack.commandId} (duplicate=${r.ack.duplicate})` : `REFUSED ${r.refused}: ${r.detail}`);
+    onSubmit();
+  };
 
   return (
     <div className="fos-grid">
@@ -524,12 +562,14 @@ function CommandsPage(props: {
           <label>reason <input value={reason} onChange={(e) => setReason(e.target.value)} /></label>
           <p className="fos-note">
             Tower reason vocabulary — asset.enroll: onboarding · replacement · fleet-expansion;
-            recovery.request: incident-response · operator-request. Reasons outside the
-            vocabulary are REFUSED (shown honestly).
+            recovery.request: incident-response · operator-request;
+            security.remediation.request: risk-reduction · policy-remediation. Reasons outside
+            the vocabulary are REFUSED (shown honestly).
           </p>
           <div className="fos-actions">
             <button onClick={submitEnroll}>Submit asset.enroll</button>
             <button onClick={submitRecovery}>Submit recovery.request</button>
+            <button onClick={submitRemediation}>Submit security.remediation.request (lane B)</button>
           </div>
         </div>
         {last && <pre className="fos-result">{last}</pre>}
@@ -635,6 +675,7 @@ const STYLES = `
 .fos-bad { color: #ff9d8f; }
 .fos-footer { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 12px 22px; background: #101720; border-top: 1px solid #1d2a38; color: #56697c; font-size: 11px; }
 .fos-commit code { color: #93a4b5; }
+.fos-badge { font-size: 10px; color: #e8a33d; border: 1px solid #4a3c1d; border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
 @media (max-width: 720px) { .fos-header { flex-direction: column; align-items: flex-start; } }
 `;
 

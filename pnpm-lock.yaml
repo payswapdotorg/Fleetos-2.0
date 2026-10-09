@@ -2053,6 +2053,9 @@ importers:
       '@fleetos/health':
         specifier: workspace:*
         version: link:../health
+      '@fleetos/identity':
+        specifier: workspace:*
+        version: link:../identity
       '@fleetos/kernel':
         specifier: workspace:*
         version: link:../kernel

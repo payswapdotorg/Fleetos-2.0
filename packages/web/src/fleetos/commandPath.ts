@@ -13,6 +13,7 @@ import {
   type TowerSubmitResult,
 } from "@fleetos/control-tower";
 import { buildEnrollAssetIntent, buildRequestRecoveryIntent } from "@fleetos/experience-asset-field";
+import { requestRemediation } from "@fleetos/experience-safety-intel";
 import type { CommandRecord } from "@fleetos/control-plane";
 
 export interface SubmissionRecord {
@@ -121,5 +122,28 @@ export class FleetCommandPath {
   ): void {
     this.submissions.unshift({ at: Date.now(), kind, actor, ok, detail, commandId, duplicate, idempotencyKey });
     if (this.submissions.length > 50) this.submissions.length = 50;
+  }
+
+  /** Submit a security remediation request from the UI (REAL pipeline, lane B). */
+  submitRemediationRequest(
+    ctx: TenantContext,
+    input: { proposalId: string; findingIds: string[]; remediationKind: string; reason: string },
+  ): TowerSubmitResult {
+    const draftR = requestRemediation({
+      intentId: `intent-shell-${input.proposalId}`,
+      tenantId: String(ctx.tenantId),
+      actorId: String(ctx.actorId),
+      requiredCapabilityId: "security.remediation.request",
+      reason: input.reason,
+      issuedAt: Date.now(),
+      proposalId: input.proposalId,
+      findingIds: input.findingIds,
+      remediationKind: input.remediationKind,
+    });
+    if (!draftR.ok) {
+      this.record(String(ctx.actorId), "security.remediation.request", false, `draft refused: ${draftR.refused}`, null, false, "-");
+      return { ok: false, refused: "queue-rejected", detail: String(draftR.refused) } as never;
+    }
+    return this.submitDraft(ctx, draftR.draft as TowerCommandDraft);
   }
 }
