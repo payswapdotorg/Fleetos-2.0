@@ -36,7 +36,7 @@ describe("the work/commerce/project journey corpus", () => {
   }
 
   it("create-work-order: the board digest is the view's own FNV-1a digest", async () => {
-    const { facts } = await runJourney(JOURNEYS[0]!);
+    const { facts } = await runJourney(JOURNEYS.find((j) => j.id === "create-work-order")!);
     expect(facts.get("workBoard.digest")).toMatch(/^workboard_[0-9a-f]{8}$/);
   });
 
@@ -49,32 +49,32 @@ describe("the work/commerce/project journey corpus", () => {
   });
 
   it("stage-gated-project: the gate view digest is stable-shaped", async () => {
-    const { facts } = await runJourney(JOURNEYS[2]!);
+    const { facts } = await runJourney(JOURNEYS.find((j) => j.id === "stage-gated-project")!);
     expect(facts.get("stageGate.digest")).toMatch(/^stagegates_[0-9a-f]{8}$/);
   });
 
   it("workload-allocation: the rollup digest is stable-shaped", async () => {
-    const { facts } = await runJourney(JOURNEYS[3]!);
+    const { facts } = await runJourney(JOURNEYS.find((j) => j.id === "workload-allocation")!);
     expect(facts.get("wlRollup.digest")).toMatch(/^workload_[0-9a-f]{8}$/);
   });
 
   it("procure-spine: the quote score view carries the bps decomposition digest", async () => {
-    const { facts } = await runJourney(JOURNEYS[4]!);
+    const { facts } = await runJourney(JOURNEYS.find((j) => j.id === "procure-spine")!);
     expect(facts.get("quotes.digest")).toMatch(/^quotescore_[0-9a-f]{8}$/);
   });
 
   it("vendor-management: the KPI rollup digest is stable-shaped", async () => {
-    const { facts } = await runJourney(JOURNEYS[7]!);
+    const { facts } = await runJourney(JOURNEYS.find((j) => j.id === "vendor-management")!);
     expect(facts.get("kpi.digest")).toMatch(/^vendorkpi_[0-9a-f]{8}$/);
   });
 
   it("software-entitlements: the seat view digest is stable-shaped", async () => {
-    const { facts } = await runJourney(JOURNEYS[8]!);
+    const { facts } = await runJourney(JOURNEYS.find((j) => j.id === "software-entitlements")!);
     expect(facts.get("seats.digest")).toMatch(/^seats_[0-9a-f]{8}$/);
   });
 
   it("org-optimization-review: the usage rollup digest is stable-shaped", async () => {
-    const { facts } = await runJourney(JOURNEYS[12]!);
+    const { facts } = await runJourney(JOURNEYS.find((j) => j.id === "org-optimization-review")!);
     expect(facts.get("usageRollup.digest")).toMatch(/^usagerollup_[0-9a-f]{8}$/);
   });
 

@@ -73,6 +73,9 @@ import { createDeterministicAurumAdapter, type AurumPort } from "@fleetos/aurum"
 import type {
   UsageLedgerEntry,
   BudgetCheckPort,
+  ModelDescriptor,
+  QuotaWindowPolicy,
+  QuotaWindowState,
 } from "@fleetos/model-gateway";
 import type {
   AgentRoleDefinition,
@@ -84,6 +87,8 @@ import type {
   TenantScope as OrgTenantScope,
 } from "@fleetos/agent-organizations";
 import { checkAgentBudget } from "@fleetos/agent-organizations";
+import type { RoleAssignment } from "@fleetos/agent-organizations";
+import { buildGatewayState } from "./gateway-world.js";
 
 /** All states a journey's steps may accumulate. Mutated only by the runner. */
 export interface JourneyState {
@@ -150,6 +155,15 @@ export interface JourneyState {
     proposal: RoleAllocationProposal | null;
     whatIf: WhatIfAnalysis | null;
     baselineSnapshotDigest: string | null;
+    /** LIVE role-assignment records driven through the REAL assignRole /
+     * transitionRoleAssignment lifecycle (F300C role-handoff journeys). */
+    assignments: RoleAssignment[];
+  };
+  /** Model-gateway routing/quota/burn state (F300C). */
+  readonly gateway: {
+    registry: readonly ModelDescriptor[];
+    quotaPolicy: QuotaWindowPolicy;
+    quotaState: QuotaWindowState;
   };
   /** Sequence logs drivers append to (assertable as array facts). */
   readonly logs: Record<string, string[]>;
@@ -238,6 +252,8 @@ export function buildJourneyWorld(): JourneyState {
   };
   const aurumPort = createDeterministicAurumAdapter({ simulateOutage: false, responses: aurumResponses });
   const aurumOutagePort = createDeterministicAurumAdapter({ simulateOutage: true, responses: aurumResponses });
+
+  const gateway = buildGatewayState();
 
   return {
     tenant,
@@ -357,7 +373,9 @@ export function buildJourneyWorld(): JourneyState {
       proposal: null,
       whatIf: null,
       baselineSnapshotDigest: null,
+      assignments: [],
     },
+    gateway,
     logs: {},
   };
 }

@@ -5,14 +5,20 @@
  * (heavy-equipment / vehicle / fixed-asset / instrument weights as integer
  * bps-of-100), a posture emphasis, and APPLICABILITY MASKS over the three
  * REAL acceptance corpora's journey ids (F270A field 14 / F270B security 13
- * / F270C commerce 15).
+ * / F270C commerce 21 — the F300C Wave 10 extension).
  *
  * HONESTY LAW: a mask is an explicit EXCLUSION with a recorded rationale —
  * an industry never silently inherits a journey it cannot honestly run.
  * Masked journeys are excluded from that industry's coverage denominator
  * (never counted as covered, never counted as failed). Industries keep the
  * mobile-shape journey and the cross-role handoff family whenever they have
- * any field applicability — which all ten do.
+ * any field applicability — which all ten do. The F300C host-integration
+ * journeys are PLATFORM journeys (the shell every industry deploys renders
+ * the same seam) and tenant-isolation journeys are never masked — both
+ * stay unmasked for every industry. The F300C gateway-routing and
+ * role-assignment journeys are AGENT-OPERATION journeys — masked for the
+ * three industries that record no in-house autonomous agents (mirroring
+ * their security.agent-safety rationales).
  *
  * Pure deterministic TS (DATA only — no runner calls live here).
  */
@@ -150,6 +156,10 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
           "No external data-actor automation is operated in-house.",
         "org-optimization-review":
           "Small organizations run no model-usage optimization practice.",
+        "gateway-routing":
+          "No in-house model routing is operated: machinery autonomy is OEM-embedded and the incumbent machinery vendor owns the embedded models (mirrors the security.agent-safety rationale).",
+        "role-assignment-handoff":
+          "No in-house agents to hold roles: machinery autonomy is OEM-embedded; role handoffs belong to the incumbent machinery vendor's tooling.",
       },
       security: {
         "security.counterfactual-reasoning":
@@ -185,6 +195,10 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
           "External data automation is not operated in-house; the integration office owns EDI.",
         "org-optimization-review":
           "Org analytics live in the incumbent hospital BI stack.",
+        "gateway-routing":
+          "No autonomous agents operate in regulated clinical environments — no in-house model routing exists to exercise (mirrors the security.agent-safety rationale).",
+        "role-assignment-handoff":
+          "No autonomous agents operate in regulated clinical environments — agent role handoffs are not a clinical-facility practice.",
       },
       security: {
         "security.counterfactual-reasoning":
@@ -218,6 +232,10 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
           "Org analytics live in the incumbent IFM BI stack.",
         "aurum-settlement-seam":
           "Client billing and settlement run in the incumbent accounting stack.",
+        "gateway-routing":
+          "No autonomous agents operate building plant — no in-house model routing is exercised (mirrors the security.agent-safety rationale).",
+        "role-assignment-handoff":
+          "No autonomous agents operate building plant; agent role handoffs are not an FM practice.",
       },
       security: {
         "security.counterfactual-reasoning":

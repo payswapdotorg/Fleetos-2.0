@@ -103,6 +103,13 @@ export async function runWorkStep(step: WorkStep, state: JourneyState): Promise<
       if (!result.ok) return { "workBoard.ok": false, "workBoard.reasonCode": result.reasonCode };
       const counts = new Map(result.board.totals.map((t) => [t.status, t.count] as const));
       const firstTodo = result.board.columns.find((c) => c.status === "todo")?.cards[0] ?? null;
+      const allCards = result.board.columns.flatMap((c) => c.cards);
+      const blockedReason = result.board.columns.find((c) => c.status === "blocked")?.cards[0]?.blockedReason ?? null;
+      logPush(
+        state,
+        "workBoard.state.log",
+        `todo:${counts.get("todo") ?? 0}:ip:${counts.get("in_progress") ?? 0}:blocked:${counts.get("blocked") ?? 0}:done:${counts.get("done") ?? 0}:sentinel:${allCards.some((c) => c.assigneeId === "[REDACTED]")}:reason:${blockedReason ?? "-"}`,
+      );
       return {
         "workBoard.ok": true,
         "workBoard.todoCount": counts.get("todo") ?? 0,
@@ -112,7 +119,9 @@ export async function runWorkStep(step: WorkStep, state: JourneyState): Promise<
         "workBoard.cancelledCount": counts.get("cancelled") ?? 0,
         "workBoard.firstTodoId": firstTodo?.workItemId ?? null,
         "workBoard.firstTodoAssignee": firstTodo?.assigneeId ?? null,
+        "workBoard.blockedReason": blockedReason,
         "workBoard.assigneeRedacted": firstTodo?.assigneeId === "[REDACTED]",
+        "workBoard.anyAssigneeSentinel": allCards.some((c) => c.assigneeId === "[REDACTED]"),
         "workBoard.redactedFields": step.redactAssignees === true ? result.board.redactedFields : [],
         "workBoard.digest": result.board.digest,
       };

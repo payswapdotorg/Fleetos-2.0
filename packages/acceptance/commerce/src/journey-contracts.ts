@@ -51,6 +51,11 @@ export const JOURNEY_CAPABILITIES: readonly string[] = [
   "cross-role-handoff",
   "tenant-isolation",
   "settlement-adapter",
+  // F300C extensions (Wave 10 lane C): the host seam, the model-gateway
+  // routing/quota/burn surface, and the role-assignment lifecycle.
+  "host-integration",
+  "model-gateway-routing",
+  "role-assignment",
 ] as const;
 
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
@@ -171,7 +176,103 @@ export type AurumStep =
   | (JourneyStepBase & { readonly kind: "aurum-outage-invoke"; readonly intent: string; readonly idempotencyKey: string })
   | (JourneyStepBase & { readonly kind: "aurum-boundary"; readonly projectionKind: string });
 
-export type JourneyStep = WorkStep | CommerceStep | OrgStep | AurumStep;
+// ---------------------------------------------------------------------------
+// Host seam steps (F300C, WAVE10-HOST-CONTRACT §2) — drive the lane's
+// HostSurface adapter over the journey's REAL composed state.
+// ---------------------------------------------------------------------------
+
+/** Caller-composed quote-scoring analysis input (per demand). */
+export interface HostScoreQuoteInput {
+  readonly quoteId: string;
+  readonly vendorId: string;
+  readonly unitCostMinor: number;
+  readonly totalCostMinor: number;
+  readonly leadTimeDays: number;
+  readonly capabilityTags: readonly string[];
+  readonly submittedAtEpoch: number;
+}
+
+export interface HostScoreSheetInput {
+  readonly demandId: string;
+  readonly requiredCapabilityTags: readonly string[];
+  readonly quotes: readonly HostScoreQuoteInput[];
+}
+
+export type HostStep =
+  | (JourneyStepBase & {
+      readonly kind: "host-build-view-models";
+      readonly now: number;
+      /** Composed quote-scoring analysis (absent = honest not-composed). */
+      readonly quoteScoreInputs?: readonly HostScoreSheetInput[];
+    })
+  | (JourneyStepBase & {
+      readonly kind: "host-intent-draft";
+      readonly event: string;
+      /** Presentation role lens (absent = ungated). */
+      readonly role?: string;
+      readonly reason?: string;
+      readonly title?: string;
+      readonly projectId?: string;
+      readonly assigneeId?: string;
+      readonly quoteId?: string;
+      readonly demandId?: string;
+      readonly vendorId?: string;
+      readonly totalCostMinor?: number;
+      readonly budgetId?: string;
+      readonly additionalUnits?: number;
+      readonly additionalSpendMinor?: number;
+      readonly issuedAt?: number;
+    })
+  | (JourneyStepBase & {
+      readonly kind: "host-context-probe";
+      readonly probe:
+        | "tenant-mismatch"
+        | "malformed-context"
+        | "invalid-established-at"
+        | "forbidden-scope"
+        | "foreign-record-in-slice";
+    });
+
+// ---------------------------------------------------------------------------
+// Model-gateway steps (F300C) — routing, quota and burn over the REAL
+// @fleetos/model-gateway public APIs.
+// ---------------------------------------------------------------------------
+
+export type GatewayStep =
+  | (JourneyStepBase & {
+      readonly kind: "gw-select-model";
+      readonly requiredCapabilities: readonly string[];
+      readonly priority: number;
+      readonly budgetCeilingMinor: number;
+      readonly estimatedUnits: number;
+    })
+  | (JourneyStepBase & { readonly kind: "gw-quota-request"; readonly at: number; readonly units: number })
+  | (JourneyStepBase & {
+      readonly kind: "gw-burn-projection";
+      readonly ceilingMinor: number;
+      readonly warningThresholdBps?: number;
+      readonly schedule: readonly { label: string; units: number; costMinor: number; at: number; assumption: string }[];
+    })
+  | (JourneyStepBase & {
+      readonly kind: "gw-cost-comparison";
+      readonly quotes: readonly { providerId: string; modelId: string; unitCostMinor: number }[];
+    })
+  | (JourneyStepBase & {
+      readonly kind: "org-assign-role";
+      readonly assignmentId: string;
+      readonly agentId: string;
+      readonly roleId: string;
+      readonly maxConcurrentRoles?: number;
+      readonly foreignTenant?: boolean;
+    })
+  | (JourneyStepBase & {
+      readonly kind: "org-transition-role";
+      readonly command: "activate" | "relieve";
+      readonly reason?: string;
+    })
+  | (JourneyStepBase & { readonly kind: "org-role-board"; readonly computedAt: string });
+
+export type JourneyStep = WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep;
 
 // ---------------------------------------------------------------------------
 // The journey.

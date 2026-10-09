@@ -30,7 +30,9 @@ import { runVendorStep } from "./drivers-vendors.js";
 import { runExternalStep } from "./drivers-external.js";
 import { runOrgStep } from "./drivers-org.js";
 import { runAurumStep } from "./drivers-aurum.js";
-import type { AurumStep, CommerceStep, OrgStep, WorkStep } from "./journey-contracts.js";
+import { runHostStep } from "./drivers-host.js";
+import { runGatewayStep } from "./drivers-gateway.js";
+import type { AurumStep, CommerceStep, GatewayStep, HostStep, OrgStep, WorkStep } from "./journey-contracts.js";
 
 const WORK_KINDS: ReadonlySet<string> = new Set([
   "work-create", "work-assign", "work-transition", "work-board",
@@ -59,8 +61,17 @@ const AURUM_KINDS: ReadonlySet<string> = new Set([
   "aurum-invoke", "aurum-outage-invoke", "aurum-boundary",
 ]);
 
+const HOST_KINDS: ReadonlySet<string> = new Set([
+  "host-build-view-models", "host-intent-draft", "host-context-probe",
+]);
+
+const GATEWAY_KINDS: ReadonlySet<string> = new Set([
+  "gw-select-model", "gw-quota-request", "gw-burn-projection", "gw-cost-comparison",
+  "org-assign-role", "org-transition-role", "org-role-board",
+]);
+
 export async function executeStep(
-  step: WorkStep | CommerceStep | OrgStep | AurumStep,
+  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep,
   state: JourneyState,
 ): Promise<Record<string, FactValue>> {
   if (WORK_KINDS.has(step.kind)) return runWorkStep(step as WorkStep, state);
@@ -68,6 +79,8 @@ export async function executeStep(
   if (VENDOR_KINDS.has(step.kind)) return runVendorStep(step as CommerceStep, state);
   if (EXTERNAL_KINDS.has(step.kind)) return runExternalStep(step as CommerceStep, state);
   if (AURUM_KINDS.has(step.kind)) return runAurumStep(step as AurumStep, state);
+  if (HOST_KINDS.has(step.kind)) return runHostStep(step as HostStep, state);
+  if (GATEWAY_KINDS.has(step.kind)) return runGatewayStep(step as GatewayStep, state);
   return runOrgStep(step as OrgStep, state);
 }
 

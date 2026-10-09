@@ -21,12 +21,12 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(INDUSTRIES.length).toBe(10);
   });
 
-  it("executes 1113 COUNTED journeys over the REAL corpora (plus 375 raw epoch re-runs, never counted)", () => {
+  it("executes 1275 COUNTED journeys over the REAL corpora (plus 375 raw epoch re-runs, never counted)", () => {
     expect(SIMULATION.aggregate.fieldExecutions).toBe(375);
-    expect(SIMULATION.aggregate.commerceExecutions).toBe(387);
+    expect(SIMULATION.aggregate.commerceExecutions).toBe(549);
     expect(SIMULATION.aggregate.securityExecutions).toBe(351);
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(1113);
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(371);
+    expect(SIMULATION.aggregate.journeyExecutions).toBe(1275);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(425);
     expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(375);
   });
 
@@ -128,14 +128,14 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(honestCounts.entries.length).toBe(30);
     expect(honestCounts.entries.every((e) => e.executed < 100)).toBe(true);
     const maxExecuted = Math.max(...honestCounts.entries.map((e) => e.executed));
-    expect(maxExecuted).toBe(42); // manufacturing/energy large: 14+15+13
+    expect(maxExecuted).toBe(48); // manufacturing/energy fully applicable: 14+21+13
     expect(honestCounts.aggregateShortfall).toBe(30 * 100 - SIMULATION.aggregate.journeyExecutions);
     for (const reason of honestCounts.structuralReasons) {
       expect(reason.length).toBeGreaterThan(30);
     }
     // The masked-journey reason varies per firm (per-industry masks).
     const agricultureEntry = honestCounts.entries.find((e) => e.firmId === "firm-agriculture-large");
-    expect(agricultureEntry?.reasons.some((r) => r.includes("11 journey(s) masked"))).toBe(true);
+    expect(agricultureEntry?.reasons.some((r) => r.includes("13 journey(s) masked"))).toBe(true);
   });
 
   it("the report verifies and renders deterministically", () => {

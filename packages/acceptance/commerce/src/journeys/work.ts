@@ -148,9 +148,50 @@ export const workloadAllocationJourney: AcceptanceJourney = {
   ],
 };
 
+export const workOrderBlockingJourney: AcceptanceJourney = {
+  id: "work-order-blocking",
+  persona: "operations-manager",
+  capability: "create-work",
+  goal:
+    "Drive the uncovered work-order lifecycle states: block with a reason, see the blocked column, unblock, run to done — then read the board with assignee redaction (the sentinel replaces the value, WHAT was hidden is recorded).",
+  steps: [
+    { stepId: "s1", kind: "work-create", itemId: "wo-b1", title: "Repair conveyor belt", projectId: null, deadline: null },
+    { stepId: "s2", kind: "work-assign", itemId: "wo-b1", assignmentId: "asg-b1", assigneeId: "agent-11" },
+    { stepId: "s3", kind: "work-transition", itemId: "wo-b1", command: "start" },
+    { stepId: "s4", kind: "work-transition", itemId: "wo-b1", command: "block", reason: "waiting on belt splice kit" },
+    { stepId: "s5", kind: "work-board", computedAt: CLOCK.now },
+    { stepId: "s6", kind: "work-transition", itemId: "wo-b1", command: "unblock" },
+    { stepId: "s7", kind: "work-transition", itemId: "wo-b1", command: "complete" },
+    { stepId: "s8", kind: "work-create", itemId: "wo-b2", title: "Lubricate dock hinges", projectId: null, deadline: null },
+    { stepId: "s9", kind: "work-assign", itemId: "wo-b2", assignmentId: "asg-b2", assigneeId: "agent-12" },
+    { stepId: "s10", kind: "work-transition", itemId: "wo-b2", command: "start" },
+    { stepId: "s11", kind: "work-board", computedAt: CLOCK.now },
+    { stepId: "s12", kind: "work-board", computedAt: CLOCK.now, redactAssignees: true },
+  ],
+  assertions: [
+    deq("a1", "work.transition.log", [
+      "true:in_progress",
+      "true:blocked",
+      "true:in_progress",
+      "true:done",
+      "true:in_progress",
+    ], "wo-b1 runs start → block → unblock → complete; wo-b2 starts and stays live"),
+    deq("a2", "workBoard.state.log", [
+      "todo:0:ip:0:blocked:1:done:0:sentinel:false:reason:waiting on belt splice kit",
+      "todo:0:ip:1:blocked:0:done:1:sentinel:false:reason:-",
+      "todo:0:ip:1:blocked:0:done:1:sentinel:true:reason:-",
+    ], "three board reads: the blocked card with its reason verbatim, the completed card beside the live one, then the same board redacted (sentinel present on the live card)"),
+    eq("a3", "workBoard.doneCount", 1, "the final board shows wo-b1 done"),
+    eq("a4", "workBoard.inProgressCount", 1, "the final board shows wo-b2 still in progress"),
+    eq("a5", "workBoard.anyAssigneeSentinel", true, "the redacted board carries the [REDACTED] sentinel in place of the live assignee"),
+    deq("a6", "workBoard.redactedFields", ["assigneeId"], "the redacted board records that assigneeId was hidden — never the value"),
+  ],
+};
+
 export const WORK_JOURNEYS: readonly AcceptanceJourney[] = [
   createWorkOrderJourney,
   approveExecuteJourney,
   stageGatedProjectJourney,
   workloadAllocationJourney,
+  workOrderBlockingJourney,
 ];
