@@ -25,3 +25,4 @@ export * from "./verdicts.js";
 export * from "./adoption-run.js";
 export * from "./report.js";
 export * from "./digest.js";
+export * from "./convergence-delta.js";
