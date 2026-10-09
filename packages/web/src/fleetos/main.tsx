@@ -22,6 +22,7 @@ import { buildWorkBoard } from "@fleetos/experience-work-commerce";
 import { assembleFleetOverview } from "@fleetos/experience-asset-field";
 import { buildWorld, runLab, TENANTS, T0, type TenantWorld } from "./world.js";
 import { assetFieldHostSurface } from "@fleetos/experience-asset-field/host";
+import { workCommerceHostSurface } from "@fleetos/experience-work-commerce/host";
 import { makeTenantContext } from "@fleetos/identity";
 import { FleetCommandPath, type SubmissionRecord } from "./commandPath.js";
 
@@ -412,43 +413,72 @@ function SafetyPage({ tw }: { tw: TenantWorld }) {
 }
 
 function CommercePage({ tw }: { tw: TenantWorld }) {
+  // F301 convergence: the REAL lane C HostSurface (F300C) — work board +
+  // honest not-composed sections for undeployed lanes of the demo world.
   const workItems = mapWorkItems(tw);
-  const board = buildWorkBoard({
-    tenant: { tenantId: tw.tenantId },
-    workItems: workItems as never,
-    computedAt: new Date(T0).toISOString(),
-  });
+  const host = workCommerceHostSurface.buildViewModels(
+    {
+      tenantId: tw.tenantId,
+      workItems: workItems as never,
+      projects: [], stages: [], milestones: [],
+      capacities: [], allocations: [],
+      needs: [], demands: [], quotes: [], orders: [], fulfillments: [],
+      vendors: [], exposures: [],
+      subscriptions: [], entitlements: [],
+      assignments: [], budgets: [], usage: [],
+    },
+    { tenantId: tw.tenantId, actorId: "act_shell-operator", roleId: "role_fleet-operator", establishedAt: T0 + 10_000, scope: "tenant" },
+  );
   return (
     <div className="fos-grid">
       <section className="fos-card fos-span2">
-        <h2>Work board — {tw.tenantId}</h2>
-        {!board.ok ? (
-          <RefusalView code={String(board.reasonCode)} detail={String(board.detail)} />
+        <h2>Work board — {tw.tenantId} <span className="fos-badge">via F300C HostSurface</span></h2>
+        {!host.ok ? (
+          <RefusalView code={`host-refused/${String(host.rejected)}`} detail={host.detail} />
+        ) : !host.models.workBoard.ok ? (
+          <RefusalView code={String(host.models.workBoard.reasonCode)} detail={String(host.models.workBoard.detail)} />
         ) : (
           <table className="fos-table">
-            <thead><tr><th>item</th><th>status</th><th>assignee</th></tr></thead>
+            <thead><tr><th>column</th><th>cards</th></tr></thead>
             <tbody>
-              {board.board.columns.flatMap((c) => c.cards.map((i) => (
-                <tr key={i.workItemId}><td>{i.title}</td><td>{i.status}</td><td>{i.assigneeId ?? "unassigned"}</td></tr>
-              )))}
+              {host.models.workBoard.board.columns.map((c) => (
+                <tr key={c.status}>
+                  <td>{c.status}</td>
+                  <td>{c.cards.map((i) => `${i.title} (${i.assigneeId ?? "unassigned"})`).join(" · ") || "— (honest empty)"}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         )}
+        {host.ok && <pre className="fos-digest">host bundle digest: {host.models.digest}</pre>}
       </section>
       <section className="fos-card">
         <h2>Integration status (honest disclosure)</h2>
         <table className="fos-table">
           <thead><tr><th>connector</th><th>status</th></tr></thead>
           <tbody>
-            <tr><td>Aurum</td><td><em>CONTRACT_ONLY — deterministic adapter contract, not live connectivity</em></td></tr>
-            <tr><td>Apify</td><td><em>CONTRACT_ONLY</em></td></tr>
-            <tr><td>ADCOS</td><td><em>CONTRACT_ONLY</em></td></tr>
-            <tr><td>Arena</td><td><em>CONTRACT_ONLY</em></td></tr>
+            <tr><td>Aurum settlement</td><td><em>CONTRACT_ONLY — deterministic adapter, not live connectivity</em></td></tr>
+            <tr><td>Apify actor jobs</td><td><em>CONTRACT_ONLY</em></td></tr>
+            <tr><td>External vendor catalog</td><td><em>CONTRACT_ONLY</em></td></tr>
+            <tr><td>Model-gateway providers</td><td><em>CONTRACT_ONLY (metadata only)</em></td></tr>
+            <tr><td>ADCOS</td><td><em>CONTRACT_ONLY — lane A evidence</em></td></tr>
+            <tr><td>Arena</td><td><em>CONTRACT_ONLY — lane B evidence</em></td></tr>
           </tbody>
         </table>
         <p className="fos-note">
-          Full evidence-backed matrix lands with the F300C lane delivery.
+          Full evidence-backed matrix: docs/evidence/F300C/report.md §4. No connector is
+          LIVE_VERIFIED — no credentials exist in the environment (machine-audited).
         </p>
+      </section>
+      <section className="fos-card">
+        <h2>Adoption ledger (converged, machine-run)</h2>
+        <ul className="fos-list">
+          <li>counted journey executions: <b>1,575</b> (was 1,113)</li>
+          <li>fully-applicable firm cap: <b>58</b> (field 20 + commerce 21 + security 17)</li>
+          <li>target: 100 per firm — <b>structurally short, preserved honestly</b></li>
+          <li>identical reruns never counted; masks recorded with rationale</li>
+        </ul>
+        <p className="fos-note">docs/evidence/F300C/report.md §6; the F271 documented decision stands.</p>
       </section>
     </div>
   );
