@@ -8,7 +8,6 @@
 import { makeTenantContext, type TenantContext } from "@fleetos/kernel";
 import {
   TowerCommandBus,
-  draftReasonOf,
   type TowerCommandDraft,
   type TowerSubmitResult,
 } from "@fleetos/control-tower";

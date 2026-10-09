@@ -92,7 +92,11 @@ export async function prepareTasksIndexStorage(
     try {
       db.close();
     } catch (error) {
-      if (!failure) throw error;
+      // Only surface close failures when the migration itself succeeded —
+      // never mask the original failure (no-unsafe-finally).
+      if (!failure) {
+        throw error;
+      }
     }
   }
   markTasksStorageMigrated(path);
