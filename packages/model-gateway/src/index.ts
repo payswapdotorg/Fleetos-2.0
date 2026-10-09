@@ -18,3 +18,5 @@ export * from "./routing.js";
 export * from "./providers.js";
 export * from "./usage.js";
 export * from "./quota.js";
+export * from "./burn-projection.js";
+export * from "./cost-comparison.js";
