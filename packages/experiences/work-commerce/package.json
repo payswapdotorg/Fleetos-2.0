@@ -6,6 +6,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./host": "./src/host/index.ts",
     "./work-views": "./src/work-views.ts",
     "./commerce-views": "./src/commerce-views.ts",
     "./org-views": "./src/org-views.ts",
