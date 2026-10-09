@@ -5,7 +5,7 @@
  * determinism.
  *
  * The acceptance baselines are the REAL reports assembled from the REAL
- * corpora (field 14 / security 13 / commerce 15 journeys + the F271
+ * corpora (field 20 / security 17 / commerce 15 journeys + the F271 (Wave 10: field 14→20 by F300A, security 13→17 by F300B; commerce 15→N with F300C;
  * adoption simulation, 30 workspaces) — run ONCE at module scope.
  */
 
@@ -87,7 +87,7 @@ function failingFieldReport(): FieldAcceptanceReport {
 }
 
 function subsetFieldReport(): FieldAcceptanceReport {
-  return assembleFieldReport(FIELD_JOURNEYS.slice(0, 13));
+  return assembleFieldReport(FIELD_JOURNEYS.slice(0, 19));
 }
 
 function failingSecurityReport(): SecurityAcceptanceReport {
@@ -101,7 +101,7 @@ function failingSecurityReport(): SecurityAcceptanceReport {
 }
 
 function subsetSecurityReport(): SecurityAcceptanceReport {
-  return assembleSecurityReport(runAllSecurityJourneys(SECURITY_JOURNEYS.slice(0, 12)));
+  return assembleSecurityReport(runAllSecurityJourneys(SECURITY_JOURNEYS.slice(0, 16)));
 }
 
 async function subsetCommerceReport(): Promise<CommerceJourneyReport> {
@@ -171,12 +171,12 @@ describe("release gate — the all-green path", () => {
     expect(verifyReleaseGateVerdict(verdict)).toBe(true);
   });
 
-  it("the REAL baseline counts the gate verified: field 14, security 13, commerce 15, adoption 30 workspaces", () => {
-    expect(FIELD_JOURNEYS.length).toBe(14);
-    expect(SECURITY_JOURNEYS.length).toBe(13);
+  it("the REAL baseline counts the gate verified: field 20, security 17, commerce 15, adoption 30 workspaces (Wave 10 lanes A+B corpora)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(20);
+    expect(SECURITY_JOURNEYS.length).toBe(17);
     expect(COMMERCE_JOURNEYS.length).toBe(15);
-    expect(fieldReport.aggregate.journeys).toBe(14);
-    expect(securityReport.totalJourneys).toBe(13);
+    expect(fieldReport.aggregate.journeys).toBe(20);
+    expect(securityReport.totalJourneys).toBe(17);
     expect(commerceReport.totals.journeyCount).toBe(15);
     expect(adoptionReport.aggregate.workspaces).toBe(30);
     expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
@@ -448,18 +448,18 @@ describe("release gate — acceptance baselines (present, green, count-exact, un
     expect(blocker!.detail).toContain("allJourneysPassed=false");
   });
 
-  it("short field corpus (REAL assembler over a subset) → ACCEPTANCE_COUNT_MISMATCH (expected 14, got 13)", () => {
+  it("short field corpus (REAL assembler over a subset) → ACCEPTANCE_COUNT_MISMATCH (expected 20, got 19)", () => {
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: subsetFieldReport(), security: securityReport, commerce: commerceReport, adoption: adoptionReport } });
     expect(verdict.verdict).toBe("NOT-READY");
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 14");
-    expect(blocker!.detail).toContain("report carries 13");
+    expect(blocker!.detail).toContain("expected 20");
+    expect(blocker!.detail).toContain("report carries 19");
   });
 
   it("short security corpus → ACCEPTANCE_COUNT_MISMATCH", () => {
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: fieldReport, security: subsetSecurityReport(), commerce: commerceReport, adoption: adoptionReport } });
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 13");
+    expect(blocker!.detail).toContain("expected 17");
   });
 
   it("short commerce corpus → ACCEPTANCE_COUNT_MISMATCH", async () => {
