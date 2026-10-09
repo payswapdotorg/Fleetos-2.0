@@ -47,6 +47,7 @@ export const CAPABILITIES = [
   "handoff",
   "mobile",
   "tenant-isolation",
+  "host-integration",
 ] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 
@@ -132,6 +133,25 @@ export type JourneyOperation =
   | { readonly kind: "view.health-board"; readonly now: number }
   | { readonly kind: "view.recovery-timeline"; readonly now: number }
   | { readonly kind: "view.maintenance-board"; readonly now: number }
+  // host seam (F300A, WAVE10-HOST-CONTRACT §2)
+  | { readonly kind: "host.build-view-models"; readonly now: number }
+  | {
+      readonly kind: "host.intent-draft";
+      readonly event: string;
+      readonly role: string;
+      readonly assetId?: string;
+      readonly deviceId?: string;
+      readonly serial?: string;
+      readonly displayName?: string;
+      readonly planId?: string;
+      readonly schedule?: Schedule;
+      readonly reason?: string;
+    }
+  | {
+      readonly kind: "host.context-probe";
+      readonly probe: "tenant-mismatch" | "malformed-context";
+      readonly foreignTenantId?: string;
+    }
   // handoff / mission replay / tenant isolation
   | { readonly kind: "handoff.publish"; readonly handoffId: string; readonly fromRole: "field-technician" | "fleet-operator"; readonly toRole: "field-technician" | "fleet-operator" }
   | { readonly kind: "handoff.consume"; readonly handoffId: string }

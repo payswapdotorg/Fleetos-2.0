@@ -42,10 +42,10 @@ function expectJourneyPasses(journeyId: string): JourneyOutcome {
 }
 
 describe("F270A device/field acceptance journeys", () => {
-  it("corpus shape: 14 journeys, fixed ids, no duplicates", () => {
-    expect(FIELD_JOURNEYS.length).toBe(14);
+  it("corpus shape: 20 journeys, fixed ids, no duplicates (14 + 6 F300A host-integration)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(20);
     const ids = FIELD_JOURNEYS.map((j) => j.id);
-    expect(new Set(ids).size).toBe(14);
+    expect(new Set(ids).size).toBe(20);
     expect([...OUTCOMES.keys()].sort()).toEqual([...ids].sort());
   });
 
@@ -134,6 +134,52 @@ describe("F270A device/field acceptance journeys", () => {
     expectJourneyPasses("tenant-isolation-fail-closed");
     expect(actualOf("tenant-isolation-fail-closed", "o3")).toBe("cross-tenant-ref");
     expect(actualOf("tenant-isolation-fail-closed", "o7c")).toBe("device-tenant-mismatch");
+  });
+
+  it("host integration — discovery route drills into a real Device 360, byte-identical purity", () => {
+    expectJourneyPasses("host-discovery-device-360");
+    expect(actualOf("host-discovery-device-360", "d5")).toBe(true);
+    expect(actualOf("host-discovery-device-360", "d8")).toEqual(["ast_trailer-beta-02", "ast_truck-alpha-01"]);
+    expect(actualOf("host-discovery-device-360", "d14")).toEqual(["location", "operatorContact"]);
+  });
+
+  it("host integration — health/evidence timeline renders the case history and resolution verifies", () => {
+    expectJourneyPasses("host-health-evidence-timeline");
+    expect(actualOf("host-health-evidence-timeline", "e7")).toBe("investigating");
+    expect(actualOf("host-health-evidence-timeline", "e8")).toEqual(["investigate"]);
+    expect(actualOf("host-health-evidence-timeline", "e13")).toBe(0);
+  });
+
+  it("host integration — Device 360 recovery intent executes and verifies through the real command path", () => {
+    expectJourneyPasses("host-recovery-intent-to-verification");
+    expect(actualOf("host-recovery-intent-to-verification", "v3")).toBe("recovery.request");
+    expect(actualOf("host-recovery-intent-to-verification", "v13")).toBe(0);
+    expect(actualOf("host-recovery-intent-to-verification", "v16")).toBe(0);
+  });
+
+  it("host integration — Device 360 maintenance intent executes and the board verifies completion", () => {
+    expectJourneyPasses("host-maintenance-intent-to-verification");
+    expect(actualOf("host-maintenance-intent-to-verification", "w1")).toBe("maintenance.schedule");
+    expect(actualOf("host-maintenance-intent-to-verification", "w9")).toBe(1);
+    expect(actualOf("host-maintenance-intent-to-verification", "w14")).toContain(
+      "offline-write-sync:not-implemented",
+    );
+  });
+
+  it("host integration — the field workflow route is honestly offline (last-known, bounded, not-implemented markers)", () => {
+    expectJourneyPasses("host-field-workflow-mobile-offline");
+    expect(actualOf("host-field-workflow-mobile-offline", "m5")).toBe("stale");
+    expect(actualOf("host-field-workflow-mobile-offline", "m6")).toEqual(["top-alerts", "connectivity-status"]);
+    expect(actualOf("host-field-workflow-mobile-offline", "m10")).toContain(
+      "offline-write-sync:not-implemented",
+    );
+  });
+
+  it("host integration — role lenses fail closed and a foreign-tenant context refuses the whole bundle", () => {
+    expectJourneyPasses("host-role-lens-tenant-fail-closed");
+    expect(actualOf("host-role-lens-tenant-fail-closed", "l1")).toBe("intent-not-offered-to-role");
+    expect(actualOf("host-role-lens-tenant-fail-closed", "l8")).toBe("tenant-mismatch");
+    expect(actualOf("host-role-lens-tenant-fail-closed", "l9")).toBe("malformed-context");
   });
 
   it("every journey's assertions cover its full chain (>= 10 assertions each)", () => {
