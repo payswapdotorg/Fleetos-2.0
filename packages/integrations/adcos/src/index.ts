@@ -9,3 +9,5 @@ export * from "./session-journal.js";
 export * from "./session-registry.js";
 export * from "./reconciliation.js";
 export * from "./health.js";
+export * from "./command-storm-guard.js";
+export * from "./journal-compaction.js";
