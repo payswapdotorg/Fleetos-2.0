@@ -6,3 +6,4 @@ export * from "./intent-lifecycle.js";
 export * from "./intent-journal.js";
 export * from "./intent-registry.js";
 export * from "./posture-rollup.js";
+export * from "./offline-buffer.js";

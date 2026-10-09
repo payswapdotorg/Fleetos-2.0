@@ -328,6 +328,13 @@ export function resumeCommandJournal(
 // ---------------------------------------------------------------------------
 // Journal verification — replay legality (fold replay == state) + the
 // audit digest chain. Tampering any event field fails verification.
+//
+// F280A: `options` allows verifying a COMPACTED journal's retained suffix
+// with the SAME chain semantics — `anchor` replaces the genesis digest and
+// `firstSeq` replaces the initial expected seq (see journal-compaction.ts).
+// The chain rule itself is unchanged: every event's audit digest must equal
+// chainedAuditDigest(prevDigest, event). Omitting the options verifies a
+// full journal exactly as before (anchor = genesis, firstSeq = 1).
 // ---------------------------------------------------------------------------
 
 const LEGAL_PRIOR_PHASES: Readonly<Record<CommandJournalEventKind, ReadonlyArray<AdcosCommandPhase>>> = {
@@ -341,6 +348,13 @@ const LEGAL_PRIOR_PHASES: Readonly<Record<CommandJournalEventKind, ReadonlyArray
   "dead-lettered": ["issued", "dispatched", "acknowledged"],
 };
 
+export interface JournalVerificationOptions {
+  /** Chain anchor for the first event (compaction checkpoint digest). */
+  readonly anchor?: string;
+  /** Expected seq of the first event (compaction cutoff + 1). */
+  readonly firstSeq?: number;
+}
+
 export type JournalVerificationFailure = {
   readonly seq: number;
   readonly reason: "seq-out-of-order" | "unknown-command" | "illegal-event" | "audit-chain-broken";
@@ -352,11 +366,12 @@ export type CommandJournalVerification =
 
 export function verifyCommandJournal(
   events: ReadonlyArray<CommandJournalEvent>,
+  options?: JournalVerificationOptions,
 ): CommandJournalVerification {
   const phases = new Map<string, AdcosCommandPhase>();
   const failures: JournalVerificationFailure[] = [];
-  let expectedSeq = 1;
-  let prevDigest = GENESIS_AUDIT_DIGEST;
+  let expectedSeq = options?.firstSeq ?? 1;
+  let prevDigest = options?.anchor ?? GENESIS_AUDIT_DIGEST;
 
   for (const e of events) {
     if (e.seq !== expectedSeq) {
