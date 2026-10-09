@@ -70,3 +70,27 @@ product story end-to-end; the release and convergence gates give boolean, named-
 verdicts over real outputs. Standing limitations are explicit in the residual-risks
 register — by-design purity boundaries, evidence-grade digests, heuristic optimizers,
 and the operational fragility of the delivery channel are all recorded, none hidden.
+
+## 8. Wave 10 — product closure (2026-10-09, added at 7010e23)
+
+The product-closure phase (PRODUCT-CLOSURE-HANDOFF) is executed: three lanes delivered
+and merged at exact commits (F300A `a0904b3`, F300B `643c575`, F300C `b6ea2a3`), the
+FleetOS application shell deployed and browser-verified (F301), and the clean-checkout
+gates machine-captured (F302, candidate `73adc17`):
+
+- **Acceptance plane (grew-only):** field 69 · security 103 · commerce 71 ·
+  adoption 95 · release 88 · convergence 82 — all six green at the final candidate;
+  monorepo **4,862 tests green** (4,742 + 120 Wave 10 net-new).
+- **Corpora:** field 14→20, security 13→17, commerce 15→21 genuinely distinct journeys;
+  adoption counted 1,113 → **1,575** (reruns never counted; 58/100 fully-applicable cap
+  vs the 100/firm target — structurally short, preserved, documented decision).
+- **Deployed product:** `packages/web/fleetos.html` — standalone FleetOS application
+  (six surfaces, three lane HostSurfaces, REAL command path through the control-plane
+  queue with idempotency + honest refusals), commit-badge-bound to the tested build,
+  browser-verified in this sandbox on `:3105`.
+- **Integration reality:** every connector CONTRACT_ONLY (no credentials/endpoints
+  exist — machine-audited). LIVE_VERIFIED requires live endpoints + credential
+  handling outside this repo.
+- **Verdict: NOT READY with 3 named blockers** (substrate root typecheck OOM on the
+  4GB box; substrate full build toolchain; the adoption target decision) — full
+  evidence: `docs/evidence/F302/report.md`.

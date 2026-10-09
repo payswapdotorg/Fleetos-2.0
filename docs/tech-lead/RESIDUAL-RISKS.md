@@ -42,3 +42,13 @@ TL's operational record.
 - Post-merge re-runs are mandatory.
 - The final closeout runs the full monorepo suite once (see the product acceptance
   report for the final count).
+
+## E. Wave 10 residuals (2026-10-09)
+
+| ID | Risk | Mitigation / record |
+| C5 | Substrate root typecheck (`tsc -b` full project) OOMs on the 4GB sandbox with the resident stack — the F201-era constraint persists; 47/47 FleetOS packages typecheck clean per-package | F302 B-1: run the root gate on a ≥8GB builder |
+| C6 | Substrate full build fails on 4 packages in the sandbox (web OOM; desktop/server ENOENT tooling under --ignore-scripts; zcode-cli sea) | F302 B-2: same builder + full toolchain; the FleetOS product surface builds standalone and deploys |
+| C7 | All external integrations are CONTRACT_ONLY — no live endpoint/credential exists; a live binding is a new, separately-verified capability | F300C §4 matrix (machine-audited); LIVE_VERIFIED requires real endpoints + credential handling outside this repo |
+| C8 | The 100-counted-journeys-per-firm adoption target is structurally unreachable at the current corpus (58/100 fully-applicable) | F302 B-3 + F300C §6: shortfall preserved with structural reasons; extending requires genuinely new journey families — TL/user decision |
+| C9 | The deployed shell's demo world is fixture-input composed (the acceptance-suite convention) — production composition (real persistence wiring) is not yet a deployment | F301 report honest-limitations section; the views themselves are REAL package outputs |
+| C10 | The browser crypto shim (pure-TS sha256) is verified test-vector-identical to node:crypto, but a browser-native sync-hash story would remove the seam | packages/web/src/fleetos/crypto-shim.ts; verified byte-identical |
