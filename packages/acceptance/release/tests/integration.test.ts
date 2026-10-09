@@ -203,7 +203,7 @@ describe("REAL-run integration — the hardened surfaces feed the gate", () => {
     expect(adoptionReport.aggregate.workspaces).toBe(30);
     expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
     expect(adoptionReport.aggregate.determinismVerified).toBe(true);
-    expect(adoptionReport.aggregate.journeyExecutions).toBe(1413); // Wave 10: 1113 + 6x30 (F300A field) + 4x30 (F300B security)
+    expect(adoptionReport.aggregate.journeyExecutions).toBe(1575); // Wave 10 converged: 1113 + 6x30 (F300A) + 4x30 (F300B) + commerce delta (F300C)
   });
 
   it("gate re-evaluation is byte-identical (determinism over the REAL stack)", () => {

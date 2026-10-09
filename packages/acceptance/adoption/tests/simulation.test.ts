@@ -21,13 +21,13 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(INDUSTRIES.length).toBe(10);
   });
 
-  it("executes 1275 COUNTED journeys over the REAL corpora (plus 375 raw epoch re-runs, never counted)", () => {
-    expect(SIMULATION.aggregate.fieldExecutions).toBe(375);
+  it("executes 1575 COUNTED journeys over the REAL corpora (plus 555 raw epoch re-runs, never counted)", () => {
+    expect(SIMULATION.aggregate.fieldExecutions).toBe(555);
     expect(SIMULATION.aggregate.commerceExecutions).toBe(549);
-    expect(SIMULATION.aggregate.securityExecutions).toBe(351);
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(1275);
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(425);
-    expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(375);
+    expect(SIMULATION.aggregate.securityExecutions).toBe(471);
+    expect(SIMULATION.aggregate.journeyExecutions).toBe(1575);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(525);
+    expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(555);
   });
 
   it("journeys > 0 and every counted execution PASSED (REAL outcomes, never re-computed)", () => {
@@ -128,7 +128,7 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(honestCounts.entries.length).toBe(30);
     expect(honestCounts.entries.every((e) => e.executed < 100)).toBe(true);
     const maxExecuted = Math.max(...honestCounts.entries.map((e) => e.executed));
-    expect(maxExecuted).toBe(48); // manufacturing/energy fully applicable: 14+21+13
+    expect(maxExecuted).toBe(58); // manufacturing/energy fully applicable: 20+21+17
     expect(honestCounts.aggregateShortfall).toBe(30 * 100 - SIMULATION.aggregate.journeyExecutions);
     for (const reason of honestCounts.structuralReasons) {
       expect(reason.length).toBeGreaterThan(30);

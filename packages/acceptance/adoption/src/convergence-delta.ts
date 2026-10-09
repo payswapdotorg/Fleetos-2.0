@@ -41,8 +41,8 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     branchTipCommit: "e221c07",
     corpus: "field",
     journeysAtTip: 20,
-    journeysInThisTree: 14,
-    delta: 6,
+    journeysInThisTree: 20,
+    delta: 0,
   },
   {
     workItem: "F300B",
@@ -51,8 +51,8 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     branchTipCommit: "b5be8e4",
     corpus: "security",
     journeysAtTip: 17,
-    journeysInThisTree: 13,
-    delta: 4,
+    journeysInThisTree: 17,
+    delta: 0,
   },
 ];
 
@@ -66,10 +66,10 @@ export interface CurrentCorpusCounts {
 }
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
-  field: 14,
+  field: 20,
   commerce: 21,
-  security: 13,
-  fullyApplicableFirmCap: 14 + 21 + 13,
+  security: 17,
+  fullyApplicableFirmCap: 20 + 21 + 17,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
