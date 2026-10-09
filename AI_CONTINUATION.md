@@ -18,59 +18,18 @@ Read the canonical files instead:
 
 Never treat this file as authoritative if it conflicts with those files.
 
-## Execution state (2026-10-08, 23:5xZ)
+## Execution state (2026-10-09, 01:4xZ)
 
-**WAVE 7 COMPLETE INCLUDING THE TL LANE — the acceptance plane is fully live: field 61 + security 90 + commerce 65 + adoption 90 = 306 acceptance tests (TL re-verified in composed main 72c5a73).**
+**WAVE 8 LANES A/B/C COMPLETE — production hardening merged: 323 net-new hardening tests across 15 packages (main 1158f18).**
 
-- **F270A** (Worker A, device/field) merged d352ac0 — 61 tests.
-- **F270B** (Worker B, security/intelligence) merged 0dc8089 — 90 tests.
-- **F270C** (Worker C, work/commerce) merged 7f1dce0 — 65 tests.
-- **F271** (TL lane, industry adoption simulation + deployment acceptance)
-  `work/f271` @ 39438cb, merged b3183b8 — 90 tests: NEW
-  packages/acceptance/adoption (@fleetos/acceptance-adoption): 10
-  industries x 3 firm sizes = 30 real workspaces; 1113 counted journey
-  executions over the REAL corpora (field 375 / commerce 387 / security
-  351), all passing; 30/30 determinism proofs; deterministic verdict rubric
-  (SWITCH-ONLY: manufacturing; MAIN-INTERFACE: construction, energy,
-  facilities, mining, water; COMPLEMENT: transportation, agriculture,
-  healthcare, telecom; RETAIN: zero, machine-proven by negative fixtures);
-  honest-counts ledger records the sub-100 per-firm shortfall with reasons.
-  Boundary CLEAN (the three acceptance packages only).
-- **TL composition:** lockfile links for all four acceptance packages
-  (92fb6ee + f6b8d05 + 72c5a73); post-merge re-runs caught one real merge
-  error earlier (stale local ref — corrected by 7f1dce0; the ref-sync law:
-  sync the local branch to origin before every merge).
+- **F280A** (Worker A, edge hardening / offline / fleet-scale ingestion) `work/f280a` @ e0a5a49, merged 005c829 — 110 net-new: bounded ingestion with backpressure policy + admission caps (observations 157), offline queue with replay-in-order + divergence accounting (connectivity 138), retry-storm idempotency + journal compaction SAFE mode (adcos 178), scale pagination + maintenance conflicts (recovery 77, maintenance 86).
+- **F280B** (Worker B, security/audit/replay/DR) `work/f280b` @ 1e44492, merged 1158f18 — 112 net-new: hash-chained audit ledger with gap detection (security 147), capability-store DR snapshot/restore with revocation permanence (policy 131), deterministic incident replay with divergence detection (execution 118), benchmark tamper detection (simulation 103), advisory staleness propagation (predictive 74, safety-intel 113).
+- **F280C** (Worker C, commerce/SLA/marketplace/economics) `work/f280c` @ b98c5f2, merged 1cd6c93 — 101 net-new: SLA contracts with breach evidence + scorecards (vendors 94), verified-capability marketplace listing + revocation cascade, budget-burn projections + cost allocation (procurement 123), batched reconciliation sum laws, seat-overage refusals + renewal sweeps (software 79, model-gateway 98).
+- All three: typecheck clean, lint 0w/0e, purity clean, file law compliant (the repo's enforced code-lines rule), no-regression acceptance baselines held (field 61, security 90, commerce 65, adoption 90 — TL re-verified per lane).
+- Evidence: docs/evidence/F280{A,B,C}/report.md. Lockfile composed per merge; post-merge spot re-runs green.
 
-**Delivery channel history this wave:** all four lanes delivered by chat.z.ai
-Agents-tab workers (GLM-5.3, Full-Stack) through the replay. Session
-f271d needed a browser-transport kick (scripts/browser_kick.py — the
-in-page completions POST with the X-Signature scheme; the host transport
-is now ESA-blocked while the browser's VPN egress flows) + a
-sandbox-concurrency modal cleared by releasing 3 stale sandboxes. A full
-sandbox reboot mid-wave was recovered via the canonical reset-recovery
-path (~5 min; the durable browser profile preserved the login).
+**Delivery channel doctrine proven at scale:** all three lanes delivered end-to-end by chat.z.ai Agents-tab workers (GLM-5.3, Full-Stack) through the replay — with the full cure set exercised: browser_kick turn spawning (in-page completions POST; the host transport is ESA-blocked), composer arming sends, stale-sandbox releases, capacity-modal cancels, resume nudges, and fresh-tab reopens for wedged renderers.
 
-**Governance state:** per-package gates green (TL re-ran every number);
-architecture/snapshot checks not re-run this wave (no spec/snapshot
-changes by any lane — workers touched only owned paths).
+**Next ready work:** F281 — Wave 8 TL lane (production release gate / observability / cost controls over the hardened lanes); then Wave 9 industrial intelligence (F290A asset lineage / material / method graph, F290B JEPA-family world-model adapters, F291 TL).
 
-**Open TL adjudications (cumulative):** F270A S1-S4 (mission-replay
-mirror; FNV-1a hoist; enrollment vocabulary split; lockfile install);
-F270B seams (docs/evidence/F270B/report.md §7); F270C seams (BudgetCheckPort
-intra-lane precedent; runner LWW fact semantics; aurum transport out of
-scope); F271 seams (see docs/evidence/F271/report.md — field corpus
-T0-anchoring blocks epoch-offset repeat runs; commerce/security runners
-not parameterizable; tenant-id format law).
-
-**Next ready work:** Wave 8 hardening — F280A (edge hardening / offline /
-fleet-scale ingestion), F280B (security, audit, replay, disaster
-recovery), F280C (commerce, SLA, vendor marketplace, production
-economics), F281 (TL integration lane); then Wave 9 industrial
-intelligence (F290A asset lineage, F290B JEPA-family adapters, F291 TL).
-
-**Baseline at this writing:** main = 72c5a73; package-suite total 3883 +
-adoption 90 = 3973 tests, all green (per-package counts TL-verified);
-evidence under `docs/evidence/<work-item>/`; dispatch packets under
-`docs/tech-lead/packets/`. Full substrate `typecheck`/`build` remain
-memory-constrained on 4GB boxes — per-package typecheck is the local
-equivalent.
+**Baseline at this writing:** main = 1158f18; package-suite total 3973 + 323 = 4296 tests, all green (per-package counts TL-verified); evidence under `docs/evidence/<work-item>/`; dispatch packets under `docs/tech-lead/packets/`.
