@@ -1,0 +1,37 @@
+{
+  "name": "@fleetos/acceptance-release",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./observability": "./src/observability.ts",
+    "./cost": "./src/cost.ts",
+    "./gate": "./src/release-gate.ts"
+  },
+  "description": "FleetOS Wave 8 TL lane — production release gate over the REAL hardened surfaces (F280A/B/C): deterministic observability rollups, budget-ceiling cost controls with burn rollups, and the boolean READY / NOT-READY gate with named blockers over the REAL acceptance baselines.",
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/acceptance-adoption": "workspace:*",
+    "@fleetos/acceptance-commerce": "workspace:*",
+    "@fleetos/acceptance-field": "workspace:*",
+    "@fleetos/acceptance-security": "workspace:*",
+    "@fleetos/connectivity": "workspace:*",
+    "@fleetos/execution": "workspace:*",
+    "@fleetos/model-gateway": "workspace:*",
+    "@fleetos/observations": "workspace:*",
+    "@fleetos/procurement": "workspace:*",
+    "@fleetos/security": "workspace:*",
+    "@fleetos/vendors": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.2",
+    "vitest": "^1.6.0"
+  }
+}
