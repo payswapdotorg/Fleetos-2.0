@@ -9,6 +9,17 @@
     "lint:fix": "oxlint --fix"
   },
   "dependencies": {
+    "@fleetos/assets": "workspace:*",
+    "@fleetos/control-plane": "workspace:*",
+    "@fleetos/control-tower": "workspace:*",
+    "@fleetos/experience-asset-field": "workspace:*",
+    "@fleetos/experience-safety-intel": "workspace:*",
+    "@fleetos/experience-work-commerce": "workspace:*",
+    "@fleetos/health": "workspace:*",
+    "@fleetos/kernel": "workspace:*",
+    "@fleetos/observations": "workspace:*",
+    "@fleetos/security": "workspace:*",
+    "@fleetos/work": "workspace:*",
     "@zcode/client": "workspace:*",
     "@zcode/shared": "workspace:*",
     "@zcode/ui": "workspace:*",

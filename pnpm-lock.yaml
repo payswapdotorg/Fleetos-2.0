@@ -2032,6 +2032,39 @@ importers:
 
   packages/web:
     dependencies:
+      '@fleetos/assets':
+        specifier: workspace:*
+        version: link:../assets
+      '@fleetos/control-plane':
+        specifier: workspace:*
+        version: link:../control-plane
+      '@fleetos/control-tower':
+        specifier: workspace:*
+        version: link:../experiences/control-tower
+      '@fleetos/experience-asset-field':
+        specifier: workspace:*
+        version: link:../experiences/asset-field
+      '@fleetos/experience-safety-intel':
+        specifier: workspace:*
+        version: link:../experiences/safety-intel
+      '@fleetos/experience-work-commerce':
+        specifier: workspace:*
+        version: link:../experiences/work-commerce
+      '@fleetos/health':
+        specifier: workspace:*
+        version: link:../health
+      '@fleetos/kernel':
+        specifier: workspace:*
+        version: link:../kernel
+      '@fleetos/observations':
+        specifier: workspace:*
+        version: link:../observations
+      '@fleetos/security':
+        specifier: workspace:*
+        version: link:../security
+      '@fleetos/work':
+        specifier: workspace:*
+        version: link:../work
       '@zcode/client':
         specifier: workspace:*
         version: link:../client
