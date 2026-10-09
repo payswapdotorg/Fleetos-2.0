@@ -1,0 +1,37 @@
+{
+  "name": "@fleetos/acceptance-convergence",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./scenarios": "./src/scenarios.ts",
+    "./intelligence": "./src/intelligence.ts",
+    "./gate": "./src/convergence-gate.ts"
+  },
+  "description": "FleetOS Wave 9 TL lane — industrial intelligence convergence over the REAL Wave-9 surfaces (F290A asset lineage + F290B JEPA family + F290C industry archetypes): deterministic per-industry convergence scenarios, intelligence rollups (lineage coverage, optimization posture, forecast utilization, capability matching), and the boolean CONVERGED / NOT-CONVERGED gate with named blockers.",
+  "scripts": {
+    "lint": "oxlint src tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/acceptance-adoption": "workspace:*",
+    "@fleetos/acceptance-commerce": "workspace:*",
+    "@fleetos/acceptance-field": "workspace:*",
+    "@fleetos/acceptance-release": "workspace:*",
+    "@fleetos/acceptance-security": "workspace:*",
+    "@fleetos/agent-organizations": "workspace:*",
+    "@fleetos/assets": "workspace:*",
+    "@fleetos/model-gateway": "workspace:*",
+    "@fleetos/world-model": "workspace:*"
+  },
+  "devDependencies": {
+    "@fleetos/observations": "workspace:*",
+    "@fleetos/world-context": "workspace:*",
+    "typescript": "^6.0.2",
+    "vitest": "^1.6.0"
+  }
+}
