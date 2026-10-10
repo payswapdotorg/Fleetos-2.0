@@ -1,0 +1,227 @@
+# release-gates.yml — the canonical high-memory builder for FleetOS release gates.
+#
+# WHY THIS EXISTS (B-1/B-2): the recorded 4GB sandbox OOM-killed the root
+# typecheck (exit 137) and four substrate build targets. The FINAL-RELEASE-
+# HANDOFF (docs/tech-lead/FINAL-RELEASE-HANDOFF.md) requires the full root
+# gates on a builder with at least 8GB RAM and the complete toolchain
+# (lifecycle scripts enabled — Electron, node-pty, koffi, ssh2, SEA).
+# This repository is PUBLIC, so GitHub-hosted ubuntu runners (4 vCPU /
+# 16GB RAM / 14GB SSD) are free of charge — the builder is not a paid
+# dependency and introduces no code dependency. This is verification
+# infrastructure owned by the TL (spec/worker-ownership.yaml: .github/**).
+#
+# GATES:
+#   root-typecheck   — B-1: `corepack pnpm typecheck` (tsc -b over the 12
+#                      substrate configs) on a 16GB runner.
+#   full-build       — B-2: `corepack pnpm -r --no-bail build` with the
+#                      full toolchain (scripts ON). Every package outcome is
+#                      in the log; --no-bail keeps going after failures.
+#   acceptance-gates — the F312 preview: source-of-truth, contract snapshot,
+#                      architecture, lint, the monorepo test total, and the
+#                      six acceptance suites with per-suite counts.
+#
+# TRIGGERS:
+#   - workflow_dispatch (TL runs it at any exact ref via the API)
+#   - push to work/f310a / work/f310b / work/f310c / work/f311 / work/f312
+#     (worker candidate branches — gates run at their exact pushed commit)
+#
+# EVIDENCE: the run page (public, permanent) carries the machine output and
+# exit codes; the run log's "builder facts" block records runner RAM, CPUs,
+# node/pnpm versions and the exact commit SHA. Key outputs are also tee'd to
+# files and uploaded as artifacts for quoting in the lane evidence reports.
+
+name: release-gates
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - work/f310a
+      - work/f310b
+      - work/f310c
+      - work/f311
+      - work/f312
+
+concurrency:
+  group: release-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  root-typecheck:
+    name: "B-1: root typecheck (tsc -b, 16GB runner)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable pnpm (repo-pinned 10.33.2)
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.2 --activate
+          COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack pnpm --version
+
+      - name: Builder facts (B-1 evidence block)
+        run: |
+          {
+            echo "commit_sha=${GITHUB_SHA}"
+            echo "ref=${GITHUB_REF}"
+            echo "runner=$(uname -a)"
+            echo "cpus=$(nproc)"
+            echo "mem_total_kb=$(grep MemTotal /proc/meminfo)"
+            echo "node=$(node -v)"
+            echo "pnpm=$(corepack pnpm --version)"
+          } | tee builder-facts.txt
+
+      - name: Frozen install (lifecycle scripts ENABLED — full toolchain)
+        run: |
+          corepack pnpm install --frozen-lockfile 2>&1 | tee install.log
+
+      - name: Root typecheck (the B-1 gate command)
+        run: |
+          corepack pnpm typecheck 2>&1 | tee typecheck.log
+          echo "TYPECHECK_EXIT=$?"
+
+      - name: Upload gate logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: root-typecheck-logs
+          path: |
+            builder-facts.txt
+            install.log
+            typecheck.log
+          retention-days: 30
+
+  full-build:
+    name: "B-2: full monorepo build (scripts ON, --no-bail)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable pnpm (repo-pinned 10.33.2)
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.2 --activate
+          COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack pnpm --version
+
+      - name: Builder facts (B-2 evidence block)
+        run: |
+          {
+            echo "commit_sha=${GITHUB_SHA}"
+            echo "ref=${GITHUB_REF}"
+            echo "runner=$(uname -a)"
+            echo "cpus=$(nproc)"
+            echo "mem_total_kb=$(grep MemTotal /proc/meminfo)"
+            echo "node=$(node -v)"
+            echo "pnpm=$(corepack pnpm --version)"
+          } | tee builder-facts.txt
+
+      - name: Frozen install (lifecycle scripts ENABLED — Electron, native modules, SEA toolchain)
+        run: |
+          corepack pnpm install --frozen-lockfile 2>&1 | tee install.log
+
+      - name: Full recursive build, no-bail (the B-2 gate command)
+        run: |
+          set +e
+          corepack pnpm -r --no-bail build 2>&1 | tee build.log
+          rc=${PIPESTATUS[0]}
+          echo "BUILD_EXIT=$rc" | tee -a build.log
+          exit $rc
+
+      - name: Upload gate logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-build-logs
+          path: |
+            builder-facts.txt
+            install.log
+            build.log
+          retention-days: 30
+
+  acceptance-gates:
+    name: "F312 preview: verify + monorepo tests + six suites"
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Enable pnpm (repo-pinned 10.33.2)
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.33.2 --activate
+          COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack pnpm --version
+
+      - name: Builder facts
+        run: |
+          {
+            echo "commit_sha=${GITHUB_SHA}"
+            echo "ref=${GITHUB_REF}"
+            echo "cpus=$(nproc)"
+            echo "mem_total_kb=$(grep MemTotal /proc/meminfo)"
+            echo "node=$(node -v)"
+            echo "pnpm=$(corepack pnpm --version)"
+          } | tee builder-facts.txt
+
+      - name: Frozen install
+        run: |
+          corepack pnpm install --frozen-lockfile 2>&1 | tee install.log
+
+      - name: Source of truth
+        run: corepack pnpm fleetos:source-of-truth 2>&1 | tee gates.log
+
+      - name: Contract snapshot check
+        run: corepack pnpm fleetos:snapshot:check 2>&1 | tee -a gates.log
+
+      - name: Architecture check
+        run: corepack pnpm architecture:check 2>&1 | tee -a gates.log
+
+      - name: Lint (0 errors required)
+        run: corepack pnpm lint 2>&1 | tee -a gates.log
+
+      - name: Monorepo tests (pnpm -r test)
+        run: |
+          set +e
+          corepack pnpm -r --no-bail test 2>&1 | tee tests.log
+          rc=${PIPESTATUS[0]}
+          echo "TESTS_EXIT=$rc" | tee -a tests.log
+          exit $rc
+
+      - name: Six acceptance suites (per-suite counts)
+        run: |
+          set +e
+          fail=0
+          for s in field security commerce adoption release convergence; do
+            echo "=== acceptance/$s ===" | tee -a suites.log
+            ( cd "packages/acceptance/$s" && npx vitest run 2>&1 ) | tee -a suites.log
+            rc=${PIPESTATUS[0]}
+            echo "SUITE_${s}_EXIT=$rc" | tee -a suites.log
+            [ "$rc" -ne 0 ] && fail=1
+          done
+          exit $fail
+
+      - name: Upload gate logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-gates-logs
+          path: |
+            builder-facts.txt
+            install.log
+            gates.log
+            tests.log
+            suites.log
+          retention-days: 30
