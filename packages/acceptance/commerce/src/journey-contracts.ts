@@ -17,6 +17,8 @@
  * digests (the lane convention, evidence-grade).
  */
 
+import type { FinanceStep, LifecycleStep, ResilienceStep } from "./journey-contracts-f310c.js";
+
 // ---------------------------------------------------------------------------
 // Fixed vocabularies.
 // ---------------------------------------------------------------------------
@@ -56,6 +58,13 @@ export const JOURNEY_CAPABILITIES: readonly string[] = [
   "host-integration",
   "model-gateway-routing",
   "role-assignment",
+  // F310C extensions (Wave 11 lane C): the assignment-supersession
+  // lifecycle, the deadline escalation surface, vendor SLA contract math
+  // (evaluation → scorecard → penalty credit), and order cost allocation.
+  "work-assignment-management",
+  "work-deadlines",
+  "sla-management",
+  "cost-allocation",
 ] as const;
 
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
@@ -114,7 +123,7 @@ export interface JourneyStepBase {
 
 export type WorkStep =
   | (JourneyStepBase & { readonly kind: "work-create"; readonly itemId: string; readonly title: string; readonly projectId: string | null; readonly deadline: string | null })
-  | (JourneyStepBase & { readonly kind: "work-assign"; readonly itemId: string; readonly assignmentId: string; readonly assigneeId: string })
+  | (JourneyStepBase & { readonly kind: "work-assign"; readonly itemId: string; readonly assignmentId: string; readonly assigneeId: string; readonly factKey?: string })
   | (JourneyStepBase & { readonly kind: "work-transition"; readonly itemId: string; readonly command: "start" | "block" | "unblock" | "complete" | "cancel"; readonly reason?: string })
   | (JourneyStepBase & { readonly kind: "work-board"; readonly computedAt: string; readonly redactAssignees?: boolean })
   | (JourneyStepBase & { readonly kind: "project-create"; readonly projectId: string; readonly name: string })
@@ -127,7 +136,7 @@ export type WorkStep =
   | (JourneyStepBase & { readonly kind: "ledger-post"; readonly entryKind: "actual" | "commitment" | "credit"; readonly amountMinorUnits: number; readonly note: string | null })
   | (JourneyStepBase & { readonly kind: "budget-position" })
   | (JourneyStepBase & { readonly kind: "workload-apply"; readonly demandKey: string; readonly units: number; readonly owner: string })
-  | (JourneyStepBase & { readonly kind: "workload-lifecycle"; readonly recordId: string; readonly command: "commit" | "activate" | "release" | "retire"; readonly reason?: string })
+  | (JourneyStepBase & { readonly kind: "workload-lifecycle"; readonly recordId: string; readonly command: "commit" | "activate" | "release" | "retire"; readonly reason?: string; readonly factKey?: string })
   | (JourneyStepBase & { readonly kind: "workload-window-check"; readonly windows: readonly { id: string; start: number; end: number }[] })
   | (JourneyStepBase & { readonly kind: "workload-rollup-view"; readonly computedAt: string });
 
@@ -166,7 +175,7 @@ export type OrgStep =
   | (JourneyStepBase & { readonly kind: "usage-append"; readonly requestRef: string; readonly agentId: string; readonly modelId: string; readonly providerId: string; readonly capability: string; readonly units: number; readonly costMinor: number })
   | (JourneyStepBase & { readonly kind: "usage-rollup-view"; readonly computedAt: string })
   | (JourneyStepBase & { readonly kind: "org-journal-append"; readonly events: readonly { kind: string; agentId?: string; teamId?: string; roleId?: string; capability?: string; units?: number; spendMinor?: number }[] })
-  | (JourneyStepBase & { readonly kind: "org-prepare-optimization" })
+  | (JourneyStepBase & { readonly kind: "org-prepare-optimization"; readonly revokedCapabilities?: readonly string[] })
   | (JourneyStepBase & { readonly kind: "org-allocate-roles" })
   | (JourneyStepBase & { readonly kind: "org-what-if" })
   | (JourneyStepBase & { readonly kind: "org-budget-board"; readonly computedAt: string });
@@ -272,7 +281,19 @@ export type GatewayStep =
     })
   | (JourneyStepBase & { readonly kind: "org-role-board"; readonly computedAt: string });
 
-export type JourneyStep = WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep;
+export type JourneyStep =
+  | WorkStep
+  | CommerceStep
+  | OrgStep
+  | AurumStep
+  | HostStep
+  | GatewayStep
+  | LifecycleStep
+  | FinanceStep
+  | ResilienceStep;
+
+// The F310C step families live in journey-contracts-f310c.ts (file law):
+export type { LifecycleStep, FinanceStep, ResilienceStep } from "./journey-contracts-f310c.js";
 
 // ---------------------------------------------------------------------------
 // The journey.

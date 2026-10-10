@@ -37,17 +37,20 @@ describe("convergence expectation (honest parameterization)", () => {
   });
 
   it("the convergence expectation still falls short of the 100/firm target — the threshold is never weakened", () => {
-    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(58);
+    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(68);
     expect(CONVERGENCE_EXPECTATION.targetPerFirm).toBe(100);
-    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(42);
+    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(32);
     expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBeGreaterThan(0);
   });
 
-  it("the commerce corpus in this tree is the F300C extension (21 distinct journeys — grew from 15)", () => {
-    expect(COMMERCE_JOURNEYS.length).toBe(21);
+  it("the commerce corpus in this tree is the F310C extension (31 distinct journeys — grew from 15 via F300C and 21 via F310C)", () => {
+    expect(COMMERCE_JOURNEYS.length).toBe(31);
     const ids = COMMERCE_JOURNEYS.map((j) => j.id);
     for (const extension of ["host-surface", "host-intents", "host-tenant-edges", "gateway-routing", "role-assignment-handoff", "work-order-blocking"]) {
       expect(ids).toContain(extension);
+    }
+    for (const f310c of ["assignment-supersession", "deadline-escalation", "workload-release-rebalance", "project-completion-portfolio", "sla-scorecard-credit", "batched-order-reconciliation", "cost-allocation-exact-sums", "renewal-window-sweep", "provider-fallback-ladder", "budget-rebalance-proposal"]) {
+      expect(ids).toContain(f310c);
     }
     expect(new Set(ids).size).toBe(ids.length);
   });

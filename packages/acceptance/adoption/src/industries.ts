@@ -18,7 +18,11 @@
  * stay unmasked for every industry. The F300C gateway-routing and
  * role-assignment journeys are AGENT-OPERATION journeys — masked for the
  * three industries that record no in-house autonomous agents (mirroring
- * their security.agent-safety rationales).
+ * their security.agent-safety rationales). The F310C resilience journeys
+ * (provider-fallback-ladder, budget-rebalance-proposal) follow the same
+ * agent-operation mask law; the F310C project-completion-portfolio and
+ * renewal-window-sweep journeys mirror their family rationales
+ * (stage-gated-project, software-entitlements) where those apply.
  *
  * Pure deterministic TS (DATA only — no runner calls live here).
  */
@@ -119,6 +123,8 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
       commerce: {
         "stage-gated-project":
           "Capital projects (terminal/dock builds) run in the incumbent PMO; logistics operations are continuous, not stage-gated.",
+        "project-completion-portfolio":
+          "Project directory completion gating mirrors the stage-gated capital-project family: the incumbent PMO owns terminal/dock project closeout.",
         "org-optimization-review":
           "Org-level model-usage analytics live in the incumbent BI stack.",
       },
@@ -160,6 +166,14 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
           "No in-house model routing is operated: machinery autonomy is OEM-embedded and the incumbent machinery vendor owns the embedded models (mirrors the security.agent-safety rationale).",
         "role-assignment-handoff":
           "No in-house agents to hold roles: machinery autonomy is OEM-embedded; role handoffs belong to the incumbent machinery vendor's tooling.",
+        "project-completion-portfolio":
+          "Farm infrastructure projects are small and contractor-run; the incumbent farm-management suite tracks project closeout (mirrors the stage-gated-project rationale).",
+        "renewal-window-sweep":
+          "Seat-heavy software renewal management is not a farm-systems need (mirrors the software-entitlements rationale); the incumbent handles occasional licenses.",
+        "provider-fallback-ladder":
+          "No in-house model routing exists to fail over: machinery autonomy is OEM-embedded (mirrors the gateway-routing rationale).",
+        "budget-rebalance-proposal":
+          "No in-house agent budgets exist to rebalance: machinery autonomy is OEM-embedded (mirrors the gateway-routing rationale).",
       },
       security: {
         "security.counterfactual-reasoning":
@@ -199,6 +213,10 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
           "No autonomous agents operate in regulated clinical environments — no in-house model routing exists to exercise (mirrors the security.agent-safety rationale).",
         "role-assignment-handoff":
           "No autonomous agents operate in regulated clinical environments — agent role handoffs are not a clinical-facility practice.",
+        "provider-fallback-ladder":
+          "No in-house model routing exists to fail over in regulated clinical environments (mirrors the gateway-routing rationale).",
+        "budget-rebalance-proposal":
+          "No in-house agent budgets exist to rebalance in regulated clinical environments (mirrors the gateway-routing rationale).",
       },
       security: {
         "security.counterfactual-reasoning":
@@ -236,6 +254,10 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
           "No autonomous agents operate building plant — no in-house model routing is exercised (mirrors the security.agent-safety rationale).",
         "role-assignment-handoff":
           "No autonomous agents operate building plant; agent role handoffs are not an FM practice.",
+        "provider-fallback-ladder":
+          "No in-house model routing exists to fail over for building plant (mirrors the gateway-routing rationale).",
+        "budget-rebalance-proposal":
+          "No in-house agent budgets exist to rebalance for building plant (mirrors the gateway-routing rationale).",
       },
       security: {
         "security.counterfactual-reasoning":

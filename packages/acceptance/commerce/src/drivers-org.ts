@@ -119,7 +119,7 @@ export async function runOrgStep(step: OrgStep, state: JourneyState): Promise<Dr
             maxAgentsPerTeam: 5,
           },
           budgetFloors: [{ capability: "model_invoke", minUnits: 200, minSpendMinor: 10_000 }],
-          revokedCapabilities: [],
+          revokedCapabilities: step.revokedCapabilities ?? [],
         },
       });
       if (!validation.ok) {

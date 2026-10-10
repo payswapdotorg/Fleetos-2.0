@@ -21,12 +21,12 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(INDUSTRIES.length).toBe(10);
   });
 
-  it("executes 1575 COUNTED journeys over the REAL corpora (plus 555 raw epoch re-runs, never counted)", () => {
+  it("executes 1848 COUNTED journeys over the REAL corpora (plus 555 raw epoch re-runs, never counted)", () => {
     expect(SIMULATION.aggregate.fieldExecutions).toBe(555);
-    expect(SIMULATION.aggregate.commerceExecutions).toBe(549);
+    expect(SIMULATION.aggregate.commerceExecutions).toBe(822);
     expect(SIMULATION.aggregate.securityExecutions).toBe(471);
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(1575);
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(525);
+    expect(SIMULATION.aggregate.journeyExecutions).toBe(1848);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(616);
     expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(555);
   });
 
@@ -128,14 +128,14 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(honestCounts.entries.length).toBe(30);
     expect(honestCounts.entries.every((e) => e.executed < 100)).toBe(true);
     const maxExecuted = Math.max(...honestCounts.entries.map((e) => e.executed));
-    expect(maxExecuted).toBe(58); // manufacturing/energy fully applicable: 20+21+17
+    expect(maxExecuted).toBe(68); // manufacturing/energy fully applicable: 20+31+17 (F310C commerce extension)
     expect(honestCounts.aggregateShortfall).toBe(30 * 100 - SIMULATION.aggregate.journeyExecutions);
     for (const reason of honestCounts.structuralReasons) {
       expect(reason.length).toBeGreaterThan(30);
     }
     // The masked-journey reason varies per firm (per-industry masks).
     const agricultureEntry = honestCounts.entries.find((e) => e.firmId === "firm-agriculture-large");
-    expect(agricultureEntry?.reasons.some((r) => r.includes("13 journey(s) masked"))).toBe(true);
+    expect(agricultureEntry?.reasons.some((r) => r.includes("17 journey(s) masked"))).toBe(true);
   });
 
   it("the report verifies and renders deterministically", () => {
