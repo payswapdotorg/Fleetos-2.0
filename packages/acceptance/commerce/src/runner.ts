@@ -32,7 +32,10 @@ import { runOrgStep } from "./drivers-org.js";
 import { runAurumStep } from "./drivers-aurum.js";
 import { runHostStep } from "./drivers-host.js";
 import { runGatewayStep } from "./drivers-gateway.js";
-import type { AurumStep, CommerceStep, GatewayStep, HostStep, OrgStep, WorkStep } from "./journey-contracts.js";
+import { runLifecycleStep } from "./drivers-lifecycle.js";
+import { runFinanceStep } from "./drivers-finance.js";
+import { runResilienceStep } from "./drivers-resilience.js";
+import type { AurumStep, CommerceStep, FinanceStep, GatewayStep, HostStep, LifecycleStep, OrgStep, ResilienceStep, WorkStep } from "./journey-contracts.js";
 
 const WORK_KINDS: ReadonlySet<string> = new Set([
   "work-create", "work-assign", "work-transition", "work-board",
@@ -70,8 +73,25 @@ const GATEWAY_KINDS: ReadonlySet<string> = new Set([
   "org-assign-role", "org-transition-role", "org-role-board",
 ]);
 
+// F310C (Wave 11 lane C) step-kind families.
+const LIFECYCLE_KINDS: ReadonlySet<string> = new Set([
+  "work-reassign", "work-remove-assignee", "work-integrity-holds", "work-deadline",
+  "project-directory-seed", "project-directory-transition", "project-milestone-verify",
+  "project-complete", "project-portfolio", "workload-rebalance",
+]);
+
+const FINANCE_KINDS: ReadonlySet<string> = new Set([
+  "vendor-sla-evaluate", "vendor-sla-scorecard", "vendor-sla-credit",
+  "order-reconcile-batch", "cost-allocate", "cost-allocate-partial", "cost-alloc-verify",
+  "software-renewal-sweep", "software-seat-projection",
+]);
+
+const RESILIENCE_KINDS: ReadonlySet<string> = new Set([
+  "gw-fallback-ladder", "gw-degraded-mode", "org-budgets-seed", "org-budget-rebalance",
+]);
+
 export async function executeStep(
-  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep,
+  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep,
   state: JourneyState,
 ): Promise<Record<string, FactValue>> {
   if (WORK_KINDS.has(step.kind)) return runWorkStep(step as WorkStep, state);
@@ -81,6 +101,9 @@ export async function executeStep(
   if (AURUM_KINDS.has(step.kind)) return runAurumStep(step as AurumStep, state);
   if (HOST_KINDS.has(step.kind)) return runHostStep(step as HostStep, state);
   if (GATEWAY_KINDS.has(step.kind)) return runGatewayStep(step as GatewayStep, state);
+  if (LIFECYCLE_KINDS.has(step.kind)) return runLifecycleStep(step as LifecycleStep, state);
+  if (FINANCE_KINDS.has(step.kind)) return runFinanceStep(step as FinanceStep, state);
+  if (RESILIENCE_KINDS.has(step.kind)) return runResilienceStep(step as ResilienceStep, state);
   return runOrgStep(step as OrgStep, state);
 }
 

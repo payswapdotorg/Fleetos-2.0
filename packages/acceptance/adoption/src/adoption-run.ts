@@ -29,18 +29,18 @@
  *
  * Count honesty law: "100+ repeatable journeys per firm where supported" —
  * on THIS branch's tree a fully-applicable firm's COUNTED executions cap
- * at 14 + 21 + 13 = 48 (field 14 + commerce 21 — the F300C Wave 10
- * extension — + security 13); even under the packet's assumed full
- * parameterization the cap would be 14×3 + 21×3 + 13 = 118 for a large
- * firm — the assumption is machine-disproven for the REAL corpora — so
- * every firm's exact shortfall is recorded in the honest-counts ledger
- * with its structural reasons. The sibling lanes' Wave 10 extensions
- * (F300A field 14→20, F300B security 13→17) are pushed but unmerged;
- * the CONVERGENCE EXPECTATION (20 + 21 + 17 = 58 for a fully-applicable
- * firm, still short of the 100 target) is recorded honestly in
- * ./convergence-delta.ts for the TL to recompute at F301/F302.
- * NEVER inflated by counting re-runs; the threshold is NEVER silently
- * weakened.
+ * at 20 + 31 + 17 = 68 (field 20 + commerce 31 — the F300C Wave 10
+ * extension plus the F310C Wave 11 extension — + security 17); even under
+ * the packet's assumed full parameterization the cap would be 20×3 + 31×3
+ * + 17 = 170 for a large firm — the assumption is machine-disproven for
+ * the REAL corpora — so every firm's exact shortfall is recorded in the
+ * honest-counts ledger with its structural reasons. The Wave 11 sibling
+ * lanes (F310A root typecheck, F310B full build) are VERIFICATION lanes
+ * with no corpus changes, so the converged cap at F311 is this tree's 68;
+ * the CONVERGENCE EXPECTATION (still 32 short of the 100 target) is
+ * recorded honestly in ./convergence-delta.ts for the TL to recompute at
+ * F311. NEVER inflated by counting re-runs; the threshold is NEVER
+ * silently weakened.
  *
  * Pure deterministic TS; logical `now` only.
  */
@@ -252,8 +252,8 @@ const STRUCTURAL_REASONS = [
   "field corpus (F270A) is the only parameterizable runner (runJourneyCorpus takes tenantId + startedAt), but its journeys pin T0-anchored expectations — machine-verified: a +1s startedAt offset fails 1 journey, +1h fails 3, multi-day offsets fail 12 — so every declared epoch executes at the corpus fixture epoch 1774000000000 and only epoch 1 is counted (epochs ≥ 2 are byte-identical re-runs, proven per firm, never counted)",
   "commerce corpus runner (runAllJourneys) is not tenant/time-parameterizable — the corpus runs ONCE per workspace; re-runs are byte-identical and counting them would inflate (count-honesty law)",
   "security corpus runner (runJourney) is single-parameter (journey only) — once-per-workspace per the packet; re-runs are byte-identical and are not counted",
-  "even under the packet's assumed full parameterization (field + commerce × 3 epochs + security), a fully-applicable large firm would reach 14×3 + 21×3 + 13 = 118 counted executions on this tree; the REAL corpora support 14 + 21 + 13 = 48 — the shortfall is structural (runner/corpus shape), not a coverage gap",
-  "the sibling lanes' Wave 10 extensions (F300A field 14→20 at e221c07, F300B security 13→17 at b5be8e4) are pushed but unmerged — at convergence a fully-applicable firm reaches 20 + 21 + 17 = 58 counted journeys, still 42 short of the 100 target; the expectation is recorded in convergence-delta.ts and the TL recomputes at F301/F302 — the threshold is never silently weakened",
+  "even under the packet's assumed full parameterization (field + commerce × 3 epochs + security), a fully-applicable large firm would reach 20×3 + 31×3 + 17 = 170 counted executions on this tree; the REAL corpora support 20 + 31 + 17 = 68 — the shortfall is structural (runner/corpus shape), not a coverage gap",
+  "the F310C Wave 11 commerce extension (21 → 31 distinct journeys, this tree) grows the fully-applicable cap to 20 + 31 + 17 = 68 counted journeys, still 32 short of the 100 target; the Wave 11 sibling lanes (F310A/F310B) are verification lanes with no corpus changes, so the converged cap at F311 is this tree's 68; the expectation is recorded in convergence-delta.ts and the TL recomputes at F311 — the threshold is never silently weakened",
 ] as const;
 
 function firmShortfall(run: FirmRunResult): FirmShortfall {

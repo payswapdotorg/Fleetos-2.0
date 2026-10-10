@@ -1,22 +1,23 @@
 /**
- * @fleetos/acceptance-adoption — the Wave 10 convergence expectation
- * (F300C scoped TL grant; WAVE10-HOST-CONTRACT §5).
+ * @fleetos/acceptance-adoption — the Wave 11 convergence expectation
+ * (F310C scoped TL grant; FINAL-RELEASE-HANDOFF Wave 11).
  *
- * HONEST PARAMETERIZATION RECORD, not a machine-run claim: the sibling
- * lanes' Wave 10 corpus extensions (F300A field, F300B security) were
- * pushed to their branch tips but are NOT merged into this branch — a
- * lane never merges another lane's owned paths. The adoption numbers a
- * machine-run produces on THIS branch therefore count the CURRENT tree's
- * corpora (field 14 / commerce 21 / security 13); this module records
- * the sibling branch tips' counts and the resulting CONVERGENCE
- * EXPECTATION for the TL to recompute at F301/F302 when all three lanes
- * merge.
+ * HONEST PARAMETERIZATION RECORD, not a machine-run claim: this branch
+ * (work/f310c) carries the F310C commerce corpus extension (21 → 31
+ * journeys) — worker C's own corpus, extended in this lane's owned
+ * paths. The Wave 11 sibling lanes (F310A root typecheck, F310B full
+ * build) are VERIFICATION lanes: neither changes any corpus, so the
+ * converged corpus sizes at F311 are exactly this tree's
+ * (field 20 / commerce 31 / security 17). The historical Wave 10
+ * sibling-extension records are preserved below (both merged at the
+ * Wave 10 convergence — delta 0).
  *
  * The 100-counted-journeys-per-firm target is NEVER silently weakened:
- * the convergence expectation (58 for a fully-applicable firm) still
- * falls short of 100, and the shortfall stays STRUCTURAL (runner/corpus
- * shape), preserved in the honest-counts ledger for a documented
- * TL/user decision.
+ * the convergence expectation (68 for a fully-applicable firm) still
+ * falls short of 100 by 32, and the shortfall stays STRUCTURAL
+ * (runner/corpus shape), preserved in the honest-counts ledger for a
+ * documented TL/user decision (the F310C decision packet records the
+ * options).
  */
 
 /** The sibling lanes' Wave 10 branch tips (fetched, unmerged — recorded for the TL). */
@@ -67,9 +68,9 @@ export interface CurrentCorpusCounts {
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
   field: 20,
-  commerce: 21,
+  commerce: 31,
   security: 17,
-  fullyApplicableFirmCap: 20 + 21 + 17,
+  fullyApplicableFirmCap: 20 + 31 + 17,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -86,11 +87,11 @@ export interface ConvergenceExpectation {
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
   field: 20,
-  commerce: 21,
+  commerce: 31,
   security: 17,
-  fullyApplicableFirmCap: 20 + 21 + 17,
+  fullyApplicableFirmCap: 20 + 31 + 17,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (20 + 21 + 17),
+  shortfallPerFullyApplicableFirm: 100 - (20 + 31 + 17),
 };
 
 /** Machine-check the parameterization's internal consistency. */

@@ -62,13 +62,19 @@ export async function runWorkStep(step: WorkStep, state: JourneyState): Promise<
         { occurredAt: CLOCK.iso0 },
       );
       if (result.ok) state.work.items.set(step.itemId, result.workItem);
-      return {
+      const facts: DriverFacts = {
         "work.assign.ok": result.ok,
         "work.assign.assigneeId": result.ok ? (result.workItem.assignee?.assigneeId ?? null) : null,
         "work.assign.reasonCode": result.ok ? null : result.reasonCode,
         "work.assign.auditEvents": result.ok ? result.auditEvents.length : -1,
         "work.assign.progressEvents": result.ok ? result.progressEvents.length : -1,
       };
+      if (step.factKey !== undefined) {
+        facts[`work.assign.${step.factKey}.ok`] = result.ok;
+        facts[`work.assign.${step.factKey}.assigneeId`] = result.ok ? (result.workItem.assignee?.assigneeId ?? null) : null;
+        facts[`work.assign.${step.factKey}.reasonCode`] = result.ok ? null : result.reasonCode;
+      }
+      return facts;
     }
     case "work-transition": {
       const command: WorkItemTransitionCommand =
@@ -321,13 +327,22 @@ export async function runWorkStep(step: WorkStep, state: JourneyState): Promise<
         state.workload.lifecycle = result.next;
         state.workload.capacityLedger = result.ledger;
       }
-      return {
+      const facts: DriverFacts = {
         "wl.lifecycle.ok": result.ok,
         "wl.lifecycle.status": result.ok ? result.next.status : null,
         "wl.lifecycle.reservedUnits": result.ok ? result.ledger.reservedUnits : -1,
+        "wl.lifecycle.terminalReason": result.ok ? result.next.terminalReason : null,
         "wl.lifecycle.reasonCode": result.ok ? null : result.reasonCode,
         "wl.lifecycle.overshootUnits": result.ok ? null : result.overshootUnits,
       };
+      if (step.factKey !== undefined) {
+        facts[`wl.lifecycle.${step.factKey}.ok`] = result.ok;
+        facts[`wl.lifecycle.${step.factKey}.status`] = result.ok ? result.next.status : null;
+        facts[`wl.lifecycle.${step.factKey}.reservedUnits`] = result.ok ? result.ledger.reservedUnits : -1;
+        facts[`wl.lifecycle.${step.factKey}.terminalReason`] = result.ok ? result.next.terminalReason : null;
+        facts[`wl.lifecycle.${step.factKey}.reasonCode`] = result.ok ? null : result.reasonCode;
+      }
+      return facts;
     }
     case "workload-window-check": {
       const windows = step.windows.map((w) => ({ id: w.id, tenant: state.tenant, owner: "crew-a", start: w.start, end: w.end }));
