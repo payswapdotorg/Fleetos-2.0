@@ -317,12 +317,16 @@ Run `corepack pnpm typecheck` from a clean checkout at the exact candidate SHA o
 
 Acceptance: the full root typecheck passes and the report identifies the exact tested SHA; otherwise keep B-1 open with a reproduction and repair proposal.
 
+Status: **DONE** — delivered `3bc3df5`, merged `3dee6d1`. Evidence: `docs/evidence/F310A/report.md` (B-1 census + P1-P5; the OOM resolved, the 220 real errors found). B-1 subsequently CLOSED by the TL repairs (P2(a) dedicated shell project + P3 the 62 shell errors) with `TYPECHECK_EXIT=0` at `f0c0921` (run `38018805250`), re-validated at the converged tree.
+
 ### F310B — Full monorepo build with complete tooling
 Owner: B (verification lane; code repairs require an explicit owned-path assignment)
 
 Run the frozen install with required lifecycle scripts/tooling enabled, then `corepack pnpm -r --no-bail build` on a suitable builder. Verify inherited web, desktop, server and CLI/SEA targets as well as FleetOS packages. Record every package outcome; the standalone FleetOS shell build does not substitute for the full monorepo gate.
 
 Acceptance: full build passes at the exact candidate SHA; otherwise B-2 remains open and every failing package has a reproduction, owner and scoped repair item.
+
+Status: **DONE** — delivered `c0591f6`, merged `1d840e2`. B-2 CLOSED at `da3f99ee`: `BUILD_EXIT=0`, 75/75 packages, scripts ON, all four substrate targets green. Evidence: `docs/evidence/F310B/report.md`.
 
 ### F310C — Adoption coverage closure and decision packet
 Owner: C
@@ -331,6 +335,8 @@ Reconcile the F302 figures (1,575 counted executions, 58 journeys per fully appl
 
 Acceptance: a machine-verifiable per-firm/industry ledger and a written recommendation to TL/user. If truthful supported journeys cannot reach 100, present the explicit choices and preserve NOT READY pending a recorded decision; do not self-authorize a threshold change.
 
+Status: **DONE** — delivered `f1d7515`, merged `6455526`. Corpus 21->31, counted 1,848, cap 68, shortfall 32 (target retained); the 42-slot mapping + decision packet (recommended Option 2). Evidence: `docs/evidence/F310C/report.md`. B-3 remains the sole substantive blocker pending the Wave-12 roadmap or a user decision.
+
 ### F311 — Release convergence, integration status and deployment truth
 Owner: TL
 
@@ -338,12 +344,16 @@ Merge and verify permitted deliveries by exact SHA. Reconcile adoption counts an
 
 Acceptance: coherent report backed by current tree and commit-bound browser/deployment evidence; no placeholder success or silently omitted limitations.
 
+Status: **DONE** — lanes merged at exact commits; release re-pin `886cefa`; all six suites green at `8c97ac8`; deployment/persistence honestly scoped (sandbox static, fixture-composed, no durable persistence, connectors CONTRACT_ONLY). Record: `docs/evidence/F302/report.md` §8-10.
+
 ### F312 — Final clean-checkout gates and release decision
 Owner: TL
 
 Run frozen install, source-of-truth, snapshot, architecture, lint, root typecheck, full monorepo tests, each of the six acceptance suites, and full recursive build from a clean checkout. Capture exact commands, counts, exit codes, environment and SHA. Then browser-verify the candidate product deployment and update F302/product acceptance/residual risks/runbook/AI_CONTINUATION.
 
 Acceptance: explicit READY only if all required gates pass and the adoption criterion and deployment/persistence scope are resolved; otherwise explicit NOT READY with named blockers and next actions.
+
+Status: **DONE** — final candidate `8c97ac8`; gates machine-captured on the 16 GB builder (run `38022898223`); verdict **NOT READY** with B-3 the sole substantive blocker (68/100 vs the retained target). Record: `docs/evidence/F302/report.md` §11.
 
 ### Wave 11 parallelism
 

@@ -94,3 +94,39 @@ gates machine-captured (F302, candidate `73adc17`):
 - **Verdict: NOT READY with 3 named blockers** (substrate root typecheck OOM on the
   4GB box; substrate full build toolchain; the adoption target decision) — full
   evidence: `docs/evidence/F302/report.md`.
+
+---
+
+## Wave 11 — release-blocker closure (F310A/B/C + F311 + F312)
+
+- **B-1 (root typecheck): CLOSED.** The 16 GB builder (GitHub Actions on this public
+  repo — free; `.github/workflows/release-gates.yml`) completed the command and
+  surfaced the REAL state: 220 false-context errors (the substrate `packages/web`
+  program checked `@fleetos/*` sources under its browser context) — census TL 65 /
+  B 134 / A 21 (F310A evidence). TL repairs: the dedicated FleetOS shell typecheck
+  project (domain context; `tsconfig.host.json` precedent) + the 62 real shell errors
+  fixed truthfully. Closing machine output: `TYPECHECK_EXIT=0` (PIPESTATUS-captured),
+  0 errors — run `38018805250` at `f0c0921`, re-validated at the converged tree.
+- **B-2 (full build): CLOSED.** `BUILD_EXIT=0`, 75/75 packages with lifecycle scripts
+  ON; all four previously-failing substrate targets green (F310B evidence: per-package
+  table, postinstall log proof). Honest scoping: SEA packaging is a separate root
+  script.
+- **B-3 (adoption coverage): PARTIALLY RESOLVED — the target stands.** Commerce corpus
+  21 → 31 genuinely distinct journeys; counted 1,575 → **1,848**; cap 58 → **68**;
+  shortfall 42 → **32**; 9 honest masks added (each narrows). The 42-slot mapping:
+  33 real-implementable today (10 delivered + 3 deferred C + 10 proposed A + 10
+  proposed B), 6 genuine new-capability, 3 honest remainder (F310C evidence §3).
+  The lane recommends retaining the 100 target (Option 2) with the Wave-12 roadmap
+  attached; the TL accepts. **B-3 is the sole remaining substantive blocker.**
+- **Convergence:** lanes merged at exact commits (TL-gated per the ref-sync law);
+  release-suite re-pinned to the converged corpora (`886cefa`) — all six acceptance
+  suites green at the final candidate `8c97ac8`: field 69 · security 103 ·
+  commerce 81 · adoption 95 · release 88 · convergence 82.
+- **Deployment/persistence (honest scoping):** the deployed application is this
+  sandbox's static hosting over `dist-fleetos/`, fixture-composed in-browser state —
+  not a public production system, no durable operational persistence. Connectors
+  remain CONTRACT_ONLY. Predictive outputs remain deterministic structural
+  references.
+- **Verdict: NOT READY** — B-3 remains (cap 68/100 vs the retained 100 target), with
+  the machine-grounded roadmap to ≥100 in `docs/evidence/F310C/report.md` §3. Full
+  gate table and run IDs: `docs/evidence/F302/report.md` §8–11.

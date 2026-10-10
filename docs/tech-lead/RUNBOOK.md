@@ -100,3 +100,39 @@ Full-Stack agent type, GLM-5.3 when available) driven over Chrome DevTools Proto
 4. Approve/require-changes: merge + push, or send the fix list to the worker session.
 5. Dispatch next: packets live in `docs/tech-lead/packets/`; new packets follow the
    catalog + FINAL-HANDOFF rubric; keep ≤3 concurrent workers.
+
+## Release gates on the high-memory builder (Wave 11+)
+
+The root gates that OOM the 4 GB sandbox run on **GitHub Actions** — this repo is
+public, so ubuntu runners (4 vCPU / 16 GB) are free:
+
+- Workflow: `.github/workflows/release-gates.yml`. Jobs: `root-typecheck` (B-1),
+  `full-build` (B-2), `acceptance-gates` (F312 preview: verify + monorepo tests +
+  the six suites).
+- Triggers: pushes to `work/f31*` lanes run automatically at the pushed commit; the
+  TL dispatches at any ref via the API (`POST .../actions/workflows/release-gates.yml/dispatches`).
+- Evidence: the run pages are public and permanent; each job's builder-facts block
+  records RAM/CPU/node/pnpm/SHA; artifacts carry install/typecheck/build/tests logs.
+- **Exit-capture law:** every gated command piped through `tee` MUST capture
+  `PIPESTATUS[0]` and `exit $rc` (the 2026-10-10 F310A finding: a tee'd step exits
+  with tee's 0 — a false green).
+- The FleetOS shell type-checks through its dedicated project
+  (`packages/web/tsconfig.fleetos.json`, included in the root `typecheck` list) —
+  do not re-include `src/fleetos` in the substrate web project.
+
+## Sandbox redeploy (after a reset)
+
+1. Clone `payswapdotorg/fleetos-2.0` + `payswapdotorg/replay2`; the durable browser
+   profile (`/home/z/my-project/browser-profile`) and ops vault survive resets.
+2. Replay stack: `cd replay2 && bun install && NEXT_DIST_DIR=.next-prod bun run build &&
+   CONSOLE_LAUNCHER=scripts/launch_prod.py ./deploy.sh` (PORT GUARD evicts the
+   template squatter on :3000).
+3. FleetOS product: `cd fleetos && corepack pnpm install --frozen-lockfile
+   --ignore-scripts` (the 4 GB box cannot run the native postinstalls; the product
+   surface needs none of them) then `cd packages/web && npx vite build --config
+   vite.fleetos.config.ts`; serve `dist-fleetos/` via the supervisor-kept
+   `scripts/local/fleetos_server.py` (:3105, registered in
+   `scripts/flags/local_services.json`).
+4. The monorepo install on the 4 GB box: `--ignore-scripts` is mandatory (three
+   silent OOM deaths at native-compile phases otherwise); the full-toolchain install
+   and the root gates run on the CI builder, not this box.
