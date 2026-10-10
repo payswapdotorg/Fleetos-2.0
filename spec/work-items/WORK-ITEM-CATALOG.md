@@ -304,3 +304,47 @@ Acceptance: machine-captured commands/counts at exact HEAD; browser/deployment e
 ### Wave 10 parallelism
 
 F300A, F300B and F300C run concurrently within their existing ownership boundaries. F301 may inspect/prepare non-conflicting application integration work in parallel but does not edit worker-owned paths. F302 closes only after the lanes and product convergence have been verified.
+
+
+## Wave 11 — Final release-blocker closure
+
+Canonical handoff: `docs/tech-lead/FINAL-RELEASE-HANDOFF.md`. The Wave 10 F302 verdict remains NOT READY until these tasks are verified or a release decision is explicitly recorded.
+
+### F310A — Full root typecheck on a suitable builder
+Owner: A (verification lane; no out-of-scope edits)
+
+Run `corepack pnpm typecheck` from a clean checkout at the exact candidate SHA on a builder with at least 8 GB RAM and without the resident workload that caused the recorded OOM. Capture environment, command output, exit code and tested commit. Do not hide a failure behind per-package checks or loosen compiler settings to force a green result.
+
+Acceptance: the full root typecheck passes and the report identifies the exact tested SHA; otherwise keep B-1 open with a reproduction and repair proposal.
+
+### F310B — Full monorepo build with complete tooling
+Owner: B (verification lane; code repairs require an explicit owned-path assignment)
+
+Run the frozen install with required lifecycle scripts/tooling enabled, then `corepack pnpm -r --no-bail build` on a suitable builder. Verify inherited web, desktop, server and CLI/SEA targets as well as FleetOS packages. Record every package outcome; the standalone FleetOS shell build does not substitute for the full monorepo gate.
+
+Acceptance: full build passes at the exact candidate SHA; otherwise B-2 remains open and every failing package has a reproduction, owner and scoped repair item.
+
+### F310C — Adoption coverage closure and decision packet
+Owner: C
+
+Reconcile the F302 figures (1,575 counted executions, 58 journeys per fully applicable firm, target 100, shortfall 42). Map missing journey coverage to actual capabilities/personas and decide which genuinely distinct scenarios are supported now, require real new capability, or are legitimately inapplicable. Add only scenarios backed by real behavior; never count identical reruns or weaken the target silently. C must not edit TL-owned adoption-ledger paths without an explicit scoped grant.
+
+Acceptance: a machine-verifiable per-firm/industry ledger and a written recommendation to TL/user. If truthful supported journeys cannot reach 100, present the explicit choices and preserve NOT READY pending a recorded decision; do not self-authorize a threshold change.
+
+### F311 — Release convergence, integration status and deployment truth
+Owner: TL
+
+Merge and verify permitted deliveries by exact SHA. Reconcile adoption counts and release baselines; inspect the actual public deployment and its commit identity; distinguish fixture-composed demo state from durable operational persistence; preserve the current CONTRACT_ONLY status for every connector absent live/sandbox proof.
+
+Acceptance: coherent report backed by current tree and commit-bound browser/deployment evidence; no placeholder success or silently omitted limitations.
+
+### F312 — Final clean-checkout gates and release decision
+Owner: TL
+
+Run frozen install, source-of-truth, snapshot, architecture, lint, root typecheck, full monorepo tests, each of the six acceptance suites, and full recursive build from a clean checkout. Capture exact commands, counts, exit codes, environment and SHA. Then browser-verify the candidate product deployment and update F302/product acceptance/residual risks/runbook/AI_CONTINUATION.
+
+Acceptance: explicit READY only if all required gates pass and the adoption criterion and deployment/persistence scope are resolved; otherwise explicit NOT READY with named blockers and next actions.
+
+### Wave 11 parallelism
+
+F310A, F310B and F310C run concurrently and do not edit one another's owned paths. F311 can prepare non-conflicting convergence while lanes run, but final recomputation starts after lane evidence arrives. F312 executes only after F311 convergence and candidate SHA freeze.
