@@ -33,8 +33,15 @@ function App() {
   }, []);
 
   const world = useMemo(() => buildWorld(), []);
-  const tenant = TENANTS[tenantIdx];
-  const actor = tenant.actors[actorIdx % tenant.actors.length];
+  // noUncheckedIndexedAccess: index reads narrow to undefined; the switcher's
+  // invariants are made explicit — fail loudly on a broken index rather than
+  // silently rendering a wrong tenant/actor.
+  const pickedTenant = TENANTS[tenantIdx];
+  if (pickedTenant === undefined) throw new Error(`tenant index ${tenantIdx} out of range`);
+  const tenant = pickedTenant;
+  const pickedActor = tenant.actors[actorIdx % tenant.actors.length];
+  if (pickedActor === undefined) throw new Error(`no actor at index ${actorIdx} for tenant ${tenant.id}`);
+  const actor = pickedActor;
   const tw = world.get(tenant.id) as TenantWorld;
   const cmdPath = useMemo(() => new FleetCommandPath(), []);
 

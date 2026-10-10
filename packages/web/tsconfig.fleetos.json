@@ -1,0 +1,14 @@
+{
+  "//": "FleetOS shell dedicated typecheck project (F311 P2-a, per F310A's lane finding §8-P2a). The shell lives inside packages/web but is NOT part of the ZCode substrate web app: it has its own standalone build (vite.fleetos.config.ts) and composes the @fleetos domain packages directly in-browser. Checking it under the substrate web project's context (DOM libs, no Node types, no allowImportingTsExtensions) produced 220 false-context errors at the root gate (TS5097 on the domain packages' .ts imports + TS2591 on their node:crypto usage — see docs/evidence/F310A/report.md §6). This project gives the shell the DOMAIN context its sources actually rely on: Node types for the crypto-shim/command-path modules, allowImportingTsExtensions for the domain packages' internal .ts import convention (safe under noEmit), the same strictness family as the substrate web project (extends the same base; no new strictness added or removed — the shell's own real errors remain errors and are being fixed at their source).",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist-fleetos-tsbuild",
+    "rootDir": "src",
+    "lib": ["es2025", "dom", "dom.iterable"],
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "types": ["node"],
+    "allowImportingTsExtensions": true
+  },
+  "include": ["src/fleetos"]
+}

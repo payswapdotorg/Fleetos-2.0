@@ -8,6 +8,7 @@
 import { makeTenantContext, type TenantContext } from "@fleetos/kernel";
 import {
   TowerCommandBus,
+  draftSubmitCommandOf,
   type TowerCommandDraft,
   type TowerSubmitResult,
 } from "@fleetos/control-tower";
@@ -67,8 +68,8 @@ export class FleetCommandPath {
       reason: input.reason,
     });
     if (!draftR.ok) {
-      this.record(String(ctx.actorId), "asset.enroll", false, `draft refused: ${draftR.reason}`, null, false, "-");
-      return { ok: false, refused: "queue-rejected", detail: draftR.reason } as never;
+      this.record(String(ctx.actorId), "asset.enroll", false, `draft refused: ${draftR.detail}`, null, false, "-");
+      return { ok: false, refused: "queue-rejected", detail: draftR.detail } as never;
     }
     return this.submitDraft(ctx, draftR.draft as TowerCommandDraft);
   }
@@ -86,26 +87,30 @@ export class FleetCommandPath {
       reason: input.reason,
     });
     if (!draftR.ok) {
-      this.record(String(ctx.actorId), "recovery.request", false, `draft refused: ${draftR.reason}`, null, false, "-");
-      return { ok: false, refused: "queue-rejected", detail: draftR.reason } as never;
+      this.record(String(ctx.actorId), "recovery.request", false, `draft refused: ${draftR.detail}`, null, false, "-");
+      return { ok: false, refused: "queue-rejected", detail: draftR.detail } as never;
     }
     return this.submitDraft(ctx, draftR.draft as TowerCommandDraft);
   }
 
   submitDraft(ctx: TenantContext, draft: TowerCommandDraft): TowerSubmitResult {
+    // The three lane CommandDraft shapes are heterogeneous (lane C nests its
+    // command); the registry's projection is the per-lane-safe extractor for
+    // the control-plane submit contract fields the audit log records.
+    const cmd = draftSubmitCommandOf(draft);
     const r = this.bus.submit({ ctx, draft });
     if (r.ok) {
       this.record(
         String(ctx.actorId),
-        draft.kind,
+        cmd.kind,
         true,
         `enqueued for Guardian adjudication (capability REQUEST: ${r.ack.capabilityRequirement}; ceilings are not authorizations)`,
         r.ack.commandId,
         r.ack.duplicate,
-        draft.idempotencyKey,
+        cmd.idempotencyKey,
       );
     } else {
-      this.record(String(ctx.actorId), draft.kind, false, `${r.refused}: ${r.detail}`, null, false, draft.idempotencyKey);
+      this.record(String(ctx.actorId), cmd.kind, false, `${r.refused}: ${r.detail}`, null, false, cmd.idempotencyKey);
     }
     return r;
   }

@@ -8,6 +8,15 @@
  *
  * Scope: only what the packages' public paths use — createHash("sha256")
  * with .update(string | Uint8Array) and .digest("hex" | "uint8array").
+ *
+ * P3 repair note (F311, per F310A's census): this file is checked under the
+ * repo base config's `noUncheckedIndexedAccess` — every typed-array read
+ * narrows to `number | undefined`. The SHA-256 indices are in-bounds by
+ * construction; instead of suppressions, every flagged read goes through
+ * `at()` — a bounds-asserting read that makes the invariant explicit and
+ * fails loudly rather than silently producing NaN. The `digest` overloads
+ * mirror the interface's two signatures (the previous single union-typed
+ * method did not conform to `Hash`).
  */
 
 type UpdateInput = string | Uint8Array | ArrayBuffer;
@@ -25,6 +34,15 @@ const K = new Uint32Array([
 
 function rotr(x: number, n: number): number {
   return ((x >>> n) | (x << (32 - n))) >>> 0;
+}
+
+/** Bounds-asserting typed-array read (see the header note). */
+function at(a: Uint32Array | Uint8Array, i: number): number {
+  const v = a[i];
+  if (v === undefined) {
+    throw new Error(`sha256 shim: index ${i} out of bounds (length ${a.length})`);
+  }
+  return v;
 }
 
 export interface Hash {
@@ -73,18 +91,35 @@ class Sha256 implements Hash {
   private compress(block: Uint8Array): void {
     const w = new Uint32Array(64);
     for (let i = 0; i < 16; i++) {
-      w[i] = (block[i * 4] << 24) | (block[i * 4 + 1] << 16) | (block[i * 4 + 2] << 8) | block[i * 4 + 3];
+      const b0 = at(block, i * 4);
+      const b1 = at(block, i * 4 + 1);
+      const b2 = at(block, i * 4 + 2);
+      const b3 = at(block, i * 4 + 3);
+      w[i] = ((b0 << 24) | (b1 << 16) | (b2 << 8) | b3) >>> 0;
     }
     for (let i = 16; i < 64; i++) {
-      const s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >>> 3);
-      const s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
-      w[i] = (w[i - 16] + s0 + w[i - 7] + s1) >>> 0;
+      const wm15 = at(w, i - 15);
+      const wm2 = at(w, i - 2);
+      const wm16 = at(w, i - 16);
+      const wm7 = at(w, i - 7);
+      const s0 = rotr(wm15, 7) ^ rotr(wm15, 18) ^ (wm15 >>> 3);
+      const s1 = rotr(wm2, 17) ^ rotr(wm2, 19) ^ (wm2 >>> 10);
+      w[i] = (wm16 + s0 + wm7 + s1) >>> 0;
     }
-    let [a, b, c, d, e, f, g, h] = this.h;
+    let a = at(this.h, 0);
+    let b = at(this.h, 1);
+    let c = at(this.h, 2);
+    let d = at(this.h, 3);
+    let e = at(this.h, 4);
+    let f = at(this.h, 5);
+    let g = at(this.h, 6);
+    let h = at(this.h, 7);
     for (let i = 0; i < 64; i++) {
+      const ki = at(K, i);
+      const wi = at(w, i);
       const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
       const ch = (e & f) ^ (~e & g);
-      const t1 = (h + S1 + ch + K[i] + w[i]) >>> 0;
+      const t1 = (h + S1 + ch + ki + wi) >>> 0;
       const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
       const maj = (a & b) ^ (a & c) ^ (b & c);
       const t2 = (S0 + maj) >>> 0;
@@ -93,8 +128,12 @@ class Sha256 implements Hash {
       d = c; c = b; b = a;
       a = (t1 + t2) >>> 0;
     }
-    const add = [a, b, c, d, e, f, g, h];
-    for (let i = 0; i < 8; i++) this.h[i] = (this.h[i] + add[i]) >>> 0;
+    const add = Uint32Array.from([a, b, c, d, e, f, g, h]);
+    for (let i = 0; i < 8; i++) {
+      const hv = at(this.h, i);
+      const av = at(add, i);
+      this.h[i] = (hv + av) >>> 0;
+    }
   }
 
   private finalize(): Uint8Array {
@@ -112,14 +151,17 @@ class Sha256 implements Hash {
     this.update(lenBytes);
     const out = new Uint8Array(32);
     for (let i = 0; i < 8; i++) {
-      out[i * 4] = (this.h[i] >>> 24) & 0xff;
-      out[i * 4 + 1] = (this.h[i] >>> 16) & 0xff;
-      out[i * 4 + 2] = (this.h[i] >>> 8) & 0xff;
-      out[i * 4 + 3] = this.h[i] & 0xff;
+      const hv = at(this.h, i);
+      out[i * 4] = (hv >>> 24) & 0xff;
+      out[i * 4 + 1] = (hv >>> 16) & 0xff;
+      out[i * 4 + 2] = (hv >>> 8) & 0xff;
+      out[i * 4 + 3] = hv & 0xff;
     }
     return out;
   }
 
+  digest(encoding: "hex"): string;
+  digest(encoding: "uint8array"): Uint8Array;
   digest(encoding: "hex" | "uint8array"): string | Uint8Array {
     const out = this.finalize();
     if (encoding === "uint8array") return out;

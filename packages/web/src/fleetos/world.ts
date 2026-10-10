@@ -114,13 +114,13 @@ function securityFindingsFor(tenantId: string): SecurityFinding[] {
   });
   if (tenantId === "tnt_acme-logistics") {
     return [
-      mk(1, "unauthorized_access", "critical", ["ast_acme-truck-01"], "Telemetry key used from two sites simultaneously"),
-      mk(2, "credential_rotation_overdue", "high", ["ast_acme-pump-03"], "Gateway credential older than policy window"),
+      mk(1, "device.compromised_indicator", "critical", ["ast_acme-truck-01"], "Telemetry key used from two sites simultaneously"),
+      mk(2, "auth.weak_credential", "high", ["ast_acme-pump-03"], "Gateway credential older than policy window"),
     ];
   }
   return [
-    mk(1, "firmware_mismatch", "high", ["ast_mer-fridge-01"], "Cold-chain monitor firmware below hardened baseline"),
-    mk(2, "audit_gap", "medium", ["ast_mer-van-02"], "Van GPS audit trail has a 6-minute gap"),
+    mk(1, "device.firmware_outdated", "high", ["ast_mer-fridge-01"], "Cold-chain monitor firmware below hardened baseline"),
+    mk(2, "evidence.chain_break", "medium", ["ast_mer-van-02"], "Van GPS audit trail has a 6-minute gap"),
   ];
 }
 
@@ -173,8 +173,13 @@ export function buildTenantWorld(tenant: DemoTenant): TenantWorld {
 
   const assetSpecs = tenant.id === "tnt_acme-logistics" ? ASSETS_ACME : ASSETS_MERIDIAN;
   const deviceSpecs = tenant.id === "tnt_acme-logistics" ? DEVICES_ACME : DEVICES_MERIDIAN;
-  const operator = tenant.actors[0].id;
-  const technician = (tenant.actors[1] ?? tenant.actors[0]).id;
+  // noUncheckedIndexedAccess: the actor fixtures are non-empty by design;
+  // made explicit — fail loudly rather than silently using a missing actor.
+  const leadActor = tenant.actors[0];
+  if (leadActor === undefined) throw new Error(`no actors configured for tenant ${tenant.id}`);
+  const operator = leadActor.id;
+  const secondActor = tenant.actors[1] ?? leadActor;
+  const technician = secondActor.id;
 
   for (const [i, spec] of assetSpecs.entries()) {
     const r = assets.admitAsset({
