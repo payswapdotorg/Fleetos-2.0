@@ -82,8 +82,11 @@ jobs:
 
       - name: Root typecheck (the B-1 gate command)
         run: |
+          set +e
           corepack pnpm typecheck 2>&1 | tee typecheck.log
-          echo "TYPECHECK_EXIT=$?"
+          rc=${PIPESTATUS[0]}
+          echo "TYPECHECK_EXIT=$rc" | tee -a typecheck.log
+          exit $rc
 
       - name: Upload gate logs
         if: always()
