@@ -1,109 +1,171 @@
-# FleetOS 2.0 — Final Release Handoff to the Tech Lead
+# FleetOS 2.0 — Final TL Handoff: Wave 12
 
-**Current decision:** NOT READY. Do not change the decision based on documentation-only commits.
+**Disposition: NOT READY.** This handoff supersedes the stale Wave-10-oriented execution instructions in this file. The repository is the sole source of truth; do not rely on conversation history.
 
-**Latest inspected closeout:** `831ef400ed8fd0f9352836b68ed932bf2fb05419` (Wave 10 acceptance report and residual-risk register update). Always inspect the actual `main` HEAD before dispatch or gate runs.
+**Current evidence baseline**
+- Last tested source candidate: `8c97ac8a08faa735dae1bbb3c638dfba44ec9470`.
+- Wave-11 documentation closeout: `1cc99703aaa706dedc5ad8c6f06ac3c642d6d33d` (documentation-only; do not treat it as a newly tested source candidate).
+- Final gate workflow: [run 38022898223](https://github.com/payswapdotorg/Fleetos-2.0/actions/runs/38022898223).
+- Final Wave-11 report: [F302 report](../evidence/F302/report.md).
+- Adoption mapping and constraints: [F310C report](../evidence/F310C/report.md).
+- Work ledger: [WORK-ITEM-CATALOG.md](../../spec/work-items/WORK-ITEM-CATALOG.md).
 
-**Authoritative evidence:**
-- `docs/evidence/F302/report.md`
-- `docs/tech-lead/PRODUCT-ACCEPTANCE-REPORT.md`
-- `docs/tech-lead/RESIDUAL-RISKS.md`
-- `docs/tech-lead/RUNBOOK.md`
-- `spec/work-items/WORK-ITEM-CATALOG.md`
-- `spec/worker-ownership.yaml`
+Before dispatch, the TL MUST inspect actual `main` HEAD, compare it with the tested candidate, inspect the working tree and workflow results, and record the exact SHA to be tested next. A documentation commit is not itself evidence that source gates passed at that commit.
 
-This is the final execution handoff after Wave 10. Waves 0–10 remain completed in the repository ledger. The task is to resolve or explicitly adjudicate the release blockers and verify the actual product deployment. Never rewrite completed history or weaken an acceptance target merely to obtain a green result.
+## 1. Current verified position
 
-## Release blockers at handoff
+### Closed at Wave 11
+- **B-1 root typecheck: CLOSED.** Dedicated FleetOS shell TypeScript project and genuine shell fixes; root typecheck captured as exit 0 on a 16 GB builder.
+- **B-2 full monorepo build: CLOSED.** Full build passed with lifecycle scripts on: 75/75 packages.
+- Tests at the Wave-11 candidate: 4,872 monorepo tests and six green acceptance suites (field 69, security 103, commerce 81, adoption 95, release 88, convergence 82).
+- All previously reported results must be revalidated if code changes; do not copy old green ticks onto a new SHA without testing.
 
-1. **B-1 — root typecheck:** `corepack pnpm typecheck` exited 137 (OOM) on the recorded 4 GB environment. The equivalent per-package gate passed for 47/47 FleetOS domain packages, but the required full root gate has not passed.
-2. **B-2 — full build:** the recorded recursive build left four inherited substrate targets failing: ZCode web OOM; desktop/server tooling ENOENT under the recorded `--ignore-scripts` install; ZCode CLI SEA tooling. The standalone FleetOS shell built, but that does not replace the full build gate.
-3. **B-3 — adoption coverage:** 1,575 counted executions across 30 workspaces; the fully applicable corpus cap is 58 journeys per firm against the 100-counted-journey target. The 42-journey shortfall is explicit and must not be hidden by counting byte-identical reruns or masking valid journeys.
-4. **Production deployment/persistence qualification:** F301 evidence reports the shell served locally on `:3105` with fixture-input composition. Do not describe that as a publicly accessible production system with durable operational persistence unless current evidence proves those properties. This is an acceptance qualification to resolve or explicitly scope, not a reason to falsify the existing report.
+### Open acceptance blocker
+- **B-3 adoption coverage: OPEN.** Converged corpus = 1,848 counted executions across 30 workspaces; fully-applicable firm cap = **68**, against the retained target of **100 counted, genuinely distinct journeys per firm where applicable**; shortfall = 32 for the fully-applicable firm. The target is not to be lowered silently. See F310C §5–§7.
 
-The connector matrix is also still entirely `CONTRACT_ONLY`. Do not claim live external connectivity without real endpoint and credential-handling evidence. Predictive output must remain labeled as a deterministic structural reference unless a trained model is actually validated.
+### Provider and deployment status — explicitly NOT READY
+The user has clarified that the **Aurum, ADCOS, and Arena providers/integrations are not ready yet**. Respect that as an execution boundary:
+- Aurum, ADCOS and Arena must remain **CONTRACT_ONLY / provider not ready** until upstream readiness is evidenced and a real or supported sandbox binding is exercised.
+- A local adapter, deterministic reference path, mock, fixture, unit test or contract test is not a live or sandbox integration.
+- Do not claim provider connection, live data, successful remote transactions, live learning/evaluation or external synchronization for these three providers.
+- Do not make Wave-12 adoption expansion depend on those providers being ready. Use real domain capabilities that can be exercised locally without those providers. Defer provider-dependent journeys and replace them only with equally genuine, non-provider-dependent scenarios that the lane owner can substantiate.
+- Apify and other external adapters also remain CONTRACT_ONLY wherever the evidence says there is no live endpoint or credential. Exercising a local lifecycle is permitted only if it is described as contract-level behavior, never as a live provider success.
+- The current shell is a sandbox-hosted static build with fixture-composed in-browser state. Public production deployment and durable operational persistence are not evidenced. Preserve this qualification even after B-3 closes.
 
-## Concurrency plan — exactly three implementation workers
+Therefore, “B-3 is the remaining Wave-11 counted-journey gate” must not be misrepresented as “all production readiness is otherwise achieved.” Full production/provider acceptance is still not evidenced.
 
-Dispatch F310A, F310B and F310C concurrently. They must respect current ownership and must not edit TL-owned files or one another's paths. TL owns gate composition, cross-lane repairs, adoption-ledger integration, deployment and final disposition.
+## 2. Read first
 
-### F310A — Full root typecheck on a suitable builder (Worker A)
+1. `FLEETOS-SOURCE-OF-TRUTH.md`
+2. `AGENTS.md`
+3. `spec/ARCHITECTURE-LOCK.md`
+4. `spec/BOUNDED-CONTEXTS.md`
+5. `spec/DEPENDENCY-GRAPH.md`
+6. `spec/worker-ownership.yaml`
+7. `spec/work-items/WORK-ITEM-CATALOG.md`
+8. `docs/tech-lead/CONCURRENCY-PROTOCOL.md`
+9. `docs/evidence/F302/report.md`
+10. `docs/evidence/F310C/report.md`
+11. This handoff and `docs/tech-lead/RESIDUAL-RISKS.md`.
 
-Goal: close B-1 with an actual successful root typecheck, not an inferred equivalent.
+The TL must inspect the current source before implementing. Do not treat this handoff or the prior report as a substitute for a current checkout.
 
-1. Use a clean checkout at the actual candidate commit on a builder with at least 8 GB RAM and without the resident stack that exhausted the recorded 4 GB sandbox.
-2. Run the documented frozen install and full root typecheck:
-   `corepack pnpm install --frozen-lockfile`
-   `corepack pnpm typecheck`
-3. Capture machine output, exit codes, memory/builder facts, branch and exact commit. Do not commit generated files or change TypeScript options simply to suppress the failure.
-4. If it still fails, produce a minimal reproduction and a repair proposal; leave B-1 OPEN until the root command passes.
+## 3. Execution order
 
-Delivery: `docs/evidence/F310A/report.md` on the worker's owned evidence path through TL coordination, or a TL-approved equivalent, including the exact tested SHA.
+### F320 — TL pre-dispatch decision: time-parameterization and the count-honesty law
 
-### F310B — Full monorepo build with the complete toolchain (Worker B)
+**Owner: TL. Must be completed before F321A/B/C start implementation.**
 
-Goal: close B-2 on a suitable builder.
+Row 36 in F310C §3.5 identifies honest corpus time-parameterization as potentially high leverage. The report's ceiling of 170 is theoretical, not a guaranteed count. The TL must publish a concise, testable decision in a TL-owned evidence file before dispatch:
 
-1. Start from a clean checkout at the candidate SHA and provision a full supported toolchain. Do not use `--ignore-scripts` if doing so leaves required Electron, server, or SEA tooling unavailable.
-2. Run `corepack pnpm install --frozen-lockfile`, followed by `corepack pnpm -r --no-bail build`.
-3. Record every package's result, including the inherited ZCode web, desktop, server and CLI targets. A standalone FleetOS build is reported separately and is not a substitute for the full gate.
-4. If a real code failure remains after the environment is correct, identify the path owner and create a scoped repair packet. Do not patch files outside ownership.
-5. Leave B-2 OPEN until the required full build passes or a formally approved, narrowly scoped release policy supersedes it. No such policy is currently recorded.
+1. Define when two time/epoch cases are semantically distinct journeys.
+2. Require a meaningful behavioral distinction: for example, expiry, deadline, staleness, window boundary or state transition that changes an asserted domain outcome. A changed timestamp alone is not sufficient.
+3. Preserve the existing law: byte-identical reruns, synthetic telemetry, duplicated steps, altered labels and count-only parameter variations never become new journeys.
+4. Define deterministic per-epoch expected outcomes and the tests that prove both the changed outcome and reproducibility.
+5. Decide which runner/law changes are necessary and identify their TL-owned integration points. Workers must not modify TL-owned adoption-ledger or release-pin files without a written path grant.
+6. If honest, meaningfully distinct cases cannot be proven, record that conclusion and proceed with the non-parameterized journey plan; do not force the count upward.
 
-Delivery: `docs/evidence/F310B/report.md`, machine output and exact candidate SHA.
+Freeze this contract and communicate it to all three workers. No worker may independently redefine “distinct.”
 
-### F310C — Adoption coverage closure packet (Worker C)
+### F321A — Worker A: field, edge and asset journey expansion
 
-Goal: resolve B-3 honestly and create a defensible decision for the TL/user.
+**Owned lane:** A's existing edge/asset/field paths and A-owned acceptance corpus/evidence.
 
-1. Start with the converged figures in F302: 1,575 counted executions; 58 applicable journeys per fully applicable firm; target 100; shortfall 42.
-2. Map the missing 42 journey slots to concrete product capabilities and personas. Classify each proposal as (a) supported by a real implementation today, (b) requiring genuine new capability work, or (c) not applicable to that industry with a reason and equivalent scenario where appropriate.
-3. Add genuinely distinct journeys only when they exercise real behavior. Never count identical reruns, synthetic telemetry, dummy success, or a broadened applicability mask as new coverage.
-4. Respect worker ownership: C may implement and test additions under C-owned work/commerce paths. Adoption-ledger code remains TL-owned unless a written scoped grant is issued. Any A/B-owned journey work must be separately dispatched to that owner.
-5. If the existing product cannot truthfully supply the remaining journeys, do not fabricate them. Deliver a decision packet with options and trade-offs for the TL/user: build genuine missing capability, retain the 100 target and remain NOT READY, or obtain an explicit recorded decision to revise the acceptance criterion. The worker cannot change the target on its own.
+Start from the F310C §3.3 map. Implement and machine-run the ten-slot plan using genuine, currently implemented domain behavior:
+- Candidate coverage includes store-and-forward redelivery, offline-buffer capture/replay, diagnosis lifecycle, anomaly confidence/triage, evidence-gated recovery, maintenance-calendar scale, asset/material lineage, identity/session lifecycle and tenant lifecycle gating.
+- **Do not count `adcos-session-trust` as a provider-ready/live integration journey.** ADCOS is not ready. Replace that slot with a distinct journey on a non-ADCOS domain API, or leave the slot uncounted and document the shortfall.
+- Discover any replacement through code inspection of a real public API and absence from current acceptance corpora. The worker must not invent a domain behavior that does not exist.
 
-Delivery: `docs/evidence/F310C/report.md` with journey-to-capability mapping, actual new counted journeys, applicability/mask justifications, recomputed firm-by-firm shortfalls and a recommended decision. No decision is assumed by this handoff.
+Acceptance:
+- Each accepted journey drives real public domain entry points and asserts meaningful outcomes plus honest refusal/negative cases.
+- At least five meaningful assertions per journey, unique journey ID, relevant vocabulary/step-kind law, tenant/security boundaries, deterministic behavior and justified industry applicability.
+- Run the field acceptance suite, affected package tests, typecheck and lint. Provide exact SHA, commands/counts, changed paths and limitations.
 
-## TL release convergence — F311
+### F321B — Worker B: safety, execution, audit and predictive-honesty journey expansion
 
-Run non-conflicting integration work while workers execute, then converge after all three deliveries.
+**Owned lane:** B's existing safety/intelligence paths and B-owned acceptance corpus/evidence.
 
-1. Inspect actual `main` HEAD, clean working tree and lockfile.
-2. Reconcile worker deliveries by exact commit and owned paths; verify their evidence, don't accept prose-only completion.
-3. If F310C adds journeys, update the TL-owned adoption ledger and release-gate fixtures/count pins, recompute all industry masks and per-firm results, and re-run affected baselines. Do not change the 100 target without an explicit recorded decision.
-4. Resolve deployment/persistence qualification: establish whether a public deployment exists and identify its exact commit and URL. Confirm whether operational state is fixture-derived or durably persisted. If only the fixture-composed demonstration exists, keep production deployment/persistence unverified and include it in the final disposition.
-5. Preserve honest connector statuses. All currently recorded connectors remain CONTRACT_ONLY until a real integration environment is independently exercised.
-6. Refresh the contract snapshot and update acceptance evidence only from the actual converged tree.
+Start from the F310C §3.4 map. Implement and machine-run ten genuinely distinct slots from real local domain capabilities:
+- Candidate coverage includes tamper-evident audit ledger, finding-storm triage, suppression lifecycle, verified execution dispatch, action compensation/rollback, capability-store disaster recovery, outcome evaluation/adoption, JEPA-family honesty and degradation/staleness honesty.
+- **Do not count `arena-evaluation-runs` as a provider-ready/live integration journey.** Arena is not ready. Replace that slot with a non-Arena journey over an existing safety/intelligence API and prove its behavior, or leave the slot uncounted.
+- JEPA-family work must keep predictive output labeled as deterministic structural reference unless a genuinely trained and validated model is supplied. Do not claim predictive accuracy.
 
-## F312 — Final clean-checkout release gate and disposition (TL)
+Acceptance:
+- Positive, negative, refusal, revocation, tenant-isolation and provenance paths are asserted where relevant.
+- Unique IDs, meaningful assertions, deterministic behavior, no fake success, honest masks and exact evidence SHA.
+- Run the security/convergence-relevant suites, affected package tests, typecheck and lint. Report changed-path ownership and results.
 
-Run on the exact final candidate in a clean checkout and record machine output:
+### F321C — Worker C: work, commerce and non-provider adoption expansion
 
-```bash
-corepack pnpm install --frozen-lockfile
-corepack pnpm fleetos:source-of-truth
-corepack pnpm fleetos:snapshot:check
-corepack pnpm architecture:check
-corepack pnpm lint
-corepack pnpm typecheck
-corepack pnpm -r --no-bail test
-# Run each of field, security, commerce, adoption, release and convergence
-# acceptance suites and capture the individual counts.
-corepack pnpm -r --no-bail build
-```
+**Owned lane:** C's existing work/commerce/project/vendor/procurement paths and C-owned acceptance corpus/evidence.
 
-Then verify the FleetOS product build and deployed URL in a browser. Evidence must bind the browser-tested build to the exact tested commit. Record the environment, command, exit status, results, and any failure. A gate is not green just because an alternative or per-package check passed.
+Implement the three currently deferred coverage slots from F310C §3.2–§3.3, while maintaining the provider boundary:
+- `marketplace-publication-lifecycle`: may proceed against the existing local vendor-marketplace APIs.
+- `actor-job-failure-expiry`: may proceed only as a locally exercised contract/lifecycle journey; this does not establish an Apify live binding.
+- **Do not count `aurum-delta-sync-session` as an Aurum-ready/live integration journey.** Aurum is not ready. Replace it with a genuine non-Aurum work/commerce journey backed by an existing public domain API, or leave the slot uncounted and record the gap.
+- No real-provider journey is accepted merely because a local adapter accepts the same shape.
 
-Update:
-- `docs/evidence/F302/report.md` with the final candidate, gate results and disposition;
-- `docs/tech-lead/PRODUCT-ACCEPTANCE-REPORT.md`;
-- `docs/tech-lead/RESIDUAL-RISKS.md`;
-- `docs/tech-lead/RUNBOOK.md` if the gate/deployment procedure changes;
-- `AI_CONTINUATION.md` with the actual latest state;
-- the Wave 11 work-item statuses/evidence links.
+Acceptance:
+- Journeys cover real APIs, unique scenario identities, meaningful outcomes/refusals and at least five substantive assertions each.
+- No rerun inflation, fake remote success, widened masks, modified target or changes to TL-owned ledger/pins.
+- Run commerce and affected suites, typecheck and lint; provide exact SHA, commands/counts, owned-path diff and evidence.
 
-## Final verdict rule
+### Parallel execution rule
 
-Declare **READY** only when all required release gates have passed, the target decision is recorded, and the required user-facing deployment acceptance is evidenced. Otherwise declare **NOT READY** and list each remaining blocker with owner, reproduction, repair and next decision.
+After F320 freezes the shared counting contract, F321A, F321B and F321C MUST run concurrently. Use exactly three implementation workers (A/B/C); exploit non-conflicting work fully. Workers may not write to each other's owned paths or TL-owned adoption/release files. If a candidate slot depends on Aurum, ADCOS or Arena readiness, replace it with a substantiated provider-independent candidate instead of blocking the other lanes.
 
-The desired closeout is not “more green ticks.” It is a technically honest, reproducible release decision from the latest clean checkout, with no silent skips, no invented live integrations, and no hidden adoption shortfall.
+## 4. F322 — TL convergence and acceptance decision
+
+**Owner: TL. Starts after all three lane reports are available.**
+
+1. Inspect latest `main`, exact lane SHAs, clean working tree and changed-path ownership.
+2. Review every new journey against F310C's API mapping; reject journeys supported only by prose, fixtures pretending to be remote results, or superficial timestamp changes.
+3. Merge/converge only after exact lane commits and relevant tests are verified. TL alone updates the adoption ledger, per-industry masks where justified, convergence deltas and release count pins, unless a written scoped grant says otherwise.
+4. Recompute the entire adoption ledger machine-wise across all 30 workspaces. Report the count by industry/firm, counted journey IDs, masks and shortfalls. Identical reruns are excluded by law; masks may narrow applicability only when evidence justifies them.
+5. Run the affected suites after each integration and then the full clean-checkout gates on the final candidate:
+   ```bash
+   corepack pnpm install --frozen-lockfile
+   corepack pnpm fleetos:source-of-truth
+   corepack pnpm fleetos:snapshot:check
+   corepack pnpm architecture:check
+   corepack pnpm lint
+   corepack pnpm typecheck
+   corepack pnpm -r --no-bail test
+   # Field, security, commerce, adoption, release and convergence acceptance suites
+   corepack pnpm -r --no-bail build
+   ```
+6. Use a high-memory builder appropriate to the tested command. Preserve CI exit-status capture (including `PIPESTATUS` where output is piped); a green log without the real command exit code does not pass.
+7. Browser-verify the final FleetOS shell and bind the evidence to the exact candidate SHA. Continue to state that the current hosting/state model is sandbox-static and fixture-composed unless public deployment and durable persistence evidence exists.
+8. Update F302, product acceptance, residual risks, runbook if needed, work catalog, and AI continuation. Record an explicit NOT READY/READY verdict and name each remaining blocker. **B-3 remains open unless the machine-run ledger establishes the 100 target under the approved count law.** Do not lower the target to close the wave.
+
+## 5. F323 — provider readiness and live integration lane (DEFERRED)
+
+**Status: BLOCKED ON UPSTREAM READINESS; do not dispatch implementation against imaginary endpoints.**
+
+This work is separate from F321 adoption journeys and does not block locally testable Wave-12 work. Before opening live integration work for a provider, the TL must record:
+- the provider project's explicit readiness/release evidence and exact version or commit;
+- a versioned API/event schema and supported operations;
+- a real or documented provider sandbox endpoint that can be exercised;
+- approved credential provisioning through runtime secrets/environment configuration (never commit credentials);
+- authentication, tenancy, idempotency, retries/timeouts, rate limits, error/refusal mapping, reconciliation, observability and audit expectations;
+- a runnable smoke-test procedure and the success/failure evidence that will determine SANDBOX_VERIFIED or LIVE_VERIFIED.
+
+Once the upstream provider is actually ready, dispatch the provider lanes concurrently within existing ownership:
+- Worker A: ADCOS live/sandbox binding and evidence.
+- Worker B: Arena live/sandbox binding and evidence.
+- Worker C: Aurum live/sandbox binding and evidence.
+- TL: shared integration health, retries/idempotency, secrets/configuration, contract convergence, deployment and end-to-end acceptance.
+
+Do not mark F323 complete because an adapter contract or unit test passes. Each connector stays **CONTRACT_ONLY / provider not ready** until the relevant end-to-end evidence passes. If upstream is still not ready, keep F323 deferred and continue unrelated product work.
+
+## 6. Release and reporting rules
+
+- Current release disposition remains **NOT READY**.
+- Keep B-1/B-2 marked closed based on their recorded evidence; rerun the gates for the new candidate.
+- Keep B-3 open until it closes honestly at the retained target.
+- Keep Aurum, ADCOS and Arena explicitly provider-not-ready and CONTRACT_ONLY; they are not implicitly promoted by acceptance journeys that exercise local APIs.
+- Do not claim fully production-ready status while public deployment, durable operational persistence and required live integrations are not evidenced.
+- Keep deterministic structural JEPA/world-model outputs advisory-only unless a validated trained model is actually supplied.
+- No target changes without explicit, recorded TL/user authorization. No silent scope reductions, placeholder successes, duplicate journey counts, fabricated endpoints or committed secrets.
+
+**Handoff completion requirement:** the repository must contain the work orders, exact commits, test evidence, recomputed ledger, provider readiness matrix and final release verdict. The next TL must be able to continue using repository files alone.
