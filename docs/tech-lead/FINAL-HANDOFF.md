@@ -332,3 +332,8 @@ When the entire architecture has been implemented, the repository must contain:
 - explicit residual risks.
 
 A future TL must be able to start from this repository and continue without this conversation.
+
+
+## Current release execution handoff
+
+For the current release state and next executable wave, read `docs/tech-lead/FINAL-RELEASE-HANDOFF.md` before dispatch. That file and `spec/work-items/WORK-ITEM-CATALOG.md` define Wave 12, current blockers, ownership, acceptance rules and provider-readiness boundaries. Do not use this foundational handoff as a substitute for the current release-specific handoff.
