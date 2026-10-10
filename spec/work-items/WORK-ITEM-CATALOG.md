@@ -358,3 +358,59 @@ Status: **DONE** — final candidate `8c97ac8`; gates machine-captured on the 16
 ### Wave 11 parallelism
 
 F310A, F310B and F310C run concurrently and do not edit one another's owned paths. F311 can prepare non-conflicting convergence while lanes run, but final recomputation starts after lane evidence arrives. F312 executes only after F311 convergence and candidate SHA freeze.
+
+
+## Wave 12 — Adoption coverage with explicit provider-readiness boundary
+
+**Canonical execution handoff:** `docs/tech-lead/FINAL-RELEASE-HANDOFF.md`.
+
+**Starting status:** Wave 11 B-1 and B-2 are closed. B-3 remains open at cap 68/100 (1,848 counted executions, 30 firm workspaces). The target remains 100 distinct counted journeys per firm where applicable. **Aurum, ADCOS and Arena are not provider-ready** and remain CONTRACT_ONLY. Locally exercised contract behavior must not be reported as a live provider integration.
+
+### F320 — TL pre-dispatch time-parameterization/count-law decision
+Owner: TL. Must precede F321A/B/C implementation.
+
+Record the distinct-journey law for time/epoch parameterization. A case counts only where a real input/state/time boundary produces meaningful, asserted domain behavior; a changed timestamp or byte-identical rerun does not count. Define deterministic expected outcomes and tests. If the distinction cannot be proven, do not count the cases; proceed on the non-parameterized path. Keep the adoption ledger and release count pins TL-owned.
+
+Acceptance: a reviewed, versioned decision in TL-owned evidence; tests/laws named; no relaxation of duplicate, determinism or mask-honesty rules.
+
+### F321A — Field/edge/asset adoption journeys
+Owner: A. Run concurrently with F321B/C after F320.
+
+Use the F310C §3.3 proposals. Implement ten genuine scenarios where feasible, including offline/store-and-forward, diagnosis/anomaly, evidence-gated recovery, maintenance scheduling, asset/material lineage, identity/session and tenant lifecycle. The proposed `adcos-session-trust` slot is excluded as provider-ready work while ADCOS is not ready; substitute a real non-ADCOS domain journey or leave the slot uncounted.
+
+Acceptance: unique IDs, real public API calls, meaningful positive/negative/refusal assertions, deterministic reproduction, honest applicability, exact SHA, typecheck/lint/package and field-suite results, evidence under A-owned paths.
+
+### F321B — Safety/execution/audit/intelligence adoption journeys
+Owner: B. Run concurrently with F321A/C after F320.
+
+Use the F310C §3.4 proposals. Implement ten genuine local-domain scenarios across audit ledger, finding storms/suppression, verified execution, compensation, capability-store DR, outcomes/adoption, predictive honesty and degradation/staleness. The proposed `arena-evaluation-runs` slot is excluded as provider-ready work while Arena is not ready; replace it with a real non-Arena domain journey or leave the slot uncounted.
+
+Acceptance: unique IDs, real public APIs, meaningful refusal/security/provenance assertions, deterministic reproduction, honest model labeling, exact SHA and relevant B-owned gate evidence.
+
+### F321C — Work/commerce adoption journeys
+Owner: C. Run concurrently with F321A/B after F320.
+
+Deliver the three F310C §3.2 deferred journeys where supported. `marketplace-publication-lifecycle` is local-domain work and may proceed. `actor-job-failure-expiry` may be tested as a local contract/lifecycle only and does not mark Apify live. The proposed `aurum-delta-sync-session` slot is excluded as provider-ready work while Aurum is not ready; substitute a distinct non-Aurum work/commerce journey or leave it uncounted.
+
+Acceptance: unique IDs, existing public domain API calls, meaningful assertions/refusals, no claimed remote success, exact SHA and C-owned commerce/package tests, typecheck and lint evidence.
+
+### F322 — TL convergence, count recomputation and disposition
+Owner: TL. Depends on F320 and all F321 lane evidence.
+
+Verify ownership and exact commits; reject superficial or provider-dependent substitutes; merge/converge; update the TL-owned adoption ledger and release pins; machine-run all 30 workspaces; report firm-by-firm counts/masks/shortfalls; run full clean-checkout gates and browser-verify the tested candidate SHA. Update F302, product acceptance, residual risks, runbook if needed, and AI_CONTINUATION.
+
+Acceptance: B-3 closes only if the target is met honestly under the approved count law. Otherwise mark NOT READY with the remaining shortfall and a next capability plan. Do not lower the target or broaden masks.
+
+### F323 — Aurum/ADCOS/Arena provider readiness and end-to-end integration (DEFERRED)
+Owner: TL with A/B/C integration lanes, but **do not begin live implementation until the corresponding upstream provider is ready**.
+
+Entry criteria: explicit upstream readiness and version, versioned supported API/event contracts, real or supported sandbox endpoints, approved runtime credential provisioning (no secrets committed), and an executable smoke test. Once available, A owns ADCOS, B owns Arena and C owns Aurum in parallel; TL owns secrets/configuration composition, health/retry/idempotency, contract convergence and end-to-end gates.
+
+Acceptance per provider: independent smoke-test and audit evidence for authentication, tenant boundary, success/refusal/error handling, retries/idempotency, rate limits and reconciliation. Set SANDBOX_VERIFIED or LIVE_VERIFIED only when the named evidence passes. Until then the status is CONTRACT_ONLY / provider not ready.
+
+### Wave 12 concurrency and dependency rules
+
+- F320 is a short TL-owned preflight; F321A, F321B and F321C then execute concurrently with exactly three implementation workers.
+- Each worker may edit only its owned paths; adoption ledger, convergence delta and release pins remain TL-owned unless a written scoped grant says otherwise.
+- F323 is explicitly deferred and must not block F321 scenarios that use real local domain behavior without those providers.
+- No synthetic telemetry, repeated runs, dummy success, fake remote calls, weakened target or unjustified mask changes count as completion.
