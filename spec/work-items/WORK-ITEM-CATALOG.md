@@ -373,6 +373,8 @@ Record the distinct-journey law for time/epoch parameterization. A case counts o
 
 Acceptance: a reviewed, versioned decision in TL-owned evidence; tests/laws named; no relaxation of duplicate, determinism or mask-honesty rules.
 
+Status: **DONE** — the Distinct-Journey Count Law is frozen at `docs/evidence/F320/report.md` (grounded in source inspection at `dc4b5e2`): D2 defines the four-condition epoch-distinctness test; **Wave 12 ruled NON-PARAMETERIZED** because every declared epoch anchors at `ADOPTION_T0` (firms.ts:88), field expectations are T0-calibrated with at most 12-16 of 20 journeys time-responsive, and the commerce/security runner parameterization behind the 170-ceiling does not exist. Row 36 stays deferred as TL-owned capability work with the D6 activation shape. No path grants to lanes; adoption ledger and release pins remain TL-owned.
+
 ### F321A — Field/edge/asset adoption journeys
 Owner: A. Run concurrently with F321B/C after F320.
 
