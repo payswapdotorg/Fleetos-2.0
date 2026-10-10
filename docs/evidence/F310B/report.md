@@ -237,3 +237,19 @@ the TL-provided builder with the complete toolchain they all build clean, so
 no repairs — worker-b owned or proposed — were required. Final disposition
 of B-2 remains with the TL per AGENTS.md (worker reports are never
 self-accepting).
+
+## 9. Addendum — the delivered evidence commit passes its own gate run
+
+The evidence commit `4eab6d919a93008a750eb49cde5926311fc9fb1c` (this report,
+docs-only diff vs the tested SHA) triggered its own push run:
+**run `38015957975`** at
+https://github.com/payswapdotorg/Fleetos-2.0/actions/runs/38015957975 —
+all three jobs **success**; its B-2 full-build job log records
+`commit_sha=4eab6d919a93008a750eb49cde5926311fc9fb1c` and
+**`BUILD_EXIT=0`** with 75/75 `build: Done` lines (machine-verified from the
+job log). The verdict in §8 therefore holds at both the tested SHA and the
+delivered evidence tip.
+
+*Addendum recorded before the final push of this file; the final tip is
+docs-only relative to this commit, hence build-tree-identical (verifiable
+via `git diff --stat` against `4eab6d9`).*
