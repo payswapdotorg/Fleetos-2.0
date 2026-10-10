@@ -18,16 +18,21 @@ Read the canonical files instead:
 
 Never treat this file as authoritative if it conflicts with those files.
 
-## Execution state (2026-10-09, Wave 10 product closure executed)
+## Execution state (2026-10-10, final release-blocker handoff)
 
-**Waves 0–9 implementation ledger: complete (40 work items). Wave 10 product closure: EXECUTED — all three lanes delivered, TL-gated at exact commits, merged; F301 application convergence deployed and browser-verified; F302 clean-checkout gates machine-captured. VERDICT: NOT READY with 3 named blockers (see docs/evidence/F302/report.md §7).**
+**Waves 0–10 implementation/product-closure work is recorded as delivered. Current release verdict remains NOT READY.** Wave 10 has merged A/B/C lane work, integrated the FleetOS shell, machine-captured 4,862 passing monorepo tests and six green acceptance suites at the documented candidate. Do not confuse the completed assessment with a READY release.
 
-- Lanes: F300A merged `a0904b3` (asset/field HostSurface + device journeys; field corpus 14→20; asset-field 88, acceptance/field 69), F300B merged `643c575` (safety/intel HostSurface + Guardian e2e journey + predictive honesty; security corpus 13→17; safety-intel 164, acceptance/security 103), F300C merged `b6ea2a3` (work/commerce HostSurface + integration matrix ALL CONTRACT_ONLY + commerce corpus 15→21 + adoption ledger revisit; commerce 71, adoption 95).
-- Convergence: release re-baselined (field 20 / security 17 / commerce 21 / adoption 1,575 counted); all six acceptance suites GREEN at `8390314`; snapshot regenerated; root lint repaired (0 errors at `73adc17`).
-- F301: the deployed FleetOS application shell at `packages/web` (fleetos.html standalone entry — no ZCode boot/OAuth/server dep; pure-TS sha256 shim for the domain packages' sync hashing; standalone build 236 modules). All six surfaces render REAL package outputs; all three lanes' HostSurfaces bound; E2E command journeys through the REAL control-plane queue verified in-browser (idempotency duplicate=true observed). Deployed on :3105 (this sandbox), commit-badge-bound to the tested build.
-- F302 at candidate `73adc17`: install/source-of-truth/snapshot/architecture/lint/tests/build captured — 4,862 monorepo tests green (was 4,742), six suites green, 47/47 FleetOS packages typecheck clean per-package; root typecheck + full build fail on substrate packages (4GB-box constraints — recorded with reproduction + repair). Adoption: 1,575 counted / cap 58 vs 100-per-firm target — structurally short, preserved, documented decision.
-- **Blockers to READY: B-1 root typecheck on a ≥8GB builder; B-2 substrate full build (toolchain + builder); B-3 the adoption 100/firm target decision (new journey families needed, not reruns).**
+Canonical next-step handoff: `docs/tech-lead/FINAL-RELEASE-HANDOFF.md`.
+Wave 11 task catalog: `spec/work-items/WORK-ITEM-CATALOG.md` → “Wave 11 — Final release-blocker closure”.
 
-**Replay (per-deployment, generic per payswapdotorg/replay2 §0):** the console is the replay2 repo's own app on :3000 (CONSOLE_LAUNCHER=launch_dev.py), supervisor/watcher/custodian ring kept alive as detached children of the durable next-server spawner (POST /api/replay, token tl-local — the exec-kill law: anything spawned from a shell dies at command end); replayd :3100, Chrome CDP :9222 on the durable profile (z.ai login). Worker dispatch ONLY via replay2's scripts/dispatch_worker.py (agents tab + GLM-5.3 + Full-Stack, hard-verified sends). Cure set: stop-API zombie cure + fresh-tab continuation (proven again 2026-10-09 on f290c3: 2h zombie healed in place, delivered 50 min later); WIP/recovery doctrine per AGENT_BOOT_PROMPT.md. Delivery watchers: scripts/local/f29*_watch.py via flags/local_services.json (supervisor-kept).
+- **F310A [Worker A]:** full root typecheck on a clean ≥8 GB builder. The recorded root command OOMs on the 4 GB sandbox; 47/47 FleetOS packages passed per-package, which is useful evidence but not a replacement for the root gate.
+- **F310B [Worker B]:** full recursive monorepo build using complete toolchain/lifecycle setup. The recorded run left four inherited ZCode substrate targets failing; standalone FleetOS shell build does not replace this gate.
+- **F310C [Worker C]:** honest adoption coverage closure packet. Current converged count is 1,575 executions; fully applicable per-firm cap is 58 against the unchanged 100 target (42 short). Add only real distinct journeys, or present an explicit TL/user decision; do not silently lower the target.
+- **F311 [TL]:** converge exact-commit evidence, adoption/release baselines, integration status and public-deployment/persistence truth.
+- **F312 [TL]:** final clean-checkout test/build/browser gates and READY/NOT READY decision.
 
-**Baseline at this writing:** main = b6413f6; 4742 package-suite tests green. This file is a pointer — the canonical record is the evidence tree + the closeout docs.
+Current residual qualifications: all recorded connectors remain CONTRACT_ONLY; the F301 shell was browser-tested in the recorded sandbox and uses fixture-input composition, so public production deployment and durable operational persistence must not be claimed without new evidence.
+
+Start from actual current `main` HEAD; do not assume older SHA values remain current. Exactly three implementation workers, strict ownership, no silent gate skips. Preserve full logs, exit codes, the exact candidate SHA, deployment URL, and browser proof in repository evidence. Keep the final verdict NOT READY until the handoff's release conditions are actually satisfied.
+
+**Historical Wave 10 result:** `docs/evidence/F302/report.md` §7. **Historical closeout commit:** `831ef400ed8fd0f9352836b68ed932bf2fb05419`. This continuation pointer is navigation only; the handoff, work catalog, and evidence reports remain authoritative.
