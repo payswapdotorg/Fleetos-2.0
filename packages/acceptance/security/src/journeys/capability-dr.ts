@@ -36,15 +36,15 @@ import {
   snapshotCapabilityStore,
   verifySnapshotEquivalence,
 } from "@fleetos/policy";
-import type { CapabilityStore, Capability, GuardianContext, RevocationLog, DecisionCorpusCase } from "@fleetos/policy";
+import type { CapabilityStore, Capability, GuardianContext, AuthorityKind, RevocationLog, DecisionCorpusCase } from "@fleetos/policy";
 import { EXECUTE_CAPABILITY, READ_CAPABILITY, TENANT, FOREIGN_TENANT, NOW_MS, tenantPolicy } from "./fixture-world.ts";
 
-const ANALYST = { actorId: "analyst-kim", authority: ["tenant.engineer"], isAutonomous: false } as const;
-const OPERATOR = { actorId: "operator-ada", authority: ["tenant.operator", "human.approval", "asset.owner"], isAutonomous: false } as const;
+const ANALYST = { actorId: "analyst-kim", authority: ["tenant.engineer"] as readonly AuthorityKind[], isAutonomous: false } as const;
+const OPERATOR = { actorId: "operator-ada", authority: ["tenant.operator", "human.approval", "asset.owner"] as readonly AuthorityKind[], isAutonomous: false } as const;
 
 function guardianCtx(
   capability: Capability,
-  actor: { readonly actorId: string; readonly authority: readonly string[]; readonly isAutonomous: boolean },
+  actor: { readonly actorId: string; readonly authority: readonly AuthorityKind[]; readonly isAutonomous: boolean },
 ): GuardianContext {
   return { tenant: TENANT, capability, actor, degraded: false };
 }
@@ -75,8 +75,8 @@ export const capabilityDrJourney: AcceptanceJourney = {
       operations: ["openCapabilityStore", "enrollPolicy", "enrollCapability", "issueCapabilityGrant", "decideCapability"],
       run: (ctx) => {
         // Empty tenant REFUSES (A8 fail-closed).
-        ctx.record("store.openEmptyTenant", openCapabilityStore(""));
-        ctx.record("store.openRevocationLogEmpty", openRevocationLog(""));
+        ctx.record("store.openEmptyTenant", openCapabilityStore("") === null ? null : "unexpected-store");
+        ctx.record("store.openRevocationLogEmpty", openRevocationLog("") === null ? null : "unexpected-log");
 
         const { store: s0, log: l0 } = freshStore();
         // Duplicate enrollment REFUSES.

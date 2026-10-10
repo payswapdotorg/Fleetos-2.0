@@ -69,7 +69,7 @@ export const suppressionLifecycleJourney: AcceptanceJourney = {
         const open = admittedFinding("weak credential on pump-7");
         ctx.record("lifecycle.initial.state", open.state);
         ctx.record("lifecycle.initial.effectivelyOpen", isEffectivelyOpen(open));
-        ctx.record("lifecycle.initial.suppression", open.suppression);
+        ctx.record("lifecycle.initial.suppression", open.suppression === null ? null : "unexpected-suppression");
         ctx.record("lifecycle.initial.transitions", open.transitions.length);
 
         const suppressed = suppressFinding(open, {
@@ -133,7 +133,7 @@ export const suppressionLifecycleJourney: AcceptanceJourney = {
         });
         const resolved = resolveFinding(second, RESOLVED_AT, "operator-ada");
         ctx.record("resolve.fromSuppressed.state", resolved.state);
-        ctx.record("resolve.suppressionCleared", resolved.suppression);
+        ctx.record("resolve.suppressionCleared", resolved.suppression === null ? null : "unexpected-suppression");
         ctx.record("resolve.effectivelyOpen", isEffectivelyOpen(resolved));
         ctx.record("resolve.transitions", resolved.transitions.map((t) => `${t.from}>${t.to}`));
         ctx.record("resolve.actor", resolved.transitions[resolved.transitions.length - 1]?.actorId ?? "none");

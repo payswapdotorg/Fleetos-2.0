@@ -180,13 +180,13 @@ export const evaluationAdoptionJourney: AcceptanceJourney = {
         // case-ea-1: horizon 300s from +100s => mature at +900s.
         ctx.record("join.case1.mature", j1.mature);
         ctx.record("join.case1.error", j1.error);
-        ctx.record("join.case1.predictedValue", j1.predicted?.predictedValue ?? null);
+        ctx.record("join.case1.predictedValue", j1.predicted === null || typeof j1.predicted.predictedValue !== "number" ? null : j1.predicted.predictedValue);
         // case-ea-2: horizon 800s from +100s => matures at +900s — NOT at JOINED_AT (+900s)?
         ctx.record("join.case2.mature", j2.mature);
         // case-ea-3: NO prediction — never mature, no error.
         ctx.record("join.case3.mature", j3.mature);
         ctx.record("join.case3.error", j3.error);
-        ctx.record("join.case3.predicted", j3.predicted);
+        ctx.record("join.case3.predicted", j3.predicted === null ? null : "unexpected-prediction");
         // case-ea-4: horizon 1000s => not mature yet.
         ctx.record("join.case4.mature", j4.mature);
         ctx.record("join.case4.error", j4.error);
@@ -225,7 +225,7 @@ export const evaluationAdoptionJourney: AcceptanceJourney = {
         const below = generateAdoptionProposalFromEvaluation(
           CASES, OUTCOMES, TENANT, CAPABILITY, "ml-engineer-riley", PROPOSED_AT, 0.9,
         );
-        ctx.record("proposal.belowThreshold", below.proposal);
+        ctx.record("proposal.belowThreshold", below.proposal === null ? null : "unexpected-proposal");
         ctx.record("proposal.belowReason", below.reason);
 
         // The proposal opens a lifecycle (Guardian review first — law A5).

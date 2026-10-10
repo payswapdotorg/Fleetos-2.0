@@ -68,17 +68,18 @@ export const jepaFamilyJourney: AcceptanceJourney = {
         ctx.record("family.masked.computedAt", rep.computedAt);
 
         const prediction = masked.predict(rep);
+        const maskedValue = prediction.value as number;
         ctx.record("family.masked.kind", prediction.kind);
         ctx.record("family.masked.modelVersion", prediction.provenance.modelVersion);
         ctx.record("family.masked.uncertaintyMethod", prediction.uncertainty.method);
-        ctx.record("family.masked.valueRounded", Math.round(prediction.value * 1_000) / 1_000);
+        ctx.record("family.masked.valueRounded", Math.round(maskedValue * 1_000) / 1_000);
         // Determinism: same inputs => same inputsDigest (byte-identical).
         const again = masked.predict(masked.represent({ tenant: TENANT, asset: ASSET, features: FEATURES }));
         ctx.record("family.masked.deterministic", again.provenance.inputsDigest === prediction.provenance.inputsDigest);
         ctx.record("family.masked.valueStable", again.value === prediction.value);
         // The masked prediction is LESS certain: its interval is EXACTLY 2x
         // the core uncertainty at the same horizon (A11 discipline, machine-checked).
-        const coreUncertainty = jepaUncertaintyAt(1, prediction.value);
+        const coreUncertainty = jepaUncertaintyAt(1, maskedValue);
         const coreWidth = coreUncertainty.upper - coreUncertainty.lower;
         const maskedWidth = prediction.uncertainty.upper - prediction.uncertainty.lower;
         ctx.record("family.masked.widthPositive", maskedWidth > 0);
@@ -110,9 +111,10 @@ export const jepaFamilyJourney: AcceptanceJourney = {
         const rolloutFeatures = { temperature: 42, "jepa.prev.temperature": 38, "jepa.horizon": 2 } as const;
         const rolloutRep = rollout.represent({ tenant: TENANT, asset: ASSET, features: rolloutFeatures });
         const rolloutPrediction = rollout.predict(rolloutRep);
+        const rolloutValue = rolloutPrediction.value as number;
         ctx.record("family.rollout.kind", rolloutPrediction.kind);
         ctx.record("family.rollout.modelVersion", rolloutPrediction.provenance.modelVersion);
-        ctx.record("family.rollout.valueRounded", Math.round(rolloutPrediction.value * 1_000) / 1_000);
+        ctx.record("family.rollout.valueRounded", Math.round(rolloutValue * 1_000) / 1_000);
         const rolloutAgain = rollout.predict(rollout.represent({ tenant: TENANT, asset: ASSET, features: rolloutFeatures }));
         ctx.record("family.rollout.deterministic", rolloutAgain.provenance.inputsDigest === rolloutPrediction.provenance.inputsDigest);
         // Without prev keys: a single-frame window — total, never throws.

@@ -248,6 +248,6 @@ describe("F321B dispatchWithIdempotency (async-signature support evidence)", () 
     await dispatchWithIdempotency(ledger, keyB, dispatch);
     expect(executions).toBe(2);
     expect(ledger.size()).toBe(2);
-    expect(ledger.keys().sort()).toEqual([keyA, keyB].sort());
+    expect([...ledger.keys()].sort()).toEqual([keyA, keyB].sort());
   });
 });

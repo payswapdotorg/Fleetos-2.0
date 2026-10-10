@@ -225,20 +225,20 @@ export const verifiedDispatchJourney: AcceptanceJourney = {
         ctx.record("trail.checkedEntries", verified.checkedEntries);
 
         // NEGATIVE: a sealed input from ANOTHER tenant refuses the whole trail.
-        let foreignLedger: readonly ExecutionLedgerEntry[] = [];
-        foreignLedger = appendExecutionLedger(foreignLedger, {
+        const foreignAppend = appendExecutionLedger([], {
           tenantId: FOREIGN_TENANT.tenantId,
           idempotencyKey: "foreign-cmd-1",
           kind: "submitted",
           at: NOW_MS,
           detail: "",
         });
-        if (!foreignLedger.ok) throw new Error("foreign ledger append refused");
+        if (!foreignAppend.ok) throw new Error("foreign ledger append refused");
+        const foreignLedger: readonly ExecutionLedgerEntry[] = foreignAppend.ledger;
         const foreign = buildIncidentAuditTrail({
           tenantId: TENANT.tenantId,
           decisions: [{ record, atMs: NOW_MS }],
           emissions,
-          entries: [...ledger, ...foreignLedger.ledger],
+          entries: [...ledger, ...foreignLedger],
         });
         ctx.record("trail.crossTenantOk", foreign.ok);
         ctx.record("trail.crossTenantReason", foreign.ok ? "unexpected-allow" : foreign.reason);

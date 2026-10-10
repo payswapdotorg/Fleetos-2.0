@@ -37,7 +37,8 @@ import {
   attemptCompensation,
   proposeAction,
 } from "@fleetos/actions";
-import type { ActionRecord, Capability } from "@fleetos/actions";
+import type { ActionRecord } from "@fleetos/actions";
+import type { Capability } from "@fleetos/policy";
 import { evaluateCapability } from "@fleetos/policy";
 import { EXECUTE_CAPABILITY, READ_CAPABILITY, TENANT, NOW_MS, isoOfEpochMs, tenantPolicy } from "./fixture-world.ts";
 

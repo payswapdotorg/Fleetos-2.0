@@ -41,7 +41,7 @@ import {
   widenUncertainty,
 } from "@fleetos/predictive";
 import type { ClassifiedInput, FeatureProjection, UncertaintyInterval } from "@fleetos/predictive";
-import { BASE_MS, TENANT, FOREIGN_TENANT, NOW_MS } from "./fixture-world.ts";
+import { TENANT, FOREIGN_TENANT, NOW_MS } from "./fixture-world.ts";
 
 const ASSET = { assetId: "pump-7" } as const;
 const FEATURES: FeatureProjection = {
