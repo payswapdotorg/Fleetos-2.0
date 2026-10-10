@@ -332,12 +332,12 @@ export function CommercePage({ tw }: { tw: TenantWorld }) {
       <section className="fos-card">
         <h2>Adoption ledger (converged, machine-run)</h2>
         <ul className="fos-list">
-          <li>counted journey executions: <b>1,575</b> (was 1,113)</li>
-          <li>fully-applicable firm cap: <b>58</b> (field 20 + commerce 21 + security 17)</li>
-          <li>target: 100 per firm — <b>structurally short, preserved honestly</b></li>
+          <li>counted journey executions: <b>1,848</b> (was 1,575 at Wave 10; 1,113 at F271)</li>
+          <li>fully-applicable firm cap: <b>68</b> (field 20 + commerce 31 + security 17)</li>
+          <li>target: 100 per firm — <b>shortfall 32, preserved honestly</b></li>
           <li>identical reruns never counted; masks recorded with rationale</li>
         </ul>
-        <p className="fos-note">docs/evidence/F300C/report.md §6; the F271 documented decision stands.</p>
+        <p className="fos-note">docs/evidence/F310C/report.md §5; the F271/Wave-10 target decision stands.</p>
       </section>
     </div>
   );
