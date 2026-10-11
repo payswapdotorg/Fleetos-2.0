@@ -55,7 +55,7 @@ TL's operational record.
 
 | C11 | B-1 resolved — but the root gate's honesty depends on the PIPESTATUS exit-capture (fixed at 7065542 after F310A found the tee bug); any future workflow edit must preserve it | release-gates.yml step contract; F310A §5 |
 | C12 | The FleetOS shell is now type-checked by its DEDICATED project (tsconfig.fleetos.json) with the domain context — the substrate web project excludes src/fleetos; a future substrate change that re-includes it would resurface the false-context errors | F311 P2(a) record; packages/web/tsconfig.json |
-| C13 | B-3 remains: cap 68/100 (shortfall 32); the 100 target is retained. Wave-12 assignments and F320 counting-law preflight are now recorded in FINAL-RELEASE-HANDOFF.md and the work-item catalog; no journey counts until machine-run. | F310C evidence; Wave-12 work items |
+| C13 | B-3 remains: F321B's provisional lane-tree cap is 78/100 (shortfall 22), up from Wave-11 68/100. F321A and F321C have not yet landed reports in the inspected main tree; the final count must be recomputed after convergence. F320 froze Wave 12 as non-parameterized. | F310C, F320 and F321B evidence; Wave-12 work catalog |
 | C14 | The adoption count-honesty laws (reruns never counted; masks only narrow) live in adoption-run.ts — any future corpus extension must hold them; the convergence-delta module pins the current-tree expectation | adoption suite tests enforce; TL re-pins release counts at convergence |
 | C15 | The deployed product runs on the sandbox's supervisor-kept static server (:3105) — a sandbox reset (proven 2026-10-09) takes it down until re-deployed; dist-fleetos rebuild is fast (vite, ~1s) but manual | RUNBOOK redeploy procedure; the durable browser profile + ops vault survive resets |
 
@@ -66,3 +66,11 @@ TL's operational record.
 |---|---|---|
 | C16 | User-confirmed: Aurum, ADCOS and Arena providers/integrations are not ready. The current adapters/contracts are not live or sandbox bindings. A local contract test must not be interpreted as a remote provider success or used to mark the provider ready. | Keep each status CONTRACT_ONLY / provider not ready; defer F323 until upstream readiness, versioned APIs and a runnable endpoint/sandbox are evidenced. Wave-12 adoption work must use real local domain behavior and must not depend on these providers. |
 | C17 | The Wave-11 verdict's “B-3 sole substantive blocker” is bounded to the remaining counted-journey acceptance target, not a claim of complete production readiness. Public deployment, durable operational persistence and required live-provider integration are still not evidenced. | Preserve the NOT READY production disposition; track provider integration under F323 and deployment/persistence evidence separately. |
+
+
+## G. Wave-12 delivery status (2026-10-11)
+
+| ID | Risk | Mitigation / record |
+|---|---|---|
+| C18 | F321B has delivered ten journeys, but its branch-tree adoption/release tests have count-pin transition failures (11 adoption, 3 release). F321A and F321C reports are not present in inspected main, so Wave-12 integration and count totals are not converged. | Keep F321B marked delivered but not globally converged; execute A and C concurrently; TL-owned F322 recounts all 30 workspaces, re-pins only from machine evidence and runs the full gate at one frozen SHA. |
+| C19 | The time-parameterization ceiling from F310C is theoretical; F320 ruled Wave 12 non-parameterized because genuine distinct per-epoch runner behavior and expectations do not exist. | Freeze D1–D6 for this wave. Do not count epoch variants, reruns, timestamp-only changes, duplicate steps or synthetic telemetry; any future runner capability needs a separate TL-owned work item. |
