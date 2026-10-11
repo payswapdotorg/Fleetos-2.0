@@ -26,7 +26,9 @@ export interface LaneExtensionRecord {
   readonly lane: string;
   readonly branch: string;
   readonly branchTipCommit: string;
-  readonly corpus: "field" | "security";
+  /** Wave 10 recorded field/security sibling extensions; Wave 12 added a
+   *  commerce extension record (F321C) — the vocabulary widened accordingly. */
+  readonly corpus: "field" | "security" | "commerce";
   /** Distinct journeys at the branch tip (the lane's own recorded count). */
   readonly journeysAtTip: number;
   /** Distinct journeys in THIS branch's tree (main's count). */
