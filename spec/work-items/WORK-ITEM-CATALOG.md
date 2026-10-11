@@ -416,3 +416,30 @@ Acceptance per provider: independent smoke-test and audit evidence for authentic
 - Each worker may edit only its owned paths; adoption ledger, convergence delta and release pins remain TL-owned unless a written scoped grant says otherwise.
 - F323 is explicitly deferred and must not block F321 scenarios that use real local domain behavior without those providers.
 - No synthetic telemetry, repeated runs, dummy success, fake remote calls, weakened target or unjustified mask changes count as completion.
+
+
+## Wave 12 live status addendum — 2026-10-11
+
+This status addendum complements the F320/F321/F322/F323 acceptance contracts above. It records delivery/evidence state, not a release approval.
+
+| Item | Status | Verified record / next gate |
+|---|---|---|
+| F320 — Distinct-Journey Count Law | **DONE** | `docs/evidence/F320/report.md`; frozen NON-PARAMETERIZED law D1–D6. |
+| F321A — A field/edge/asset expansion | **PENDING** | No landed `docs/evidence/F321A/report.md` found in the inspected main tree. Worker A must execute and deliver the owned-path evidence. |
+| F321B — B safety/intelligence expansion | **DELIVERED; CONVERGENCE PENDING** | `docs/evidence/F321B/report.md`; commit `1d1d67f`; ten journeys/431 assertions, security suite 151/151. Adoption/release count pins are documented transition failures and remain TL-owned. |
+| F321C — C work/commerce expansion | **PENDING** | No landed `docs/evidence/F321C/report.md` found in the inspected main tree. Worker C must execute and deliver the owned-path evidence. |
+| F322 — TL convergence/final release gate | **BLOCKED ON F321A + F321C** | No final Wave-12 convergence report found. Recompute adoption across 30 workspaces and re-pin/test at one exact frozen candidate after all lane deliveries. |
+| F323 — Aurum/ADCOS/Arena integrations | **DEFERRED — UPSTREAM NOT READY** | Keep each provider CONTRACT_ONLY until its own real/supported sandbox or live smoke-test evidence passes. |
+
+### F321B lane-tree transition results (provisional until F322)
+
+- Counted executions: 1,848 → 2,148 (+300 across 30 workspaces).
+- Fully applicable firm cap: 68 → 78; remaining shortfall: 22 against the unchanged target of 100.
+- Security: 151/151, typecheck clean, lint 0/0; field 69/69, commerce 81/81, convergence 82/82 were recorded green at the lane tree.
+- Adoption gate at this tree: 84 pass / 11 count-pin failures. Release gate: 85 pass / 3 count-pin failures. These are not a fully green integrated final gate; TL re-pins after all lane outputs are converged.
+
+### Immediate dispatch
+
+Run F321A and F321C concurrently. Worker B's F321B implementation is delivered; while those lanes run, B may perform non-conflicting discovery of additional genuinely distinct, provider-independent journeys from the F310C §3.6 residual families and submit a proposal to TL. Do not implement extra counted journeys or edit another lane / TL-owned paths without a scoped work item.
+
+The count target remains 100. The non-parameterized F320 rule is immutable for this wave: no epoch variants count; identical reruns, synthetic telemetry, duplicate steps and superficial changes never count. If the final recomputed cap remains below 100 after F321A/B/C, TL must open a capability-backed follow-on plan rather than lower the target or claim READY.
