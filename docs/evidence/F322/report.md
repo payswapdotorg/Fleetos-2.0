@@ -130,9 +130,14 @@ Distinct journey IDs added this wave (exact list):
 
 ## 5. Full clean-checkout gates (16 GB builder, frozen candidate)
 
-- Frozen candidate: **`5c3d18f`** (main). Run at this exact ref:
-  `38165903409` (see §7 for the final per-gate table — filled from the
-  completed run).
+- Code-frozen candidate: **`5c3d18f`** — run `38165903409` ALL GREEN
+  (B-1 root typecheck, B-2 full monorepo build, acceptance-gates with the
+  six suites and the monorepo test plane).
+- Final candidate (code + convergence docs + shell-fixture update + browser
+  evidence): **`e0d5f5e`** — definitive run `38167030941` ALL GREEN (B-1,
+  B-2, acceptance-gates). The riders over `5c3d18f` are docs/evidence-only
+  plus the TL-owned shell fixture card (packages/web), all covered by this
+  run.
 - Intermediate machine evidence: `38146799222` (A-lane tip), `38160560665`
   (C-lane tip), `38164045093` (merged tree, no-mask harvest),
   `38165177822` (re-pin tree `16e35e8`: B-1 SUCCESS, acceptance-gates
