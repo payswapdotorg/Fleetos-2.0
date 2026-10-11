@@ -203,7 +203,7 @@ describe("REAL-run integration — the hardened surfaces feed the gate", () => {
     expect(adoptionReport.aggregate.workspaces).toBe(30);
     expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
     expect(adoptionReport.aggregate.determinismVerified).toBe(true);
-    expect(adoptionReport.aggregate.journeyExecutions).toBe(1848); // Wave 11 converged: 1575 (Wave 10) + 273 = 91 new applicable commerce journeys (F310C) x 3 firms
+    expect(adoptionReport.aggregate.journeyExecutions).toBe(2523); // Wave 12 converged: 1848 (Wave 11) + 300 (F321A field) + 300 (F321B security) + 75 (F321C commerce, net of the 15 actor-job-failure-expiry mask executions) = 2523 counted
   });
 
   it("gate re-evaluation is byte-identical (determinism over the REAL stack)", () => {

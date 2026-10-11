@@ -21,8 +21,8 @@ describe("convergence expectation (honest parameterization)", () => {
     expect(verifyConvergenceExpectation()).toEqual([]);
   });
 
-  it("records BOTH sibling lane extensions with their branch tips", () => {
-    expect(LANE_EXTENSIONS.map((r) => r.workItem).sort()).toEqual(["F300A", "F300B"]);
+  it("records ALL lane extensions (Wave 10 + Wave 12) with their branch tips", () => {
+    expect(LANE_EXTENSIONS.map((r) => r.workItem).sort()).toEqual(["F300A", "F300B", "F321A", "F321B", "F321C"]);
     expect(LANE_EXTENSIONS.every((r) => r.branchTipCommit.length > 0)).toBe(true);
     expect(LANE_EXTENSIONS.every((r) => r.branch.startsWith("work/"))).toBe(true);
   });
@@ -37,20 +37,23 @@ describe("convergence expectation (honest parameterization)", () => {
   });
 
   it("the convergence expectation still falls short of the 100/firm target — the threshold is never weakened", () => {
-    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(68);
+    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(91);
     expect(CONVERGENCE_EXPECTATION.targetPerFirm).toBe(100);
-    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(32);
+    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(9);
     expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBeGreaterThan(0);
   });
 
-  it("the commerce corpus in this tree is the F310C extension (31 distinct journeys — grew from 15 via F300C and 21 via F310C)", () => {
-    expect(COMMERCE_JOURNEYS.length).toBe(31);
+  it("the commerce corpus in this tree is the Wave-12 converged extension (34 distinct journeys — 15 via F300C, 21 via F310C, 34 via F321C)", () => {
+    expect(COMMERCE_JOURNEYS.length).toBe(34);
     const ids = COMMERCE_JOURNEYS.map((j) => j.id);
     for (const extension of ["host-surface", "host-intents", "host-tenant-edges", "gateway-routing", "role-assignment-handoff", "work-order-blocking"]) {
       expect(ids).toContain(extension);
     }
     for (const f310c of ["assignment-supersession", "deadline-escalation", "workload-release-rebalance", "project-completion-portfolio", "sla-scorecard-credit", "batched-order-reconciliation", "cost-allocation-exact-sums", "renewal-window-sweep", "provider-fallback-ladder", "budget-rebalance-proposal"]) {
       expect(ids).toContain(f310c);
+    }
+    for (const f321c of ["marketplace-publication-lifecycle", "vendor-directory-service-relationship", "actor-job-failure-expiry"]) {
+      expect(ids).toContain(f321c);
     }
     expect(new Set(ids).size).toBe(ids.length);
   });

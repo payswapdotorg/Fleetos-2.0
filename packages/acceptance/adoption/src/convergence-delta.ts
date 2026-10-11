@@ -55,6 +55,36 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     journeysInThisTree: 17,
     delta: 0,
   },
+  {
+    workItem: "F321B",
+    lane: "worker-b (safety/intel)",
+    branch: "work/f321b",
+    branchTipCommit: "2061a51",
+    corpus: "security",
+    journeysAtTip: 27,
+    journeysInThisTree: 17,
+    delta: 10,
+  },
+  {
+    workItem: "F321A",
+    lane: "worker-a (asset/field)",
+    branch: "work/f321a",
+    branchTipCommit: "ffb4119",
+    corpus: "field",
+    journeysAtTip: 30,
+    journeysInThisTree: 20,
+    delta: 10,
+  },
+  {
+    workItem: "F321C",
+    lane: "worker-c (work/commerce)",
+    branch: "work/f321c",
+    branchTipCommit: "2408201",
+    corpus: "commerce",
+    journeysAtTip: 34,
+    journeysInThisTree: 31,
+    delta: 3,
+  },
 ];
 
 /** This branch's machine-run corpus counts (the CURRENT tree). */
@@ -67,10 +97,10 @@ export interface CurrentCorpusCounts {
 }
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
-  field: 20,
-  commerce: 31,
-  security: 17,
-  fullyApplicableFirmCap: 20 + 31 + 17,
+  field: 30,
+  commerce: 34,
+  security: 27,
+  fullyApplicableFirmCap: 30 + 34 + 27,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -86,12 +116,12 @@ export interface ConvergenceExpectation {
 }
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
-  field: 20,
-  commerce: 31,
-  security: 17,
-  fullyApplicableFirmCap: 20 + 31 + 17,
+  field: 30,
+  commerce: 34,
+  security: 27,
+  fullyApplicableFirmCap: 30 + 34 + 27,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (20 + 31 + 17),
+  shortfallPerFullyApplicableFirm: 100 - (30 + 34 + 27),
 };
 
 /** Machine-check the parameterization's internal consistency. */
@@ -105,8 +135,10 @@ export function verifyConvergenceExpectation(): readonly string[] {
       problems.push(`${record.workItem}: missing branch tip commit`);
     }
   }
-  const field = LANE_EXTENSIONS.find((r) => r.corpus === "field");
-  const security = LANE_EXTENSIONS.find((r) => r.corpus === "security");
+  // Wave 12 added a SECOND record per corpus — the expectation must match
+  // the LATEST record per corpus (the converged state), not the first.
+  const field = [...LANE_EXTENSIONS].reverse().find((r) => r.corpus === "field");
+  const security = [...LANE_EXTENSIONS].reverse().find((r) => r.corpus === "security");
   if (field !== undefined && CONVERGENCE_EXPECTATION.field !== field.journeysAtTip) {
     problems.push("convergence field count does not match the F300A tip");
   }

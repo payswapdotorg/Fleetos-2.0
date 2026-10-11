@@ -160,6 +160,8 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
           "Input/dealer catalogs are handled by the incumbent input-supply network.",
         "apify-actor-job":
           "No external data-actor automation is operated in-house.",
+        "actor-job-failure-expiry":
+          "No external data-actor automation is operated in-house.",
         "org-optimization-review":
           "Small organizations run no model-usage optimization practice.",
         "gateway-routing":
@@ -207,6 +209,8 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
           "Claims and procurement settlement run through the incumbent EDI clearinghouse.",
         "apify-actor-job":
           "External data automation is not operated in-house; the integration office owns EDI.",
+        "actor-job-failure-expiry":
+          "External data automation is not operated in-house; the integration office owns EDI.",
         "org-optimization-review":
           "Org analytics live in the incumbent hospital BI stack.",
         "gateway-routing":
@@ -246,6 +250,8 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
       commerce: {
         "apify-actor-job":
           "Supplier data automation is not operated in-house; the incumbent procurement network handles it.",
+        "actor-job-failure-expiry":
+          "Supplier data automation is not operated in-house; the incumbent procurement network handles it.",
         "org-optimization-review":
           "Org analytics live in the incumbent IFM BI stack.",
         "aurum-settlement-seam":
@@ -282,6 +288,8 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
       },
       commerce: {
         "apify-actor-job":
+          "External data actor jobs are not operated in-house; incumbent OSS adapters own integrations.",
+        "actor-job-failure-expiry":
           "External data actor jobs are not operated in-house; incumbent OSS adapters own integrations.",
         "aurum-settlement-seam":
           "Interconnect settlement runs in the incumbent BSS.",
@@ -322,6 +330,8 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
       },
       commerce: {
         "apify-actor-job":
+          "Telemetry data automation is not operated in-house; SCADA integrators own it.",
+        "actor-job-failure-expiry":
           "Telemetry data automation is not operated in-house; SCADA integrators own it.",
         "org-optimization-review":
           "Org analytics live in the incumbent utility BI stack.",

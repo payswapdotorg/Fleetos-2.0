@@ -87,7 +87,7 @@ function failingFieldReport(): FieldAcceptanceReport {
 }
 
 function subsetFieldReport(): FieldAcceptanceReport {
-  return assembleFieldReport(FIELD_JOURNEYS.slice(0, 19));
+  return assembleFieldReport(FIELD_JOURNEYS.slice(0, 29));
 }
 
 function failingSecurityReport(): SecurityAcceptanceReport {
@@ -101,11 +101,11 @@ function failingSecurityReport(): SecurityAcceptanceReport {
 }
 
 function subsetSecurityReport(): SecurityAcceptanceReport {
-  return assembleSecurityReport(runAllSecurityJourneys(SECURITY_JOURNEYS.slice(0, 16)));
+  return assembleSecurityReport(runAllSecurityJourneys(SECURITY_JOURNEYS.slice(0, 26)));
 }
 
 async function subsetCommerceReport(): Promise<CommerceJourneyReport> {
-  const outcomes = await runAllCommerceJourneys(COMMERCE_JOURNEYS.slice(0, 30));
+  const outcomes = await runAllCommerceJourneys(COMMERCE_JOURNEYS.slice(0, 33));
   return assembleCommerceReport(outcomes);
 }
 
@@ -171,13 +171,13 @@ describe("release gate — the all-green path", () => {
     expect(verifyReleaseGateVerdict(verdict)).toBe(true);
   });
 
-  it("the REAL baseline counts the gate verified: field 20, security 17, commerce 31, adoption 30 workspaces (converged Wave 11 corpora)", () => {
-    expect(FIELD_JOURNEYS.length).toBe(20);
-    expect(SECURITY_JOURNEYS.length).toBe(17);
-    expect(COMMERCE_JOURNEYS.length).toBe(31);
-    expect(fieldReport.aggregate.journeys).toBe(20);
-    expect(securityReport.totalJourneys).toBe(17);
-    expect(commerceReport.totals.journeyCount).toBe(31);
+  it("the REAL baseline counts the gate verified: field 30, security 27, commerce 34, adoption 30 workspaces (converged Wave 12 corpora)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(30);
+    expect(SECURITY_JOURNEYS.length).toBe(27);
+    expect(COMMERCE_JOURNEYS.length).toBe(34);
+    expect(fieldReport.aggregate.journeys).toBe(30);
+    expect(securityReport.totalJourneys).toBe(27);
+    expect(commerceReport.totals.journeyCount).toBe(34);
     expect(adoptionReport.aggregate.workspaces).toBe(30);
     expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
   });
@@ -448,26 +448,26 @@ describe("release gate — acceptance baselines (present, green, count-exact, un
     expect(blocker!.detail).toContain("allJourneysPassed=false");
   });
 
-  it("short field corpus (REAL assembler over a subset) → ACCEPTANCE_COUNT_MISMATCH (expected 20, got 19)", () => {
+  it("short field corpus (REAL assembler over a subset) → ACCEPTANCE_COUNT_MISMATCH (expected 30, got 29)", () => {
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: subsetFieldReport(), security: securityReport, commerce: commerceReport, adoption: adoptionReport } });
     expect(verdict.verdict).toBe("NOT-READY");
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 20");
-    expect(blocker!.detail).toContain("report carries 19");
+    expect(blocker!.detail).toContain("expected 30");
+    expect(blocker!.detail).toContain("report carries 29");
   });
 
   it("short security corpus → ACCEPTANCE_COUNT_MISMATCH", () => {
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: fieldReport, security: subsetSecurityReport(), commerce: commerceReport, adoption: adoptionReport } });
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 17");
+    expect(blocker!.detail).toContain("expected 27");
   });
 
   it("short commerce corpus → ACCEPTANCE_COUNT_MISMATCH", async () => {
     const subset = await subsetCommerceReport();
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: fieldReport, security: securityReport, commerce: subset, adoption: adoptionReport } });
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 31");
-    expect(blocker!.detail).toContain("report carries 30");
+    expect(blocker!.detail).toContain("expected 34");
+    expect(blocker!.detail).toContain("report carries 33");
   });
 
   it("adoption workspaces short of the REAL population → ACCEPTANCE_COUNT_MISMATCH", () => {
