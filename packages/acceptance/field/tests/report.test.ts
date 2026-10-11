@@ -12,10 +12,10 @@ import { CAPABILITIES, PERSONAS } from "../src/journey-contracts.js";
 describe("acceptance report assembly", () => {
   const report = assembleAcceptanceReport(FIELD_JOURNEYS);
 
-  it("aggregates the corpus honestly: 20 journeys (14 + 6 F300A host-integration), 0 failures", () => {
+  it("aggregates the corpus honestly: 30 journeys (14 + 6 F300A host-integration + 10 F321A), 0 failures", () => {
     expect(report.schemaVersion).toBe(1);
-    expect(report.aggregate.journeys).toBe(20);
-    expect(report.aggregate.passed).toBe(20);
+    expect(report.aggregate.journeys).toBe(30);
+    expect(report.aggregate.passed).toBe(30);
     expect(report.aggregate.failed).toBe(0);
     expect(report.aggregate.failedSteps).toBe(0);
     expect(report.aggregate.failedAssertions).toBe(0);
