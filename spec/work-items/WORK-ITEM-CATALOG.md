@@ -442,3 +442,27 @@ This status addendum complements the F320/F321/F322/F323 acceptance contracts ab
 ### Next wave (capability-backed, target 100 unchanged)
 
 The F310C §3.5 rows remain the honest path: row 36 (honest time-parameterization under the F320 D2 epoch-distinctness law — the highest-leverage single item), rows 34–35 (marketplace transactions; tenant billing — worker C), rows 37–39 (validated predictive model; live connectors gated on F323; edge OTA campaigns — worker A). No target lowering, no mask broadening, no synthetic counts.
+
+---
+
+## Wave 13 — epoch-count activation + capability rows (frozen by F330)
+
+### F330 — Wave-13 epoch-count law activation freeze
+Owner: TL. DONE at dispatch time — `docs/evidence/F330/report.md` (machine census: 7/30 field journeys respond — 4 count-eligible, 2 rewrite-eligible, 1 past-only excluded; frozen D9 schedules medium [T0, T0+30d] / large [T0, T0+30d, T0+90d]; proof form D10; worker boundary D11; commerce/security census-before-variants D12; never-count D13). Lanes execute against this freeze; the counting gate lands only at F332.
+
+### F331A — field epoch parameterization + edge OTA campaigns
+Owner: A. Per F330 §4: per-epoch expectation tables + distinctness proofs for the 4 count-eligible field journeys; echo-class rewrites for the 2 eligible (or honest non-rewrite); field runner epoch-execution capability (D10 proof form); row 39 edge firmware/OTA campaign module + journeys. Acceptance: census citations, per-epoch tables machine-proven distinct (D2(c)/(d) enforced), field suite green at T0, exact SHA + owned-path diff + gate evidence.
+
+### F331B — security time seam + census + parameterization
+Owner: B. Add the security runner time seam (zero behavior change at T0, 151/151 green); record the security census (F330 §1.1 method, full table in the lane report); parameterize census-certified responders per D10. Acceptance: seam + census + any variants machine-proven; security suite green; exact SHA + evidence.
+
+### F331C — marketplace transactions + tenant billing + commerce seam
+Owner: C. Row 34 marketplace transaction flow package; row 35 tenant billing/invoicing package; commerce time seam + census (D12) + parameterize responders; new journeys per corpus laws. Acceptance: real APIs, refusals, determinism, ≥5 assertions each; commerce suite green; exact SHA + evidence.
+
+### F332 — TL convergence, counting-gate activation and disposition
+Owner: TL. Depends on F330 + all F331 lane evidence. Adjudicate every epoch variant against D2/D8–D13; merge; land the adoption counting gate + D9 schedules; recompute the 30-workspace ledger; re-pin; full clean-checkout gates on the frozen candidate; browser-verify; verdict per the B-3 closure condition (every fully-applicable firm at 100; per-size honesty — small firms bounded by single journeys). Do not lower the target or broaden masks.
+
+### Standing rules (Wave 13)
+- F323 stays DEFERRED (providers CONTRACT_ONLY; no lane drives provider APIs; row 38 out of scope).
+- Row 37 (validated predictive model) deferred to Wave 14.
+- Workers may not touch TL-owned adoption/release paths (D11 — no grant issued).

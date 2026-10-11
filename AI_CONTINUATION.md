@@ -19,7 +19,7 @@ This is a compact navigation/status pointer, not a second source of truth. The r
 - `docs/evidence/F321B/report.md`
 - `docs/tech-lead/RESIDUAL-RISKS.md`
 
-## Execution state — post Wave-12 F322 convergence (2026-10-11)
+## Execution state — post Wave-12 F322 convergence; Wave 13 frozen (F330, 2026-10-11)
 
 **Release disposition: NOT READY.** Always inspect actual main HEAD and bind new tests to the exact candidate SHA. Do not transfer old green checks automatically to new source.
 
@@ -34,8 +34,8 @@ This is a compact navigation/status pointer, not a second source of truth. The r
 - Product shell still has only sandbox/static + fixture-composed evidence; public production deployment and durable operational persistence are not demonstrated. Predictive outputs remain deterministic structural references unless validated-model evidence is added.
 
 ### Next steps
-1. Open the next work item for the §3.5 capability plan (TL-owned law work for row 36; scoped worker items for rows 34–35/37–39).
-2. Any new journeys must follow the frozen count law: genuinely distinct, machine-run, provider-independent unless F323 unblocks; adoption ledger and release pins stay TL-owned.
-3. Re-run the full gates at any new frozen candidate before verdict changes; keep the NOT READY disposition until the cap honestly reaches 100 and deployment/persistence evidence exists.
+1. Wave 13 is FROZEN (F330): lanes F331A (field epochs + row 39 OTA), F331B (security seam + census), F331C (rows 34–35 + commerce seam) execute against `docs/evidence/F330/report.md`; F332 is the TL convergence (counting gate + D9 schedules + recount + verdict).
+2. B-3 closure condition per F330 §3: every fully-applicable firm at 100; small firms are bounded by single journeys (94 base + the §3.6-c remainder — no fabrication).
+3. Re-run the full gates at any new frozen candidate before verdict changes; keep the NOT READY disposition until the cap honestly reaches 100 per firm and deployment/persistence evidence exists.
 
 **Canonical current handoff:** `docs/tech-lead/FINAL-RELEASE-HANDOFF.md`.
