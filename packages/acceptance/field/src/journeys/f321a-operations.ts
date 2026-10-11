@@ -1,0 +1,371 @@
+/**
+ * @fleetos/acceptance-field — F321A journeys: the care-operations family
+ * (Wave 12 lane A). Slots 16 (diagnosis lifecycle), 17 (anomaly confidence
+ * triage), 18 (evidence-gated recovery) and 19 (maintenance calendar scale).
+ *
+ * Pure DATA journeys over the F321A typed operations; all expected values are
+ * pre-declared REAL domain outcomes.
+ */
+
+import type { AcceptanceJourney } from "../journey-contracts.js";
+import { FOREIGN_TENANT, T0 } from "../fixtures.js";
+
+const DX_DEVICE = "dev_pump-6006";
+
+export const diagnosisLifecycleJourney: AcceptanceJourney = {
+  id: "diagnosis-lifecycle-supersession",
+  persona: "site-manager",
+  capability: "investigation",
+  goal: "Drive the diagnosis lifecycle: propose from real triage evidence, corroborate, resolve with new evidence, and supersede — the prior hypothesis is never mutated, only superseded-by pointer set.",
+  steps: [
+    { id: "t1", summary: "admit the pump asset", op: { kind: "asset.admit", assetId: "ast_pump-station-06", assetKind: "fixed", displayName: "Pump Station 06" } },
+    { id: "t2", summary: "enroll the pump's device", op: { kind: "device.enroll", deviceId: DX_DEVICE, assetId: "ast_pump-station-06", serial: "SN-6006" } },
+    { id: "t3", summary: "ingest two health warnings (real triage evidence)", op: { kind: "observation.ingest-batch", deviceId: DX_DEVICE, fromSeq: 1, count: 2, observationKind: "health.warn", firstObservedAt: T0 + 1_000, stepMs: 1_000 } },
+    { id: "t4", summary: "triage the observations into a finding", op: { kind: "health.triage" } },
+    {
+      id: "t5",
+      summary: "propose the diagnosis citing the real finding evidence",
+      op: { kind: "diagnosis.propose", hypothesisId: "dx_hypo-6001", deviceId: DX_DEVICE, candidateCauses: ["bearing-wear"], confidence: 0.3, fromFindings: true },
+    },
+    {
+      id: "t6",
+      summary: "a diagnosis with no candidate causes is refused",
+      expectRefusal: true,
+      op: { kind: "diagnosis.propose", hypothesisId: "dx_hypo-empty", deviceId: DX_DEVICE, candidateCauses: [], confidence: 0.5, fromFindings: true },
+    },
+    { id: "t7", summary: "corroborate with one more piece of finding evidence", op: { kind: "diagnosis.command", hypothesisId: "dx_hypo-6001", command: "corroborate", newEvidenceCount: 1 } },
+    {
+      id: "t8",
+      summary: "resolve without new evidence is refused (the evidence law precedes the state law)",
+      expectRefusal: true,
+      op: { kind: "diagnosis.command", hypothesisId: "dx_hypo-6001", command: "resolve" },
+    },
+    { id: "t9", summary: "resolve WITH new evidence", op: { kind: "diagnosis.command", hypothesisId: "dx_hypo-6001", command: "resolve", reason: "vibration spectrum confirmed bearing wear", newEvidenceCount: 1 } },
+    {
+      id: "t10",
+      summary: "corroborating a resolved hypothesis is an illegal transition",
+      expectRefusal: true,
+      op: { kind: "diagnosis.command", hypothesisId: "dx_hypo-6001", command: "corroborate", newEvidenceCount: 1 },
+    },
+    {
+      id: "t11",
+      summary: "supersede: a better-supported hypothesis replaces the resolved one",
+      op: { kind: "diagnosis.supersede", hypothesisId: "dx_hypo-6001", successorId: "dx_hypo-6002", candidateCauses: ["shaft-misalignment"], confidence: 0.85 },
+    },
+    { id: "t12", summary: "the successor corroborates on its own lifecycle", op: { kind: "diagnosis.command", hypothesisId: "dx_hypo-6002", command: "corroborate", newEvidenceCount: 1 } },
+  ],
+  assertions: [
+    { id: "d1", description: "triage produced a warning finding from the two warns", reading: "t4.triage.severities", op: "deep-equals", expected: ["warning"] },
+    { id: "d2", description: "the proposal lands in state proposed", reading: "t5.dx.state", op: "deep-equals", expected: "proposed" },
+    { id: "d3", description: "the proposal cites the real finding evidence", reading: "t5.dx.evidenceCount", op: "deep-equals", expected: 1 },
+    { id: "d4", description: "the proposal starts at transition seq 1", reading: "t5.dx.transitionSeq", op: "deep-equals", expected: 1 },
+    { id: "d5", description: "an empty-causes proposal is refused missing-reason", reading: "t6.dx.refused", op: "deep-equals", expected: "missing-reason" },
+    { id: "d6", description: "corroboration moves proposed -> corroborated", reading: "t7.dx.to", op: "deep-equals", expected: "corroborated" },
+    { id: "d7", description: "corroboration advances the transition seq", reading: "t7.dx.transitionSeq", op: "deep-equals", expected: 2 },
+    { id: "d8", description: "corroboration appended its evidence", reading: "t7.dx.evidenceCount", op: "deep-equals", expected: 2 },
+    { id: "d9", description: "evidence-free resolve is refused missing-evidence", reading: "t8.dx.refused", op: "deep-equals", expected: "missing-evidence" },
+    { id: "d10", description: "evidence-bearing resolve moves corroborated -> resolved", reading: "t9.dx.to", op: "deep-equals", expected: "resolved" },
+    { id: "d11", description: "the resolved hypothesis carries three evidence refs", reading: "t9.dx.evidenceCount", op: "deep-equals", expected: 3 },
+    { id: "d12", description: "corroborating a resolved hypothesis is refused illegal-transition", reading: "t10.dx.refused", op: "deep-equals", expected: "illegal-transition" },
+    { id: "d13", description: "supersession marks the prior superseded", reading: "t11.sup.priorState", op: "deep-equals", expected: "superseded" },
+    { id: "d14", description: "the prior's supersededBy points at the successor", reading: "t11.sup.priorSupersededBy", op: "deep-equals", expected: "dx_hypo-6002" },
+    { id: "d15", description: "the successor is a fresh proposed hypothesis", reading: "t11.sup.successorState", op: "deep-equals", expected: "proposed" },
+    { id: "d16", description: "the successor's supersedes pointer names the prior", reading: "t11.sup.successorSupersedes", op: "deep-equals", expected: "dx_hypo-6001" },
+    { id: "d17", description: "the successor carries its declared confidence", reading: "t11.sup.successorConfidence", op: "deep-equals", expected: 0.85 },
+    { id: "d18", description: "the successor corroborates on its own lifecycle", reading: "t12.dx.to", op: "deep-equals", expected: "corroborated" },
+    { id: "d19", description: "every transition emits an audited intent", reading: "t12.dx.auditIntent", op: "deep-equals", expected: "diagnosis:corroborate" },
+  ],
+};
+
+const AN_DEVICE = "dev_oven-7007";
+
+export const anomalyConfidenceTriageJourney: AcceptanceJourney = {
+  id: "anomaly-confidence-triage",
+  persona: "site-manager",
+  capability: "investigation",
+  goal: "Calibrate anomaly confidence: rolling windows over real observations, hysteresis that refuses to flap, and typed confidence propagation with cap, floor and corroboration-minimum rules.",
+  steps: [
+    { id: "t1", summary: "admit the oven asset", op: { kind: "asset.admit", assetId: "ast_oven-batch-07", assetKind: "fixed", displayName: "Oven Batch 07" } },
+    { id: "t2", summary: "enroll the oven's device", op: { kind: "device.enroll", deviceId: AN_DEVICE, assetId: "ast_oven-batch-07", serial: "SN-7007" } },
+    { id: "t3", summary: "ingest temperature 40", op: { kind: "observation.ingest", deviceId: AN_DEVICE, seq: 1, observedAt: T0 + 1_000, observationKind: "telemetry.temp", payload: { temp: 40 } } },
+    { id: "t4", summary: "ingest temperature 41", op: { kind: "observation.ingest", deviceId: AN_DEVICE, seq: 2, observedAt: T0 + 2_000, observationKind: "telemetry.temp", payload: { temp: 41 } } },
+    { id: "t5", summary: "ingest temperature 42", op: { kind: "observation.ingest", deviceId: AN_DEVICE, seq: 3, observedAt: T0 + 3_000, observationKind: "telemetry.temp", payload: { temp: 42 } } },
+    { id: "t6", summary: "ingest temperature 43", op: { kind: "observation.ingest", deviceId: AN_DEVICE, seq: 4, observedAt: T0 + 4_000, observationKind: "telemetry.temp", payload: { temp: 43 } } },
+    { id: "t7", summary: "ingest temperature 44", op: { kind: "observation.ingest", deviceId: AN_DEVICE, seq: 5, observedAt: T0 + 5_000, observationKind: "telemetry.temp", payload: { temp: 44 } } },
+    { id: "t8", summary: "build a rolling window of the last 3 real temperatures", op: { kind: "anomaly.window", deviceId: AN_DEVICE, field: "temp", maxSize: 3 } },
+    {
+      id: "t9",
+      summary: "run detection over a flapping series (enter 90, exit 60)",
+      op: {
+        kind: "anomaly.run",
+        enterThreshold: 90,
+        exitThreshold: 60,
+        values: [
+          { value: 30, at: T0 + 1_000 },
+          { value: 95, at: T0 + 2_000 },
+          { value: 50, at: T0 + 3_000 },
+          { value: 92, at: T0 + 4_000 },
+          { value: 40, at: T0 + 5_000 },
+        ],
+      },
+    },
+    {
+      id: "t10",
+      summary: "run detection over a hovering series — hysteresis HOLDS between the thresholds",
+      op: {
+        kind: "anomaly.run",
+        enterThreshold: 90,
+        exitThreshold: 60,
+        values: [
+          { value: 95, at: T0 + 1_000 },
+          { value: 70, at: T0 + 2_000 },
+        ],
+      },
+    },
+    { id: "t11", summary: "stateful evaluation: the value 95 enters the anomaly", op: { kind: "anomaly.evaluate", deviceId: AN_DEVICE, value: 95, at: T0 + 10_000, enterThreshold: 90, exitThreshold: 60 } },
+    { id: "t12", summary: "stateful evaluation: 70 holds the anomaly (no flap)", op: { kind: "anomaly.evaluate", deviceId: AN_DEVICE, value: 70, at: T0 + 11_000, enterThreshold: 90, exitThreshold: 60 } },
+    { id: "t13", summary: "stateful evaluation: 50 exits the anomaly", op: { kind: "anomaly.evaluate", deviceId: AN_DEVICE, value: 50, at: T0 + 12_000, enterThreshold: 90, exitThreshold: 60 } },
+    {
+      id: "t14",
+      summary: "propose the working hypothesis (manual inspection evidence)",
+      op: { kind: "diagnosis.propose", hypothesisId: "dx_hypo-7001", deviceId: AN_DEVICE, candidateCauses: ["heating-element-degradation"], confidence: 0.3, fromFindings: false },
+    },
+    { id: "t15", summary: "propagate 3 corroborations (no contradictions)", op: { kind: "anomaly.propagate", hypothesisId: "dx_hypo-7001", corroborations: 3, contradictions: 0 } },
+    { id: "t16", summary: "propagate 6 corroborations — the confidence caps at 1.0", op: { kind: "anomaly.propagate", hypothesisId: "dx_hypo-7001", corroborations: 6, contradictions: 0 } },
+    { id: "t17", summary: "propagate 3 contradictions — the confidence floors at 0.0", op: { kind: "anomaly.propagate", hypothesisId: "dx_hypo-7001", corroborations: 0, contradictions: 3 } },
+  ],
+  assertions: [
+    { id: "a1", description: "the rolling window keeps only the last 3 values", reading: "t8.window.count", op: "deep-equals", expected: 3 },
+    { id: "a2", description: "the window's mean is exact over the kept values", reading: "t8.window.mean", op: "deep-equals", expected: 43 },
+    { id: "a3", description: "the window's min is the oldest kept value", reading: "t8.window.min", op: "deep-equals", expected: 42 },
+    { id: "a4", description: "the window's max is the newest value", reading: "t8.window.max", op: "deep-equals", expected: 44 },
+    { id: "a5", description: "the window's first is 42 (evicted 40 and 41)", reading: "t8.window.first", op: "deep-equals", expected: 42 },
+    { id: "a6", description: "the window's last is 44", reading: "t8.window.last", op: "deep-equals", expected: 44 },
+    { id: "a7", description: "the flapping series ends OUT of anomaly", reading: "t9.anomaly.finalFlag", op: "deep-equals", expected: false },
+    { id: "a8", description: "the flapping series flapped 4 times (enter/exit x2)", reading: "t9.anomaly.flapCount", op: "deep-equals", expected: 4 },
+    { id: "a9", description: "the flapping series' last entry was at T0+4000", reading: "t9.anomaly.enteredAt", op: "deep-equals", expected: T0 + 4_000 },
+    { id: "a10", description: "the flapping series' last exit was at T0+5000", reading: "t9.anomaly.exitedAt", op: "deep-equals", expected: T0 + 5_000 },
+    { id: "a11", description: "the hovering series ends IN anomaly", reading: "t10.anomaly.finalFlag", op: "deep-equals", expected: true },
+    { id: "a12", description: "the hovering series transitioned only once (hysteresis holds)", reading: "t10.anomaly.flapCount", op: "deep-equals", expected: 1 },
+    { id: "a13", description: "the hovering series never exited", reading: "t10.anomaly.exitedAt", op: "deep-equals", expected: null },
+    { id: "a14", description: "stateful: 95 enters the anomaly", reading: "t11.anomaly.anomaly", op: "deep-equals", expected: true },
+    { id: "a15", description: "stateful: 70 holds (still one transition)", reading: "t12.anomaly.transitionCount", op: "deep-equals", expected: 1 },
+    { id: "a16", description: "stateful: 50 exits (two transitions)", reading: "t13.anomaly.transitionCount", op: "deep-equals", expected: 2 },
+    { id: "a17", description: "stateful: the exit leaves the anomaly flag down", reading: "t13.anomaly.anomaly", op: "deep-equals", expected: false },
+    { id: "a18", description: "the working hypothesis starts at baseline 0.3", reading: "t14.dx.state", op: "deep-equals", expected: "proposed" },
+    { id: "a19", description: "3 corroborations raise 0.3 by 3x0.15", reading: "t15.conf.confidence", op: "deep-equals", expected: 0.75 },
+    { id: "a20", description: "the propagation counted the corroborations", reading: "t15.conf.corroborations", op: "deep-equals", expected: 3 },
+    { id: "a21", description: "6 corroborations cap the confidence at 1.0", reading: "t16.conf.confidence", op: "deep-equals", expected: 1 },
+    { id: "a22", description: "3 contradictions floor the confidence at 0.0", reading: "t17.conf.confidence", op: "deep-equals", expected: 0 },
+    { id: "a23", description: "the contradiction count is carried", reading: "t17.conf.contradictions", op: "deep-equals", expected: 3 },
+  ],
+};
+
+const EG_DEVICE = "dev_crusher-8008";
+
+export const evidenceGatedRecoveryJourney: AcceptanceJourney = {
+  id: "evidence-gated-recovery",
+  persona: "recovery-coordinator",
+  capability: "recovery",
+  goal: "Close a recovery case through the evidence-gated command path: resolve demands verification + diagnosis evidence, close demands audit evidence, the post-mortem re-verifies every transition, and the case ledger paginates with a tenant-bound cursor.",
+  steps: [
+    { id: "t1", summary: "admit the crusher asset", op: { kind: "asset.admit", assetId: "ast_crusher-yard-08", assetKind: "fixed", displayName: "Crusher Yard 08" } },
+    { id: "t2", summary: "enroll the crusher's device", op: { kind: "device.enroll", deviceId: EG_DEVICE, assetId: "ast_crusher-yard-08", serial: "SN-8008" } },
+    { id: "t3", summary: "open the recovery case", op: { kind: "recovery.open", caseId: "rc_gated-0001", deviceId: EG_DEVICE } },
+    { id: "t4", summary: "investigate (ungated command path)", op: { kind: "recovery.command", caseId: "rc_gated-0001", command: "investigate", reason: "vibration spike reported" } },
+    { id: "t5", summary: "propose the remedy (ungated command path)", op: { kind: "recovery.command", caseId: "rc_gated-0001", command: "propose", reason: "replace the drive belt" } },
+    {
+      id: "t6",
+      summary: "evidence-free resolve is refused by the evidence chain",
+      expectRefusal: true,
+      op: { kind: "recovery.command-gated", caseId: "rc_gated-0001", command: "resolve", reason: "belt replaced", evidence: [] },
+    },
+    {
+      id: "t7",
+      summary: "a verification-only resolve is still refused (diagnosis kind missing from the chain)",
+      expectRefusal: true,
+      op: { kind: "recovery.command-gated", caseId: "rc_gated-0001", command: "resolve", reason: "belt replaced", evidence: [{ kind: "verification.post-replacement-check", observedAt: T0 - 2_000 }] },
+    },
+    {
+      id: "t8",
+      summary: "resolve WITH verification + diagnosis evidence passes the gate",
+      op: {
+        kind: "recovery.command-gated", caseId: "rc_gated-0001", command: "resolve", reason: "belt replaced and verified",
+        evidence: [
+          { kind: "verification.post-replacement-check", observedAt: T0 - 2_000 },
+          { kind: "diagnosis.belt-wear-confirmed", observedAt: T0 - 1_500 },
+        ],
+      },
+    },
+    {
+      id: "t9",
+      summary: "an audit-free close is refused by the evidence chain",
+      expectRefusal: true,
+      op: { kind: "recovery.command-gated", caseId: "rc_gated-0001", command: "close", reason: "service record", evidence: [] },
+    },
+    {
+      id: "t10",
+      summary: "close WITH audit evidence passes the gate",
+      op: { kind: "recovery.command-gated", caseId: "rc_gated-0001", command: "close", reason: "service record archived", evidence: [{ kind: "audit.service-record-archived", observedAt: T0 - 1_000 }] },
+    },
+    { id: "t11", summary: "the post-mortem re-verifies every gated transition against the evidence timeline", op: { kind: "recovery.postmortem", caseId: "rc_gated-0001" } },
+    { id: "t12", summary: "open two more cases for the ledger", op: { kind: "recovery.open", caseId: "rc_gated-0002", deviceId: EG_DEVICE } },
+    { id: "t13", summary: "open a third case", op: { kind: "recovery.open", caseId: "rc_gated-0003", deviceId: EG_DEVICE } },
+    { id: "t14", summary: "ledger page 1 (limit 2)", op: { kind: "recovery.paginate", limit: 2 } },
+    { id: "t15", summary: "ledger page 2 (keyset cursor after rc_gated-0002 — never a duplicate page)", op: { kind: "recovery.paginate", limit: 2, afterCaseId: "rc_gated-0002" } },
+    { id: "t16", summary: "a zero limit is refused", expectRefusal: true, op: { kind: "recovery.paginate", limit: 0 } },
+    { id: "t17", summary: "the tenant-scoped ledger lists exactly this tenant's cases", op: { kind: "recovery.paginate-tenant", limit: 10 } },
+    {
+      id: "t18",
+      summary: "a cursor minted by a FOREIGN tenant never walks this tenant's ledger",
+      expectRefusal: true,
+      op: { kind: "recovery.paginate-tenant", limit: 10, foreignCursorFrom: FOREIGN_TENANT },
+    },
+  ],
+  assertions: [
+    { id: "g1", description: "the case opens in state open", reading: "t3.case.state", op: "deep-equals", expected: "open" },
+    { id: "g2", description: "investigate moved the case to investigating", reading: "t4.case.state", op: "deep-equals", expected: "investigating" },
+    { id: "g3", description: "propose moved the case to proposal", reading: "t5.case.state", op: "deep-equals", expected: "proposal" },
+    { id: "g4", description: "evidence-free resolve is refused insufficient-evidence-count", reading: "t6.gated.refused", op: "deep-equals", expected: "insufficient-evidence-count" },
+    { id: "g5", description: "verification-only resolve is still refused insufficient-evidence-count", reading: "t7.gated.refused", op: "deep-equals", expected: "insufficient-evidence-count" },
+    { id: "g6", description: "the gated resolve moves proposal -> resolved", reading: "t8.gated.to", op: "deep-equals", expected: "resolved" },
+    { id: "g7", description: "the gate's rule demands verification + diagnosis kinds", reading: "t8.gated.requiredKinds", op: "deep-equals", expected: ["verification", "diagnosis"] },
+    { id: "g8", description: "the resolved case carries both evidence refs", reading: "t8.gated.evidenceCount", op: "deep-equals", expected: 2 },
+    { id: "g9", description: "audit-free close is refused insufficient-evidence-count", reading: "t9.gated.refused", op: "deep-equals", expected: "insufficient-evidence-count" },
+    { id: "g10", description: "the gated close moves resolved -> closed", reading: "t10.gated.to", op: "deep-equals", expected: "closed" },
+    { id: "g11", description: "the close gate's rule demands the audit kind", reading: "t10.gated.requiredKinds", op: "deep-equals", expected: ["audit"] },
+    { id: "g12", description: "the closed case carries all three evidence refs", reading: "t10.gated.evidenceCount", op: "deep-equals", expected: 3 },
+    { id: "g13", description: "the post-mortem checked all four transitions", reading: "t11.pm.transitionsChecked", op: "deep-equals", expected: 4 },
+    { id: "g14", description: "both gated transitions re-verified satisfied", reading: "t11.pm.rulesSatisfied", op: "deep-equals", expected: 2 },
+    { id: "g15", description: "no transition failed the post-mortem", reading: "t11.pm.failedCount", op: "deep-equals", expected: 0 },
+    { id: "g16", description: "ledger page 1 lists the first two cases", reading: "t14.page.ids", op: "deep-equals", expected: ["rc_gated-0001", "rc_gated-0002"] },
+    { id: "g17", description: "page 1 announces more", reading: "t14.page.hasMore", op: "deep-equals", expected: true },
+    { id: "g18", description: "page 1 mints a next cursor", reading: "t14.page.nextCursorNonNull", op: "deep-equals", expected: true },
+    { id: "g19", description: "ledger page 2 lists only the remaining case (keyset law: no duplicates)", reading: "t15.page.ids", op: "deep-equals", expected: ["rc_gated-0003"] },
+    { id: "g20", description: "page 2 is the last page", reading: "t15.page.hasMore", op: "deep-equals", expected: false },
+    { id: "g21", description: "a zero limit is refused invalid-limit", reading: "t16.page.refused", op: "deep-equals", expected: "invalid-limit" },
+    { id: "g22", description: "the tenant-scoped ledger lists all three of this tenant's cases", reading: "t17.page.count", op: "deep-equals", expected: 3 },
+    { id: "g23", description: "a foreign-tenant cursor is refused cursor-tenant-mismatch", reading: "t18.page.refused", op: "deep-equals", expected: "cursor-tenant-mismatch" },
+  ],
+};
+
+export const maintenanceCalendarScaleJourney: AcceptanceJourney = {
+  id: "maintenance-calendar-scale",
+  persona: "maintenance-planner",
+  capability: "maintenance",
+  goal: "Run the fleet-scale maintenance calendar: per-asset slots, honest conflict records, deterministic earliest-fit slots, and bounded batch scheduling with both conflict policies.",
+  steps: [
+    {
+      id: "t1",
+      summary: "build the calendar with the Q3 press inspection window",
+      op: { kind: "calendar.build", windows: [{ id: "calw_q3-inspect", assetId: "ast_mill-press-01", startsAt: T0 + 3_600_000, endsAt: T0 + 7_200_000 }] },
+    },
+    {
+      id: "t2",
+      summary: "probe an overlapping window on the same asset — the conflict is recorded",
+      op: { kind: "calendar.conflict", window: { id: "calw_q3-inspect-overlap", assetId: "ast_mill-press-01", startsAt: T0 + 5_400_000, endsAt: T0 + 9_000_000 } },
+    },
+    {
+      id: "t3",
+      summary: "probe a disjoint window — no conflict",
+      op: { kind: "calendar.conflict", window: { id: "calw_q4-inspect", assetId: "ast_mill-press-01", startsAt: T0 + 14_400_000, endsAt: T0 + 18_000_000 } },
+    },
+    {
+      id: "t4",
+      summary: "a FOREIGN tenant's window on the same asset never conflicts (slot isolation)",
+      op: { kind: "calendar.conflict", tenantId: FOREIGN_TENANT, window: { id: "calw_foreign-tandem", assetId: "ast_mill-press-01", startsAt: T0 + 3_600_000, endsAt: T0 + 7_200_000 } },
+    },
+    { id: "t5", summary: "earliest-fit: the first 1-hour slot after the inspection window", op: { kind: "calendar.next-free", assetId: "ast_mill-press-01", durationMs: 3_600_000, notBefore: T0 + 1_000_000, horizonMs: 86_400_000 } },
+    {
+      id: "t6",
+      summary: "an horizon that cannot fit the duration refuses honestly",
+      expectRefusal: true,
+      op: { kind: "calendar.next-free", assetId: "ast_mill-press-01", durationMs: 3_600_000, notBefore: T0 + 1_000_000, horizonMs: 2_000_000 },
+    },
+    {
+      id: "t7",
+      summary: "batch: two clean proposals schedule, the middle conflict is refused WITH its record (refuse-conflicts policy)",
+      op: {
+        kind: "calendar.batch",
+        resolution: "refuse-conflicts",
+        maxProposalsPerBatch: 8,
+        reallocationHorizonMs: 86_400_000,
+        now: T0,
+        proposals: [
+          { id: "calw_drill-service-a", assetId: "ast_mill-drill-02", startsAt: T0 + 10_000_000, endsAt: T0 + 12_000_000 },
+          { id: "calw_drill-service-b", assetId: "ast_mill-drill-02", startsAt: T0 + 11_000_000, endsAt: T0 + 13_000_000 },
+          { id: "calw_drill-service-c", assetId: "ast_mill-drill-02", startsAt: T0 + 20_000_000, endsAt: T0 + 21_000_000 },
+        ],
+      },
+    },
+    {
+      id: "t8",
+      summary: "batch: a conflicting proposal is MOVED to its deterministic next-free slot (reallocate-next-free policy)",
+      op: {
+        kind: "calendar.batch",
+        resolution: "reallocate-next-free",
+        maxProposalsPerBatch: 8,
+        reallocationHorizonMs: 86_400_000,
+        now: T0,
+        proposals: [
+          { id: "calw_press-tandem", assetId: "ast_mill-press-01", startsAt: T0 + 4_000_000, endsAt: T0 + 6_000_000 },
+        ],
+      },
+    },
+    {
+      id: "t9",
+      summary: "a batch larger than the bound is refused WHOLE",
+      expectRefusal: true,
+      op: {
+        kind: "calendar.batch",
+        resolution: "refuse-conflicts",
+        maxProposalsPerBatch: 2,
+        reallocationHorizonMs: 86_400_000,
+        now: T0,
+        proposals: [
+          { id: "calw_lath-1", assetId: "ast_mill-lath-03", startsAt: T0 + 30_000_000, endsAt: T0 + 31_000_000 },
+          { id: "calw_lath-2", assetId: "ast_mill-lath-03", startsAt: T0 + 32_000_000, endsAt: T0 + 33_000_000 },
+          { id: "calw_lath-3", assetId: "ast_mill-lath-03", startsAt: T0 + 34_000_000, endsAt: T0 + 35_000_000 },
+        ],
+      },
+    },
+    {
+      id: "t10",
+      summary: "a proposal starting at/before now is refused window-in-past (per-proposal, batch succeeds)",
+      op: {
+        kind: "calendar.batch",
+        resolution: "refuse-conflicts",
+        maxProposalsPerBatch: 8,
+        reallocationHorizonMs: 86_400_000,
+        now: T0,
+        proposals: [{ id: "calw_press-past", assetId: "ast_mill-press-01", startsAt: T0, endsAt: T0 + 600_000 }],
+      },
+    },
+  ],
+  assertions: [
+    { id: "c1", description: "the calendar indexes one slot", reading: "t1.cal.slotCount", op: "deep-equals", expected: 1 },
+    { id: "c2", description: "the slot index is tenant|asset keyed: the stored window carries the EXECUTING tenant (real-vs-real, any workspace tenant)", reading: "t1.cal.firstWindowTenantId", op: "reading-equals", expected: "t1.cal.runtimeTenantId" },
+    { id: "c2b", description: "the stored window is keyed to the declared asset", reading: "t1.cal.firstWindowAssetId", op: "deep-equals", expected: "ast_mill-press-01" },
+    { id: "c3", description: "the slot holds the declared window", reading: "t1.cal.firstSlotWindows", op: "deep-equals", expected: ["calw_q3-inspect"] },
+    { id: "c4", description: "the overlapping probe conflicts with the Q3 inspection", reading: "t2.conflict.existingId", op: "deep-equals", expected: "calw_q3-inspect" },
+    { id: "c5", description: "the conflict reason is time-overlap", reading: "t2.conflict.reason", op: "deep-equals", expected: "time-overlap" },
+    { id: "c6", description: "the conflict's overlap bounds are the true intersection", reading: "t2.conflict.overlapStart", op: "deep-equals", expected: T0 + 5_400_000 },
+    { id: "c7", description: "the conflict's overlap end is the existing window's end", reading: "t2.conflict.overlapEnd", op: "deep-equals", expected: T0 + 7_200_000 },
+    { id: "c8", description: "the disjoint probe finds no conflict", reading: "t3.conflict.existingId", op: "deep-equals", expected: null },
+    { id: "c9", description: "a foreign tenant's window on the SAME asset never conflicts", reading: "t4.conflict.existingId", op: "deep-equals", expected: null },
+    { id: "c10", description: "earliest-fit lands right after the inspection window", reading: "t5.slot.startsAt", op: "deep-equals", expected: T0 + 7_200_000 },
+    { id: "c11", description: "the earliest-fit slot spans the requested duration", reading: "t5.slot.endsAt", op: "deep-equals", expected: T0 + 10_800_000 },
+    { id: "c12", description: "the too-tight horizon refuses no-free-slot-in-horizon", reading: "t6.slot.refused", op: "deep-equals", expected: "no-free-slot-in-horizon" },
+    { id: "c13", description: "the honest horizon refusal names the searched limit", reading: "t6.slot.searchedUntil", op: "deep-equals", expected: T0 + 3_000_000 },
+    { id: "c14", description: "the refuse-conflicts batch schedules 2 of 3", reading: "t7.batch.scheduled", op: "deep-equals", expected: 2 },
+    { id: "c15", description: "the middle conflicting proposal is refused", reading: "t7.batch.refusedCount", op: "deep-equals", expected: 1 },
+    { id: "c16", description: "the batch outcomes are per-proposal honest", reading: "t7.batch.outcomes", op: "deep-equals", expected: ["scheduled", "time-overlap", "scheduled"] },
+    { id: "c17", description: "the refused conflict carries its overlap bound", reading: "t7.batch.firstConflictOverlapStart", op: "deep-equals", expected: T0 + 11_000_000 },
+    { id: "c18", description: "the reallocate batch moves the conflicting window", reading: "t8.batch.reallocated", op: "deep-equals", expected: 1 },
+    { id: "c19", description: "the reallocated window lands after the inspection window", reading: "t8.batch.reallocatedStartsAt", op: "deep-equals", expected: T0 + 7_200_000 },
+    { id: "c20", description: "the reallocate batch refuses nothing", reading: "t8.batch.refusedCount", op: "deep-equals", expected: 0 },
+    { id: "c21", description: "the oversized batch is refused batch-too-large", reading: "t9.batch.refused", op: "deep-equals", expected: "batch-too-large" },
+    { id: "c22", description: "the oversized refusal names the size and the bound", reading: "t9.batch.size", op: "deep-equals", expected: 3 },
+    { id: "c23", description: "the window-in-past proposal is refused per-proposal", reading: "t10.batch.outcomes", op: "deep-equals", expected: ["window-in-past"] },
+  ],
+};

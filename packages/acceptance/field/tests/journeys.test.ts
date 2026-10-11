@@ -42,10 +42,10 @@ function expectJourneyPasses(journeyId: string): JourneyOutcome {
 }
 
 describe("F270A device/field acceptance journeys", () => {
-  it("corpus shape: 20 journeys, fixed ids, no duplicates (14 + 6 F300A host-integration)", () => {
-    expect(FIELD_JOURNEYS.length).toBe(20);
+  it("corpus shape: 30 journeys, fixed ids, no duplicates (14 + 6 F300A host-integration + 10 F321A)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(30);
     const ids = FIELD_JOURNEYS.map((j) => j.id);
-    expect(new Set(ids).size).toBe(20);
+    expect(new Set(ids).size).toBe(30);
     expect([...OUTCOMES.keys()].sort()).toEqual([...ids].sort());
   });
 
@@ -180,6 +180,114 @@ describe("F270A device/field acceptance journeys", () => {
     expect(actualOf("host-role-lens-tenant-fail-closed", "l1")).toBe("intent-not-offered-to-role");
     expect(actualOf("host-role-lens-tenant-fail-closed", "l8")).toBe("tenant-mismatch");
     expect(actualOf("host-role-lens-tenant-fail-closed", "l9")).toBe("malformed-context");
+  });
+
+  it("F321A store-and-forward — first reception admits, re-delivery is an idempotent duplicate, gaps and forgeries are honest", () => {
+    expectJourneyPasses("store-and-forward-redelivery");
+    expect(actualOf("store-and-forward-redelivery", "s5")).toBe(2);
+    expect(actualOf("store-and-forward-redelivery", "s8")).toBe(true);
+    expect(actualOf("store-and-forward-redelivery", "s9")).toBe(0);
+    expect(actualOf("store-and-forward-redelivery", "s12")).toEqual([2]);
+    expect(actualOf("store-and-forward-redelivery", "s13")).toBe("observations:bundle:receive:with-gaps");
+    expect(actualOf("store-and-forward-redelivery", "s18")).toBe("signature-invalid");
+    expect(actualOf("store-and-forward-redelivery", "s19")).toBe("integrity-invalid");
+  });
+
+  it("F321A offline buffer — FIFO replay in capture order, divergence recorded, TTL eviction with reason codes", () => {
+    expectJourneyPasses("offline-buffer-capture-replay");
+    expect(actualOf("offline-buffer-capture-replay", "o4")).toBe("oe_gate-0001");
+    expect(actualOf("offline-buffer-capture-replay", "o7")).toBe("duplicate-entry-id");
+    expect(actualOf("offline-buffer-capture-replay", "o8")).toBe("tenant-mismatch");
+    expect(actualOf("offline-buffer-capture-replay", "o13")).toEqual(["oe_gate-0002", "oe_gate-0003", "oe_gate-0004"]);
+    expect(actualOf("offline-buffer-capture-replay", "o15")).toBe("posture-changed-while-offline");
+    expect(actualOf("offline-buffer-capture-replay", "o19")).toEqual(["oe_gate-0002", "oe_gate-0003"]);
+    expect(actualOf("offline-buffer-capture-replay", "o20")).toEqual(["offline-entry-expired", "offline-entry-expired"]);
+  });
+
+  it("F321A ingestion limits — admission caps with real numbers, duplicate-free cap accounting, whole-batch refusal, honest shedding", () => {
+    expectJourneyPasses("ingestion-limits-admission-discipline");
+    expect(actualOf("ingestion-limits-admission-discipline", "l3")).toBe("tenant-cap-exceeded");
+    expect(actualOf("ingestion-limits-admission-discipline", "l9")).toBe(1);
+    expect(actualOf("ingestion-limits-admission-discipline", "l10")).toBe(2);
+    expect(actualOf("ingestion-limits-admission-discipline", "l13")).toBe(1);
+    expect(actualOf("ingestion-limits-admission-discipline", "l14")).toBe(0);
+    expect(actualOf("ingestion-limits-admission-discipline", "l15")).toBe("batch-too-large");
+    expect(actualOf("ingestion-limits-admission-discipline", "l22")).toBe("payload-too-large");
+  });
+
+  it("F321A diagnosis lifecycle — propose from real findings, corroborate, resolve, supersede (never mutate, only supersede-by pointers)", () => {
+    expectJourneyPasses("diagnosis-lifecycle-supersession");
+    expect(actualOf("diagnosis-lifecycle-supersession", "d2")).toBe("proposed");
+    expect(actualOf("diagnosis-lifecycle-supersession", "d6")).toBe("corroborated");
+    expect(actualOf("diagnosis-lifecycle-supersession", "d10")).toBe("resolved");
+    expect(actualOf("diagnosis-lifecycle-supersession", "d12")).toBe("illegal-transition");
+    expect(actualOf("diagnosis-lifecycle-supersession", "d13")).toBe("superseded");
+    expect(actualOf("diagnosis-lifecycle-supersession", "d14")).toBe("dx_hypo-6002");
+    expect(actualOf("diagnosis-lifecycle-supersession", "d16")).toBe("dx_hypo-6001");
+  });
+
+  it("F321A anomaly confidence — rolling window from real observations, hysteresis enter/exit, confidence propagation into triage", () => {
+    expectJourneyPasses("anomaly-confidence-triage");
+    expect(actualOf("anomaly-confidence-triage", "a1")).toBe(3);
+    expect(actualOf("anomaly-confidence-triage", "a8")).toBe(4);
+    expect(actualOf("anomaly-confidence-triage", "a16")).toBe(2);
+    expect(actualOf("anomaly-confidence-triage", "a17")).toBe(false);
+    expect(actualOf("anomaly-confidence-triage", "a19")).toBe(0.75);
+    expect(actualOf("anomaly-confidence-triage", "a20")).toBe(3);
+  });
+
+  it("F321A evidence-gated recovery — commands refuse without sufficient evidence, post-mortem chain verifies, keyset pagination is tenant-bound", () => {
+    expectJourneyPasses("evidence-gated-recovery");
+    expect(actualOf("evidence-gated-recovery", "g1")).toBe("open");
+    expect(actualOf("evidence-gated-recovery", "g4")).toBe("insufficient-evidence-count");
+    expect(actualOf("evidence-gated-recovery", "g6")).toBe("resolved");
+    expect(actualOf("evidence-gated-recovery", "g16")).toEqual(["rc_gated-0001", "rc_gated-0002"]);
+    expect(actualOf("evidence-gated-recovery", "g21")).toBe("invalid-limit");
+    expect(actualOf("evidence-gated-recovery", "g23")).toBe("cursor-tenant-mismatch");
+  });
+
+  it("F321A maintenance calendar scale — conflicts detected, next-free found within horizon, batch reallocation and honest refusals", () => {
+    expectJourneyPasses("maintenance-calendar-scale");
+    expect(actualOf("maintenance-calendar-scale", "c5")).toBe("time-overlap");
+    expect(actualOf("maintenance-calendar-scale", "c8")).toBe(null);
+    expect(actualOf("maintenance-calendar-scale", "c12")).toBe("no-free-slot-in-horizon");
+    expect(actualOf("maintenance-calendar-scale", "c16")).toEqual(["scheduled", "time-overlap", "scheduled"]);
+    expect(actualOf("maintenance-calendar-scale", "c21")).toBe("batch-too-large");
+    expect(actualOf("maintenance-calendar-scale", "c23")).toEqual(["window-in-past"]);
+  });
+
+  it("F321A asset lineage — tamper-evident chain, material lots consume monotonically to exhaustion, ancestry and forged-edge detection", () => {
+    expectJourneyPasses("asset-lineage-material-lots");
+    expect(actualOf("asset-lineage-material-lots", "n2")).toBe("duplicate-lineage");
+    expect(actualOf("asset-lineage-material-lots", "n7")).toBe("partially-consumed");
+    expect(actualOf("asset-lineage-material-lots", "n12")).toBe("exhausted");
+    expect(actualOf("asset-lineage-material-lots", "n14")).toBe("lot-exhausted");
+    expect(actualOf("asset-lineage-material-lots", "n16")).toBe("genesis");
+    expect(actualOf("asset-lineage-material-lots", "n19")).toEqual(["asset:ast_filter-housing-02", "asset:ast_pump-station-01"]);
+    expect(actualOf("asset-lineage-material-lots", "n25")).toBe("edge-digest-mismatch");
+  });
+
+  it("F321A identity sessions — issue/activate/expire/revoke lifecycle, validation fails closed on actor/tenant mismatch, bind-role is idempotent", () => {
+    expectJourneyPasses("identity-session-lifecycle");
+    expect(actualOf("identity-session-lifecycle", "i4")).toBe("not-yet-active");
+    expect(actualOf("identity-session-lifecycle", "i6")).toBe("valid");
+    expect(actualOf("identity-session-lifecycle", "i7")).toBe("expired");
+    expect(actualOf("identity-session-lifecycle", "i13")).toBe("revoked");
+    expect(actualOf("identity-session-lifecycle", "i19")).toBe("actor-mismatch");
+    expect(actualOf("identity-session-lifecycle", "i20")).toBe("tenant-mismatch");
+    expect(actualOf("identity-session-lifecycle", "i22")).toBe("duplicate-binding");
+  });
+
+  it("F321A tenant lifecycle gating — provisioning is write-gated, suspended is read-only, closed refuses everything, illegal transitions refuse", () => {
+    expectJourneyPasses("tenant-lifecycle-gating");
+    expect(actualOf("tenant-lifecycle-gating", "e4")).toBe("tenant-provisioning-no-writes");
+    expect(actualOf("tenant-lifecycle-gating", "e11")).toBe("active");
+    expect(actualOf("tenant-lifecycle-gating", "e14")).toBe("tenant-suspended-read-only");
+    expect(actualOf("tenant-lifecycle-gating", "e19")).toBe("tenant-closing-no-new-writes");
+    expect(actualOf("tenant-lifecycle-gating", "e21")).toBe("closed");
+    expect(actualOf("tenant-lifecycle-gating", "e22")).toBe("tenant-closed-no-operations");
+    expect(actualOf("tenant-lifecycle-gating", "e24")).toBe("illegal-transition");
+    expect(actualOf("tenant-lifecycle-gating", "e25")).toBe("unknown-tenant");
   });
 
   it("every journey's assertions cover its full chain (>= 10 assertions each)", () => {

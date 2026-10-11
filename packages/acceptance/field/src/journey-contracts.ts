@@ -17,6 +17,7 @@ import type { Schedule } from "@fleetos/maintenance";
 import type { AdcosCommandKind, AdcosRejectionCode } from "@fleetos/adcos";
 import type { FieldSectionLimits } from "@fleetos/experience-asset-field";
 import { deepEquals, digestOf } from "./determinism.js";
+import type { F321AOperation } from "./journey-contracts-f321a.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabulary — personas (7) + capabilities.
@@ -170,7 +171,11 @@ export type JourneyOperation =
   | { readonly kind: "mission.resume"; readonly missionId: string }
   | { readonly kind: "mission.fold"; readonly missionId: string }
   | { readonly kind: "slice.taint-foreign-asset"; readonly assetId: string; readonly tenantId: string }
-  | { readonly kind: "tenancy.probe"; readonly deviceId: string; readonly idempotencyKey: string; readonly foreignTenantId: string };
+  | { readonly kind: "tenancy.probe"; readonly deviceId: string; readonly idempotencyKey: string; readonly foreignTenantId: string }
+  // F321A (Wave 12 lane A) — the typed operations of the ten new journeys,
+  // aggregated in journey-contracts-f321a.ts and split per family into
+  // journey-contracts-f321a-{edge,care,asset-core}.ts (the ≤400-line file law).
+  | F321AOperation;
 
 export interface JourneyStep {
   readonly id: string;

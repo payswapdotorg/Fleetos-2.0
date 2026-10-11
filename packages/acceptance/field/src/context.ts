@@ -37,6 +37,26 @@ import { emptyCommandJournal, type CommandJournalState } from "@fleetos/adcos";
 import type { CommandDraft, ExperienceStateSlice } from "@fleetos/experience-asset-field";
 import type { HandoffCarrier } from "./handoff.js";
 import type { MirrorMissionJournal } from "./mission-mirror.js";
+// F321A (Wave 12 lane A) — REAL state structures for the ten new journeys.
+import {
+  emptyBundleReceptionLog,
+  type BundleReceptionLog,
+  type ObservationBundle,
+  emptyTenantAdmissionCaps,
+  type IngestionBuffer,
+  type TenantAdmissionCaps,
+} from "@fleetos/observations";
+import type { OfflineBuffer } from "@fleetos/connectivity";
+import type { DiagnosisHypothesisRecord, AnomalyState } from "@fleetos/health";
+import { emptyMaintenanceCalendar, type MaintenanceCalendar } from "@fleetos/maintenance";
+import {
+  emptyLineageGraph,
+  type LineageGraph,
+  type MaterialLot,
+  type LineageRef,
+} from "@fleetos/assets";
+import type { MembershipRecord, Role, Actor, SessionRecord } from "@fleetos/identity";
+import { TenantRegistry, InMemoryTenantRegistry } from "@fleetos/tenancy";
 
 /** A JSON-shaped reading value (assertions compare these canonically). */
 export type ReadingValue = string | number | boolean | null | ReadonlyArray<unknown> | { readonly [k: string]: unknown };
@@ -59,6 +79,15 @@ export interface SimRunRecord {
   readonly finalStep: number;
   readonly assetFailureEvents: ReadonlyArray<{ readonly assetId: string; readonly cause: string; readonly step: number }>;
   readonly emissions: ReadonlyArray<SimEmissionRecord>;
+}
+
+/** A signed bundle plus its source payloads and signing key (the receive
+ * executor re-feeds the REAL pipeline with them — the admission side of
+ * store-and-forward). */
+export interface StoredBundle {
+  readonly bundle: ObservationBundle;
+  readonly agentKey: string;
+  readonly payloads: ReadonlyArray<{ readonly seq: number; readonly payload: Readonly<Record<string, unknown>> }>;
 }
 
 /** The deterministic execution substrate for one journey (or a handoff pair). */
@@ -101,6 +130,41 @@ export interface JourneyContext {
    * injected foreign-tenant record the REAL state guard must refuse). */
   foreignAsset: { readonly id: string; readonly tenantId: string } | null;
   readings: Map<string, ReadingValue>;
+  // -------------------------------------------------------------------------
+  // F321A (Wave 12 lane A) — caller-threaded state for the ten new journeys.
+  // Every field is a REAL public structure of this lane's packages; the
+  // context owns no domain logic of its own.
+  // -------------------------------------------------------------------------
+  /** Store-and-forward receiving side: the REAL reception log + the signed
+   * bundle workbench (bundles built by REAL signBundle in ops). */
+  storeForward: { log: BundleReceptionLog; bundles: Map<string, StoredBundle> };
+  /** Per-device REAL offline buffers (connectivity offline-buffer). */
+  offlineBuffers: Map<string, OfflineBuffer>;
+  /** REAL bounded ingestion buffer + per-tenant admission caps. */
+  ingestionBuffer: IngestionBuffer | null;
+  admissionCaps: TenantAdmissionCaps;
+  /** REAL maintenance calendar (scheduling-scale). */
+  calendar: MaintenanceCalendar;
+  /** REAL tamper-evident lineage graph + material lots + declared lineage refs. */
+  lineage: {
+    graph: LineageGraph;
+    lots: Map<string, MaterialLot>;
+    refs: LineageRef[];
+  };
+  /** REAL diagnosis hypothesis records (health kernel) by id. */
+  diagnoses: Map<string, DiagnosisHypothesisRecord>;
+  /** REAL per-device anomaly states (health kernel-signals). */
+  anomalyStates: Map<string, AnomalyState>;
+  /** REAL identity session records + role bindings + per-actor seq. */
+  identity: {
+    sessions: Map<string, SessionRecord & { readonly seq: number }>;
+    memberships: MembershipRecord[];
+    lastSeqByActor: Map<string, number>;
+    knownActors: ReadonlyArray<Actor>;
+    knownRoles: ReadonlyArray<Role>;
+  };
+  /** REAL tenant registry (tenancy kernel over the in-memory port). */
+  tenants: TenantRegistry;
 }
 
 export function createJourneyContext(tenantId: string, startedAt: number): JourneyContext {
@@ -130,6 +194,32 @@ export function createJourneyContext(tenantId: string, startedAt: number): Journ
     handoff: null,
     foreignAsset: null,
     readings: new Map(),
+    // F321A state — REAL empty structures + the fixed actor/role fixtures
+    // bindRole validates against (same fixture discipline as FIELD_LAB_WORLD).
+    storeForward: { log: emptyBundleReceptionLog(), bundles: new Map() },
+    offlineBuffers: new Map(),
+    ingestionBuffer: null,
+    admissionCaps: emptyTenantAdmissionCaps(500),
+    calendar: emptyMaintenanceCalendar(),
+    lineage: { graph: emptyLineageGraph(), lots: new Map(), refs: [] },
+    diagnoses: new Map(),
+    anomalyStates: new Map(),
+    identity: {
+      sessions: new Map(),
+      memberships: [],
+      lastSeqByActor: new Map(),
+      knownActors: [
+        { id: "act_operator-ada-01" as never, tenantId: tenantId as never, displayName: "Operator Ada", kind: "human", createdAt: startedAt },
+        { id: "act_tech-tomas-01" as never, tenantId: tenantId as never, displayName: "Tech Tomas", kind: "human", createdAt: startedAt },
+        { id: "act_edge-edda-01" as never, tenantId: tenantId as never, displayName: "Edge Edda", kind: "service", createdAt: startedAt },
+      ],
+      knownRoles: [
+        { id: "role_field-ops-01" as never, scope: "tenant", label: "Field Operations", capabilities: ["fleet.read", "case.open"] },
+        { id: "role_tech-01" as never, scope: "tenant", label: "Field Technician", capabilities: ["asset.inspect"] },
+        { id: "role_edge-01" as never, scope: "tenant", label: "Edge Agent", capabilities: ["device.command"] },
+      ],
+    },
+    tenants: new TenantRegistry(new InMemoryTenantRegistry()),
   };
 }
 

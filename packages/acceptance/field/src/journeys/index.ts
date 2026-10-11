@@ -1,12 +1,14 @@
 /**
  * @fleetos/acceptance-field — the device/field journey corpus
- * (Wave 7 lane A + F300A host-integration extension, Wave 10 lane A).
+ * (Wave 7 lane A + F300A host-integration extension, Wave 10 lane A +
+ * F321A edge/asset governance extension, Wave 12 lane A).
  *
- * 20 journeys across the fixed 7-persona vocabulary, one per acceptance
+ * 30 journeys across the fixed 7-persona vocabulary, one per acceptance
  * capability of the device/field lane (14 original + 6 genuinely distinct
- * host-integration journeys added by F300A). Journeys are pure DATA
- * (typed operations + declarative assertions); the runner executes them
- * against the REAL public APIs of this lane's packages.
+ * host-integration journeys added by F300A + 10 genuinely distinct F321A
+ * journeys). Journeys are pure DATA (typed operations + declarative
+ * assertions); the runner executes them against the REAL public APIs of
+ * this lane's packages.
  *
  * ORDER MATTERS: `handoff-field-to-operator-consume` declares
  * `consumesHandoff` — the corpus runner threads the publishing journey's
@@ -34,6 +36,22 @@ import {
   hostFieldWorkflowMobileOfflineJourney,
   hostRoleLensTenantFailClosedJourney,
 } from "./host-edges.js";
+import {
+  ingestionLimitsAdmissionDisciplineJourney,
+  offlineBufferCaptureReplayJourney,
+  storeAndForwardRedeliveryJourney,
+} from "./f321a-ingestion.js";
+import {
+  anomalyConfidenceTriageJourney,
+  diagnosisLifecycleJourney,
+  evidenceGatedRecoveryJourney,
+  maintenanceCalendarScaleJourney,
+} from "./f321a-operations.js";
+import {
+  assetLineageMaterialLotsJourney,
+  identitySessionLifecycleJourney,
+  tenantLifecycleGatingJourney,
+} from "./f321a-governance.js";
 
 export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   enrollNewAssetJourney,
@@ -56,6 +74,17 @@ export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   hostMaintenanceIntentToVerificationJourney,
   hostFieldWorkflowMobileOfflineJourney,
   hostRoleLensTenantFailClosedJourney,
+  // F321A (Wave 12 lane A) — the ten new journeys in declared order.
+  storeAndForwardRedeliveryJourney,
+  offlineBufferCaptureReplayJourney,
+  ingestionLimitsAdmissionDisciplineJourney,
+  diagnosisLifecycleJourney,
+  anomalyConfidenceTriageJourney,
+  evidenceGatedRecoveryJourney,
+  maintenanceCalendarScaleJourney,
+  assetLineageMaterialLotsJourney,
+  identitySessionLifecycleJourney,
+  tenantLifecycleGatingJourney,
 ];
 
 export {
@@ -79,4 +108,14 @@ export {
   hostMaintenanceIntentToVerificationJourney,
   hostFieldWorkflowMobileOfflineJourney,
   hostRoleLensTenantFailClosedJourney,
+  storeAndForwardRedeliveryJourney,
+  offlineBufferCaptureReplayJourney,
+  ingestionLimitsAdmissionDisciplineJourney,
+  diagnosisLifecycleJourney,
+  anomalyConfidenceTriageJourney,
+  evidenceGatedRecoveryJourney,
+  maintenanceCalendarScaleJourney,
+  assetLineageMaterialLotsJourney,
+  identitySessionLifecycleJourney,
+  tenantLifecycleGatingJourney,
 };
