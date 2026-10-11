@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { JOURNEYS, WORK_JOURNEYS, COMMERCE_JOURNEYS, ORG_JOURNEYS, HOST_JOURNEYS, GATEWAY_JOURNEYS, LIFECYCLE_JOURNEYS, FINANCE_JOURNEYS, RESILIENCE_JOURNEYS } from "../src/journeys/index.js";
+import { JOURNEYS, WORK_JOURNEYS, COMMERCE_JOURNEYS, ORG_JOURNEYS, HOST_JOURNEYS, GATEWAY_JOURNEYS, LIFECYCLE_JOURNEYS, FINANCE_JOURNEYS, RESILIENCE_JOURNEYS, MARKETPLACE_JOURNEYS, ACTOR_JOBS_JOURNEYS } from "../src/journeys/index.js";
 import {
   JOURNEY_PERSONAS,
   JOURNEY_CAPABILITIES,
@@ -14,14 +14,15 @@ import {
 describe("journey corpus shape", () => {
   it("has at least 12 distinct journeys", () => {
     expect(JOURNEYS.length).toBeGreaterThanOrEqual(12);
-    expect(JOURNEYS.length).toBe(31);
+    expect(JOURNEYS.length).toBe(34);
   });
 
-  it("is assembled from the eight journey files without loss", () => {
+  it("is assembled from the ten journey files without loss", () => {
     expect(JOURNEYS.length).toBe(
       WORK_JOURNEYS.length + COMMERCE_JOURNEYS.length + ORG_JOURNEYS.length +
       HOST_JOURNEYS.length + GATEWAY_JOURNEYS.length +
-      LIFECYCLE_JOURNEYS.length + FINANCE_JOURNEYS.length + RESILIENCE_JOURNEYS.length,
+      LIFECYCLE_JOURNEYS.length + FINANCE_JOURNEYS.length + RESILIENCE_JOURNEYS.length +
+      MARKETPLACE_JOURNEYS.length + ACTOR_JOBS_JOURNEYS.length,
     );
   });
 
@@ -52,6 +53,7 @@ describe("journey corpus shape", () => {
       "cross-role-handoff", "tenant-isolation",
       "host-integration", "model-gateway-routing", "role-assignment",
       "work-assignment-management", "work-deadlines", "sla-management", "cost-allocation",
+      "vendor-marketplace",
     ];
     for (const capability of required) {
       expect(covered.has(capability as (typeof JOURNEY_CAPABILITIES)[number])).toBe(true);

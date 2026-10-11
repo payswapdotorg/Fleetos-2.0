@@ -35,7 +35,10 @@ import { runGatewayStep } from "./drivers-gateway.js";
 import { runLifecycleStep } from "./drivers-lifecycle.js";
 import { runFinanceStep } from "./drivers-finance.js";
 import { runResilienceStep } from "./drivers-resilience.js";
-import type { AurumStep, CommerceStep, FinanceStep, GatewayStep, HostStep, LifecycleStep, OrgStep, ResilienceStep, WorkStep } from "./journey-contracts.js";
+import { runMarketplaceStep } from "./drivers-marketplace.js";
+import { runVendorDirectoryStep } from "./drivers-vendor-directory.js";
+import { runActorJobStep } from "./drivers-actor-jobs.js";
+import type { ActorJobStep, AurumStep, CommerceStep, FinanceStep, GatewayStep, HostStep, LifecycleStep, MarketplaceStep, OrgStep, ResilienceStep, VendorDirectoryStep, WorkStep } from "./journey-contracts.js";
 
 const WORK_KINDS: ReadonlySet<string> = new Set([
   "work-create", "work-assign", "work-transition", "work-board",
@@ -90,8 +93,22 @@ const RESILIENCE_KINDS: ReadonlySet<string> = new Set([
   "gw-fallback-ladder", "gw-degraded-mode", "org-budgets-seed", "org-budget-rebalance",
 ]);
 
+// F321C (Wave 12 lane C) step-kind families.
+const MARKETPLACE_KINDS: ReadonlySet<string> = new Set([
+  "marketplace-capabilities-seed", "marketplace-publish", "marketplace-revoke-cascade", "marketplace-search",
+]);
+
+const VENDOR_DIRECTORY_KINDS: ReadonlySet<string> = new Set([
+  "vendor-directory-seed", "vendor-relationship-transition", "vendor-scorecard-aggregate",
+  "vendor-capability-feed", "vendor-directory-read",
+]);
+
+const ACTOR_JOB_KINDS: ReadonlySet<string> = new Set([
+  "apify-job-create-idempotent", "apify-job-fail", "apify-job-expire-at",
+]);
+
 export async function executeStep(
-  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep,
+  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep,
   state: JourneyState,
 ): Promise<Record<string, FactValue>> {
   if (WORK_KINDS.has(step.kind)) return runWorkStep(step as WorkStep, state);
@@ -104,6 +121,9 @@ export async function executeStep(
   if (LIFECYCLE_KINDS.has(step.kind)) return runLifecycleStep(step as LifecycleStep, state);
   if (FINANCE_KINDS.has(step.kind)) return runFinanceStep(step as FinanceStep, state);
   if (RESILIENCE_KINDS.has(step.kind)) return runResilienceStep(step as ResilienceStep, state);
+  if (MARKETPLACE_KINDS.has(step.kind)) return runMarketplaceStep(step as MarketplaceStep, state);
+  if (VENDOR_DIRECTORY_KINDS.has(step.kind)) return runVendorDirectoryStep(step as VendorDirectoryStep, state);
+  if (ACTOR_JOB_KINDS.has(step.kind)) return runActorJobStep(step as ActorJobStep, state);
   return runOrgStep(step as OrgStep, state);
 }
 

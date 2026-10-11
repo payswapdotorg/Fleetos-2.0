@@ -18,6 +18,7 @@
  */
 
 import type { FinanceStep, LifecycleStep, ResilienceStep } from "./journey-contracts-f310c.js";
+import type { ActorJobStep, MarketplaceStep, VendorDirectoryStep } from "./journey-contracts-f321c.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabularies.
@@ -65,6 +66,9 @@ export const JOURNEY_CAPABILITIES: readonly string[] = [
   "work-deadlines",
   "sla-management",
   "cost-allocation",
+  // F321C extension (Wave 12 lane C): the vendor marketplace publication
+  // lifecycle (publication gate, delisting cascade, deterministic search).
+  "vendor-marketplace",
 ] as const;
 
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
@@ -290,10 +294,15 @@ export type JourneyStep =
   | GatewayStep
   | LifecycleStep
   | FinanceStep
-  | ResilienceStep;
+  | ResilienceStep
+  | MarketplaceStep
+  | VendorDirectoryStep
+  | ActorJobStep;
 
 // The F310C step families live in journey-contracts-f310c.ts (file law):
 export type { LifecycleStep, FinanceStep, ResilienceStep } from "./journey-contracts-f310c.js";
+// The F321C step families live in journey-contracts-f321c.ts (file law):
+export type { MarketplaceStep, VendorDirectoryStep, ActorJobStep } from "./journey-contracts-f321c.js";
 
 // ---------------------------------------------------------------------------
 // The journey.
