@@ -194,3 +194,38 @@ B-1 and B-2 are **CLOSED** with machine evidence at the final candidate. Everyth
 the handoff demands is green at `8c97ac8`: all six acceptance suites, the monorepo test
 plane (grow-only), architecture/snapshot/source-of-truth, lint 0 errors, the honest
 integration + adoption ledgers, and the commit-bound browser-verified application.
+
+## 12. Wave-12 addendum (F321A/F321B/F321C + F322, 2026-10-11)
+
+All three Wave-12 lanes delivered and converged; the adoption ledger moved
+substantially toward the target under the frozen F320 count law
+(non-parameterized; no epoch variants, no reruns, no synthetic counts):
+
+| measure | Wave-11 final (`8c97ac8`) | Wave-12 converged (`5c3d18f`) |
+|---|---:|---:|
+| field corpus | 20 | **30** (F321A `7ea9b00`) |
+| commerce corpus | 31 | **34** (F321C `ceb55df`) |
+| security corpus | 17 | **27** (F321B `1d1d67f`) |
+| counted executions (30 workspaces) | 1,848 | **2,523** |
+| unique applicable journeys | 616 | **841** |
+| fully-applicable firm cap | 68 | **91** |
+| shortfall per fully-applicable firm | 32 | **9** |
+
+- Provider exclusions honored: `adcos-session-trust` (A), `arena-evaluation-runs`
+  (B) and `aurum-delta-sync-session` (C) were replaced by genuine
+  provider-independent journeys; ADCOS/Aurum/Arena stay CONTRACT_ONLY (F323
+  deferred).
+- TL mask adjudication: `actor-job-failure-expiry` masked in the five
+  industries already masking `apify-actor-job` (rationales mirrored).
+- Gates of record (16 GB builder): A-lane `38146799222`, C-lane
+  `38160560665`, merged-tree harvest `38164045093`, re-pin six-suites-green
+  `38165177822` (B-1 ✓, suites ✓, B-2 caught a record-type widening, fixed),
+  frozen candidate `5c3d18f` run `38165903409`.
+- Full convergence record: `docs/evidence/F322/report.md`.
+
+**VERDICT (Wave 12): NOT READY — B-3 remains the sole substantive blocker,
+now at 91/100 (shortfall 9).** The next path is the F310C §3.5 capability
+plan (row 36 honest time-parameterization highest-leverage; rows 34–35
+worker-C packages; rows 37–39 worker-A capabilities, connectors gated on
+F323). The target stands; deployment/persistence scoping is unchanged
+(sandbox static + fixture-composed; no public production deployment).

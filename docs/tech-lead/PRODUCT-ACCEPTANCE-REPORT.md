@@ -130,3 +130,38 @@ gates machine-captured (F302, candidate `73adc17`):
 - **Verdict: NOT READY** — B-3 remains (cap 68/100 vs the retained 100 target), with
   the machine-grounded roadmap to ≥100 in `docs/evidence/F310C/report.md` §3. Full
   gate table and run IDs: `docs/evidence/F302/report.md` §8–11.
+
+## Wave 12 — adoption-coverage convergence (F320 + F321A/B/C + F322, 2026-10-11)
+
+Wave 12 closed the coverage gap from 68 to **91 of the 100** genuinely
+distinct counted journeys per fully-applicable firm under the frozen F320
+count law (non-parameterized; no epoch variants, reruns or synthetic counts
+anywhere in the wave):
+
+- **F321A** (`ffb4119` → merged `7ea9b00`): field corpus 20 → 30 — ten
+  capability-distinct journeys over real worker-a public APIs (offline
+  store-and-forward, offline-buffer replay, ingestion-limits admission,
+  diagnosis lifecycle, anomaly confidence, evidence-gated recovery,
+  maintenance-calendar scale, asset lineage/material lots, identity
+  sessions, tenant lifecycle gating); 227 assertions; adcos slot honestly
+  excluded and replaced (provider CONTRACT_ONLY).
+- **F321B** (`1d1d67f`): security corpus 17 → 27 — ten journeys, 431
+  assertions; arena slot replaced by posture-fold determinism.
+- **F321C** (`2408201` → merged `ceb55df`): commerce corpus 31 → 34 —
+  three journeys, 95 assertions; aurum slot replaced by the
+  VendorDirectory service-relationship journey; `actor-job-failure-expiry`
+  delivered as local contract-level lifecycle only (no Apify claim).
+- **F322** (`16e35e8` + `5c3d18f`): TL convergence — all lanes verified at
+  their exact tips on the 16 GB builder, merged conflict-free, the
+  `actor-job-failure-expiry` mask adjudicated (5 industries, family
+  rationale mirrored), every adoption/release count pin re-pinned from
+  machine-run values, and the six acceptance suites GREEN at the re-pinned
+  tree. Converged totals: **2,523 counted executions / 841 unique
+  applicable / cap 91 / shortfall 9** (per-industry table in
+  `docs/evidence/F322/report.md`).
+
+**Verdict: NOT READY — B-3 remains the sole substantive blocker at 91/100.**
+Providers stay CONTRACT_ONLY (F323 deferred); deployment/persistence
+scoping unchanged (sandbox static + fixture-composed). The next wave is the
+F310C §3.5 capability plan with row 36 (honest time-parameterization) as
+the highest-leverage item. The 100 target is retained.
