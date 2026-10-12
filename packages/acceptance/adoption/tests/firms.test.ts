@@ -6,7 +6,10 @@
 import { describe, expect, it } from "vitest";
 import {
   ADOPTION_T0,
+  EPOCH_30D_MS,
+  EPOCH_90D_MS,
   FIRM_EPOCH_COUNTS,
+  FIRM_EPOCH_SCHEDULES,
   FIRM_SIZES,
   WORKSPACE_POPULATION,
   determinismProofFirm,
@@ -63,12 +66,17 @@ describe("workspace population", () => {
     }
   });
 
-  it("every declared epoch anchors at the corpus fixture epoch (T0 calibration law)", () => {
+  it("declared epoch schedule is the D9 frozen law (F330 §2 — exact values, landed at F332)", () => {
     expect(ADOPTION_T0).toBe(1_774_000_000_000);
+    expect(EPOCH_30D_MS).toBe(2_592_000_000);
+    expect(EPOCH_90D_MS).toBe(7_776_000_000);
+    expect(FIRM_EPOCH_SCHEDULES).toEqual({
+      small: [ADOPTION_T0],
+      medium: [ADOPTION_T0, ADOPTION_T0 + 2_592_000_000],
+      large: [ADOPTION_T0, ADOPTION_T0 + 2_592_000_000, ADOPTION_T0 + 7_776_000_000],
+    });
     for (const firm of WORKSPACE_POPULATION) {
-      for (const startedAt of firm.epochs) {
-        expect(startedAt).toBe(ADOPTION_T0);
-      }
+      expect(firm.epochs).toEqual(FIRM_EPOCH_SCHEDULES[firm.size]);
     }
   });
 

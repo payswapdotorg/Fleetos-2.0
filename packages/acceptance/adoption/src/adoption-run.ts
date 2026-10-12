@@ -6,41 +6,43 @@
  *
  *   - FIELD (`@fleetos/acceptance-field`): `runJourneyCorpus` with the
  *     firm's REAL tenant id (`tnt_<industry>-<size>`) + the epoch anchor
- *     `startedAt`. The runner IS parameterizable, and the tenant dimension
- *     is REAL (journey digests are tenant-scoped for edge-command + the
- *     handoff pair — machine-verified). The TIME dimension is NOT: the
- *     corpus pins T0-anchored expectations (machine-verified: +1s offset
- *     fails 1 journey, +1h fails 3, multi-day fails 12), so every declared
- *     epoch executes at the fixture epoch T0 and only epoch 1 is COUNTED;
- *     epochs ≥ 2 are byte-identical re-runs, asserted identical per firm
- *     (repeatability evidence) and never counted.
- *   - COMMERCE (`@fleetos/acceptance-commerce`): `runAllJourneys` — the
- *     corpus-family runner. It is NOT tenant/time-parameterizable (fixed
- *     deterministic world), so the corpus runs ONCE per workspace: re-runs
- *     would be byte-identical and are never counted (honesty law).
+ *     `startedAt` (the tenant dimension is REAL — journey digests are
+ *     tenant-scoped). The TIME dimension is governed by the F332 counting
+ *     gate (./epoch-gate.ts, EPOCH_COUNTING_ACTIVE): while INACTIVE every
+ *     declared epoch executes at the fixture anchor T0 and only epoch 1 is
+ *     COUNTED (epochs ≥ 2 are byte-identical re-runs, asserted per firm,
+ *     never counted — the Wave-12 law persists byte-identically); when
+ *     ACTIVE every declared epoch executes at its D9 frozen anchor and the
+ *     F331A capability (`runJourneyEpochs`) produces the D10 proofs the
+ *     gate consumes — a journey's epoch ≥ 2 counts iff the proof passes
+ *     (per-epoch table + pairwise asserted-reading distinctness +
+ *     same-epoch byte-identity) and the D13 refusals hold.
+ *   - COMMERCE (`@fleetos/acceptance-commerce`): `runAllJourneys` over the
+ *     F331C time seam (`{ startedAt }`). While INACTIVE the corpus runs
+ *     ONCE per workspace (the no-options run anchors at the commerce
+ *     fixture epoch T0 — byte-identical to the pre-seam tree; re-runs are
+ *     byte-identical and never counted). When ACTIVE the corpus runs at
+ *     every D9 frozen anchor (non-frozen anchors are MISSING_EPOCH-style
+ *     refusals, never clamps) and the census-certified responders' epochs
+ *     ≥ 2 count iff the D10 proof passes; every other epoch run is a
+ *     byte-identical re-run (D13, never counted).
  *   - SECURITY (`@fleetos/acceptance-security`): `runJourney` per journey —
  *     single-parameter by design (packet law: once-per-workspace runs).
+ *     TODO-F332-SECURITY: the F331B lane (security time seam + census) is
+ *     platform-blocked (capacity crunch; 3 dispatch attempts evidenced) —
+ *     security stays single-counted; NEVER assume security responders.
  *
  * Repeatability: every firm's declared epochs ≥ 2 are asserted byte-identical
- * to epoch 1; for ONE firm per industry (the large one), the full applicable
- * set (field + commerce + security) is re-run and asserted byte-identical
- * (the packet's determinism proof). Re-runs are NEVER counted in the
- * journey-execution totals.
+ * to epoch 1 (INACTIVE) or proven per the D10/D13 laws (ACTIVE — see
+ * DeterminismProof); for ONE firm per industry (the large one), the full
+ * applicable set (field + commerce + security) is re-run and asserted
+ * byte-identical (the packet's determinism proof). Re-runs are NEVER counted
+ * in the journey-execution totals.
  *
  * Count honesty law: "100+ repeatable journeys per firm where supported" —
- * on THIS branch's tree a fully-applicable firm's COUNTED executions cap
- * at 20 + 31 + 17 = 68 (field 20 + commerce 31 — the F300C Wave 10
- * extension plus the F310C Wave 11 extension — + security 17); even under
- * the packet's assumed full parameterization the cap would be 20×3 + 31×3
- * + 17 = 170 for a large firm — the assumption is machine-disproven for
- * the REAL corpora — so every firm's exact shortfall is recorded in the
- * honest-counts ledger with its structural reasons. The Wave 11 sibling
- * lanes (F310A root typecheck, F310B full build) are VERIFICATION lanes
- * with no corpus changes, so the converged cap at F311 is this tree's 68;
- * the CONVERGENCE EXPECTATION (still 32 short of the 100 target) is
- * recorded honestly in ./convergence-delta.ts for the TL to recompute at
- * F311. NEVER inflated by counting re-runs; the threshold is NEVER
- * silently weakened.
+ * the corpora's exact counted cap per fully-applicable firm is machine-
+ * measured in the honest-counts ledger (never inflated by counting re-runs;
+ * the threshold is NEVER silently weakened — see convergence-delta.ts).
  *
  * Pure deterministic TS; logical `now` only.
  */
@@ -49,6 +51,12 @@ import { runJourneyCorpus, type JourneyOutcome as FieldOutcome } from "@fleetos/
 import { runJourney as runSecurityJourney, type JourneyOutcome as SecurityOutcome } from "@fleetos/acceptance-security";
 import { runAllJourneys, type JourneyOutcome as CommerceOutcome } from "@fleetos/acceptance-commerce";
 import { ADOPTION_T0, WORKSPACE_POPULATION, type FirmWorkspace } from "./firms.js";
+import {
+  EPOCH_COUNTING_ACTIVE,
+  runCommerceEpochSite,
+  verifyFieldEpochSite,
+  type EpochCountDecision,
+} from "./epoch-gate.js";
 import { applicableCommerceJourneys, applicableFieldJourneys, applicableSecurityJourneys, INDUSTRIES, industryById, maskedJourneyRationales, type IndustryDefinition } from "./industries.js";
 import { type JourneyExecutionFact } from "./verdicts.js";
 import { byteIdentical, digestOf } from "./digest.js";
@@ -92,8 +100,11 @@ function securityFailureNote(outcome: SecurityOutcome): string | null {
 // ---------------------------------------------------------------------------
 
 export interface ExecutionCounts {
-  /** COUNTED field executions (epoch 1 only — later epochs are re-runs). */
+  /** COUNTED field executions (INACTIVE: epoch 1 only — later epochs are
+   * re-runs; ACTIVE: epoch 1 + every D10-proof-passing epoch ≥ 2). */
   readonly field: number;
+  /** COUNTED commerce executions (INACTIVE: one pass per workspace; ACTIVE:
+   * the T0 pass + the census-certified responders' proof-passing epochs). */
   readonly commerce: number;
   readonly security: number;
   readonly total: number;
@@ -101,30 +112,57 @@ export interface ExecutionCounts {
 
 export interface DeterminismProof {
   readonly firmId: string;
-  /** Every declared epoch ≥ 2 byte-identical to epoch 1. */
+  /** Every declared epoch ≥ 2 byte-identical to epoch 1 (the INACTIVE law;
+   * false in ACTIVE whenever a D10-certified journey genuinely varies —
+   * the ACTIVE laws are the fields below). */
   readonly fieldEpochsByteIdentical: boolean;
   /** The full-applicable-set re-run (large firms only, per packet). */
   readonly commerceByteIdentical: boolean | null;
   readonly securityByteIdentical: boolean | null;
   readonly verified: boolean;
-  /** Digest over the counted run's outcome digests (per corpus). */
+  /** Digest over the counted epoch-0 (T0) corpus outcomes (per corpus; the
+   * counted epoch ≥ 2 executions are evidenced per-fact in executionFacts
+   * and per-epoch in fieldEpochDigests). */
   readonly runDigest: string;
+  /** F332: the gate mode this proof was produced in (EPOCH_COUNTING_ACTIVE). */
+  readonly epochCountingActive: boolean;
+  /** F332 (ACTIVE only; null when INACTIVE): every F331A epoch proof
+   * re-verified (D10: pass at every anchor, D2(c) same-epoch byte-identity,
+   * D2(d) pairwise asserted-reading distinctness, D13 digest distinctness)
+   * AND each proof's outcome digests match the driver's own epoch runs. */
+  readonly fieldEpochProofsVerified: boolean | null;
+  /** F332 (ACTIVE only; null when INACTIVE): every field journey WITHOUT an
+   * epoch declaration is byte-identical across ALL declared epochs (the D13
+   * never-count evidence — only D10-certified journeys may vary). */
+  readonly fieldInvariantsByteIdentical: boolean | null;
+  /** F332 (ACTIVE only; null when INACTIVE): every commerce epoch run's
+   * same-anchor re-run is byte-identical (D2(c)) and every table-less
+   * commerce journey is byte-identical across epochs (D13). */
+  readonly commerceEpochsByteIdentical: boolean | null;
 }
 
 export interface FirmRunResult {
   readonly firm: FirmWorkspace;
   readonly industry: IndustryDefinition;
-  /** The COUNTED field outcomes (epoch 1) — REAL runner outputs. */
+  /** The COUNTED field outcomes (epoch 0) — REAL runner outputs. */
   readonly fieldOutcomes: readonly FieldOutcome[];
-  /** REAL commerce runner outputs (one pass per workspace). */
+  /** REAL commerce runner outputs (the epoch-0/T0 pass; one pass per
+   * workspace while INACTIVE). */
   readonly commerceOutcomes: readonly CommerceOutcome[];
-  /** REAL security runner outputs (once per workspace). */
+  /** REAL security runner outputs (once per workspace — TODO-F332-SECURITY). */
   readonly securityOutcomes: readonly SecurityOutcome[];
   /** Outcome digests of every declared field epoch (raw runs, incl. re-runs). */
   readonly fieldEpochDigests: readonly (readonly string[])[];
   readonly executionCounts: ExecutionCounts;
   readonly executionFacts: readonly JourneyExecutionFact[];
   readonly determinismProof: DeterminismProof;
+  /** F332: the per-journey epoch counting decisions (D10 proof + D13
+   * refusals, with the D8 census citations); empty while the gate is
+   * INACTIVE (no epoch ever counts then). */
+  readonly epochDecisions: readonly EpochCountDecision[];
+  /** F332: raw commerce epoch runs EXECUTED (every declared anchor beyond
+   * epoch 0; 0 while INACTIVE — the corpus runs once per workspace then). */
+  readonly commerceEpochRunCount: number;
 }
 
 function proofDigest(field: readonly FieldOutcome[], commerce: readonly CommerceOutcome[], security: readonly SecurityOutcome[]): string {
@@ -140,20 +178,59 @@ export async function runFirm(firm: FirmWorkspace): Promise<FirmRunResult> {
   const industry = industryById(firm.industryId);
   if (industry === undefined) throw new Error(`unknown industry: ${firm.industryId}`);
   const fieldJourneys = applicableFieldJourneys(industry);
+  const commerceJourneys = applicableCommerceJourneys(industry);
+  const countingActive = EPOCH_COUNTING_ACTIVE;
 
-  // Every declared epoch executes at the corpus fixture anchor (see module
-  // doc): epoch 1 is COUNTED; epochs ≥ 2 are asserted byte-identical re-runs.
+  // FIELD composition site (F332): the D9 schedule + the counting gate.
+  // INACTIVE (D7: "Until the F332 convergence lands the counting gate, NO
+  // epoch variant counts" — the Wave-12 state persists byte-identically):
+  // every declared epoch executes at the fixture anchor (epoch 0's anchor)
+  // as an asserted byte-identical re-run, never counted. ACTIVE: every
+  // declared epoch executes at its D9 anchor (raw runs — transparency +
+  // D13 evidence), and the F331A capability produces the D10 proofs the
+  // gate consumes for counting.
   const epochOutcomes: FieldOutcome[][] = [];
   for (let epoch = 0; epoch < firm.epochs.length; epoch += 1) {
+    const anchor = countingActive ? (firm.epochs[epoch] as number) : (firm.epochs[0] as number);
     epochOutcomes.push([
-      ...runJourneyCorpus(fieldJourneys, { tenantId: firm.tenantId, startedAt: firm.epochs[epoch] as number }),
+      ...runJourneyCorpus(fieldJourneys, { tenantId: firm.tenantId, startedAt: anchor }),
     ]);
   }
   const fieldOutcomes = epochOutcomes[0] as readonly FieldOutcome[];
   const fieldEpochsByteIdentical = epochOutcomes.every((o) => byteIdentical(o, fieldOutcomes));
 
-  const commerceOutcomes = await runAllJourneys(applicableCommerceJourneys(industry));
+  const fieldSite = countingActive
+    ? verifyFieldEpochSite(fieldJourneys, firm.tenantId, firm.epochs, epochOutcomes)
+    : null;
+
+  // COMMERCE composition site (F332, the F331C seam): pass `{ startedAt }`
+  // from the firm schedule into runAllJourneys at FROZEN anchors only
+  // (non-frozen anchors are MISSING_EPOCH-style refusals, never clamps).
+  // INACTIVE: the corpus runs ONCE per workspace — the no-options run
+  // (byte-identical to today's law). ACTIVE: the corpus runs at every
+  // declared D9 anchor; the census-certified responders' epochs ≥ 2 count
+  // iff the D10 proof passes; every other epoch run is a byte-identical
+  // re-run (D13, never counted).
+  let commerceOutcomes: readonly CommerceOutcome[];
+  const commerceSite = countingActive
+    ? await runCommerceEpochSite(commerceJourneys, firm.epochs)
+    : null;
+  if (commerceSite === null) {
+    commerceOutcomes = await runAllJourneys(commerceJourneys);
+  } else {
+    commerceOutcomes = commerceSite.runs[0] as readonly CommerceOutcome[];
+  }
+
+  // SECURITY composition site: TODO-F332-SECURITY — the F331B lane
+  // (security time seam + census) is platform-blocked; security runs
+  // once per workspace through its single-parameter REAL runner and
+  // stays single-counted. NEVER assume security responders.
   const securityOutcomes = applicableSecurityJourneys(industry).map((j) => runSecurityJourney(j).outcome);
+
+  const epochDecisions: EpochCountDecision[] = [
+    ...(fieldSite?.decisions ?? []),
+    ...(commerceSite?.decisions ?? []),
+  ];
 
   const executionFacts: JourneyExecutionFact[] = fieldOutcomes.map((o) => ({
     corpus: "field",
@@ -183,12 +260,49 @@ export async function runFirm(firm: FirmWorkspace): Promise<FirmRunResult> {
       digest: o.digest,
     });
   }
+  // The counted epoch executions (ACTIVE only — D10 proof + D13 refusals
+  // decided; the facts carry the REAL outcome digests of the counted runs).
+  for (const decision of epochDecisions) {
+    for (const epochIdx of decision.countedEpochs) {
+      if (decision.corpus === "field") {
+        const outcome = (epochOutcomes[epochIdx] ?? []).find((o) => o.journeyId === decision.journeyId);
+        if (outcome === undefined) throw new Error(`counted field epoch missing its run: ${decision.journeyId} @ ${epochIdx}`);
+        executionFacts.push({
+          corpus: "field",
+          journeyId: decision.journeyId,
+          epoch: epochIdx,
+          passed: outcome.passed,
+          failureNote: fieldFailureNote(outcome),
+          digest: outcome.digest,
+        });
+      } else {
+        const outcome = (commerceSite?.runs[epochIdx] ?? []).find((o) => o.journeyId === decision.journeyId);
+        if (outcome === undefined) throw new Error(`counted commerce epoch missing its run: ${decision.journeyId} @ ${epochIdx}`);
+        executionFacts.push({
+          corpus: "commerce",
+          journeyId: decision.journeyId,
+          epoch: epochIdx,
+          passed: outcome.passed,
+          failureNote: commerceFailureNote(outcome),
+          digest: outcome.digest,
+        });
+      }
+    }
+  }
+
+  const countedFieldEpochs = epochDecisions
+    .filter((d) => d.corpus === "field")
+    .reduce((acc, d) => acc + d.countedEpochs.length, 0);
+  const countedCommerceEpochs = epochDecisions
+    .filter((d) => d.corpus === "commerce")
+    .reduce((acc, d) => acc + d.countedEpochs.length, 0);
 
   // The packet's determinism proof: the LARGE firm re-runs the FULL
-  // applicable set (field + commerce + security) and asserts byte-identity.
-  // (The field epochs ≥ 2 above already re-run the field set.)
+  // applicable set (field + commerce + security) and asserts byte-identity
+  // (the field epochs ≥ 2 above already re-run the field set at the
+  // fixture anchor while INACTIVE).
   const needsFullProof = firm.size === "large";
-  const reRunCommerce = needsFullProof ? await runAllJourneys(applicableCommerceJourneys(industry)) : null;
+  const reRunCommerce = needsFullProof ? await runAllJourneys(commerceJourneys) : null;
   const reRunSecurity = needsFullProof
     ? applicableSecurityJourneys(industry).map((j) => runSecurityJourney(j).outcome)
     : null;
@@ -200,11 +314,20 @@ export async function runFirm(firm: FirmWorkspace): Promise<FirmRunResult> {
     fieldEpochsByteIdentical,
     commerceByteIdentical,
     securityByteIdentical,
-    verified:
-      fieldEpochsByteIdentical &&
-      (commerceByteIdentical === null || commerceByteIdentical) &&
-      (securityByteIdentical === null || securityByteIdentical),
+    verified: countingActive
+      ? (fieldSite?.proofsVerified ?? true) === true
+        && (fieldSite?.invariantsByteIdentical ?? true) === true
+        && (commerceSite?.epochsByteIdentical ?? true) === true
+        && (commerceByteIdentical === null || commerceByteIdentical)
+        && (securityByteIdentical === null || securityByteIdentical)
+      : fieldEpochsByteIdentical
+        && (commerceByteIdentical === null || commerceByteIdentical)
+        && (securityByteIdentical === null || securityByteIdentical),
     runDigest: proofDigest(fieldOutcomes, commerceOutcomes, securityOutcomes),
+    epochCountingActive: countingActive,
+    fieldEpochProofsVerified: countingActive ? (fieldSite?.proofsVerified ?? true) : null,
+    fieldInvariantsByteIdentical: countingActive ? (fieldSite?.invariantsByteIdentical ?? true) : null,
+    commerceEpochsByteIdentical: countingActive ? (commerceSite?.epochsByteIdentical ?? true) : null,
   };
 
   return {
@@ -215,13 +338,17 @@ export async function runFirm(firm: FirmWorkspace): Promise<FirmRunResult> {
     securityOutcomes,
     fieldEpochDigests: epochOutcomes.map((o) => o.map((x) => x.digest)),
     executionCounts: {
-      field: fieldOutcomes.length,
-      commerce: commerceOutcomes.length,
+      field: fieldOutcomes.length + countedFieldEpochs,
+      commerce: commerceOutcomes.length + countedCommerceEpochs,
       security: securityOutcomes.length,
-      total: fieldOutcomes.length + commerceOutcomes.length + securityOutcomes.length,
+      total: fieldOutcomes.length + countedFieldEpochs
+        + commerceOutcomes.length + countedCommerceEpochs
+        + securityOutcomes.length,
     },
     executionFacts,
     determinismProof,
+    epochDecisions,
+    commerceEpochRunCount: commerceSite === null ? 0 : Math.max(0, commerceSite.runs.length - 1) * commerceOutcomes.length,
   };
 }
 
@@ -292,10 +419,23 @@ export interface AdoptionAggregate {
   readonly securityExecutions: number;
   /** Raw declared-epoch field re-runs executed but NOT counted (transparency). */
   readonly fieldEpochReRuns: number;
+  /** F332: raw commerce epoch runs executed but NOT counted (transparency;
+   * 0 while the gate is INACTIVE — the corpus runs once per workspace). */
+  readonly commerceEpochReRuns: number;
   readonly uniqueApplicableJourneys: number;
   readonly determinismProofs: number;
   readonly determinismVerified: boolean;
   readonly allJourneysPassed: boolean;
+}
+
+/** One ledger row: the journeys whose epochs EARNED counted executions. */
+export interface EpochCountLedgerEntry {
+  readonly corpus: "field" | "commerce";
+  readonly journeyId: string;
+  /** The D8 census citation (D10(3)) — verbatim from the census of record. */
+  readonly censusCitation: string;
+  /** Total counted epoch executions across the simulated firms. */
+  readonly countedExecutions: number;
 }
 
 export interface AdoptionSimulationResult {
@@ -303,6 +443,9 @@ export interface AdoptionSimulationResult {
   readonly firmRuns: readonly FirmRunResult[];
   readonly aggregate: AdoptionAggregate;
   readonly honestCounts: HonestCountsLedger;
+  /** F332: the epoch-count ledger (empty while the gate is INACTIVE —
+   * the exact journey IDs earning epoch counts + their census citations). */
+  readonly epochCountLedger: readonly EpochCountLedgerEntry[];
 }
 
 /** Run the full industry adoption simulation over the REAL corpora. */
@@ -326,8 +469,21 @@ export async function runAdoptionSimulation(
   const fieldExecutions = firmRuns.reduce((acc, r) => acc + r.executionCounts.field, 0);
   const commerceExecutions = firmRuns.reduce((acc, r) => acc + r.executionCounts.commerce, 0);
   const securityExecutions = firmRuns.reduce((acc, r) => acc + r.executionCounts.security, 0);
+  // Raw declared-epoch field runs NOT counted: every epoch ≥ 2 run minus the
+  // counted ones (INACTIVE: all of them — the Wave-12 law; ACTIVE: only the
+  // D13-refused ones, e.g. the invariant journeys' byte-identical re-runs).
   const fieldEpochReRuns = firmRuns.reduce(
-    (acc, r) => acc + r.fieldEpochDigests.slice(1).reduce((a, d) => a + d.length, 0),
+    (acc, r) =>
+      acc + r.fieldEpochDigests.slice(1).reduce((a, d) => a + d.length, 0)
+      - (r.executionCounts.field - r.fieldOutcomes.length),
+    0,
+  );
+  // Raw commerce epoch runs NOT counted (ACTIVE only — the INACTIVE law runs
+  // the corpus once per workspace, so there are none).
+  const commerceEpochReRuns = firmRuns.reduce(
+    (acc, r) =>
+      acc + r.commerceEpochRunCount
+      - (r.executionCounts.commerce - r.commerceOutcomes.length),
     0,
   );
   const uniqueApplicableJourneys = selectedIndustries.reduce(
@@ -337,6 +493,28 @@ export async function runAdoptionSimulation(
   );
   const proofs = firmRuns.map((r) => r.determinismProof);
   const allPassed = firmRuns.every((r) => r.executionFacts.length > 0 && r.executionFacts.every((f) => f.passed));
+
+  // The epoch-count ledger: the exact journey IDs earning counted epoch
+  // executions + their D8 census citations (empty while INACTIVE).
+  const ledger = new Map<string, EpochCountLedgerEntry>();
+  for (const run of firmRuns) {
+    for (const decision of run.epochDecisions) {
+      if (decision.countedEpochs.length === 0) continue;
+      const key = `${decision.corpus}:${decision.journeyId}`;
+      const current = ledger.get(key);
+      if (current === undefined) {
+        ledger.set(key, {
+          corpus: decision.corpus,
+          journeyId: decision.journeyId,
+          censusCitation: decision.censusCitation,
+          countedExecutions: decision.countedEpochs.length,
+        });
+      } else {
+        ledger.set(key, { ...current, countedExecutions: current.countedExecutions + decision.countedEpochs.length });
+      }
+    }
+  }
+  const epochCountLedger = [...ledger.values()];
 
   const entries = firmRuns.map(firmShortfall);
   const honestCounts: HonestCountsLedger = {
@@ -357,11 +535,13 @@ export async function runAdoptionSimulation(
       commerceExecutions,
       securityExecutions,
       fieldEpochReRuns,
+      commerceEpochReRuns,
       uniqueApplicableJourneys,
       determinismProofs: proofs.length,
       determinismVerified: proofs.length > 0 && proofs.every((p) => p.verified),
       allJourneysPassed: allPassed,
     },
     honestCounts,
+    epochCountLedger,
   };
 }

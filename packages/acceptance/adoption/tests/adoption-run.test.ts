@@ -103,12 +103,13 @@ describe("adoption driver (per-firm)", () => {
     const { aggregate } = simulation;
     expect(aggregate.workspaces).toBe(6);
     expect(aggregate.journeyExecutions).toBe(aggregate.fieldExecutions + aggregate.commerceExecutions + aggregate.securityExecutions);
-    // construction (88 applicable) + mining (89 applicable), 3 firms each (converged Wave 12 corpora).
-    expect(aggregate.journeyExecutions).toBe((88 + 89) * 3);
+    // construction (91 applicable) + mining (92 applicable), 3 firms each
+    // (Wave-13 corpora at the INACTIVE counting gate, machine-measured).
+    expect(aggregate.journeyExecutions).toBe((91 + 92) * 3);
     expect(aggregate.fieldEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.determinismVerified).toBe(true);
     expect(aggregate.allJourneysPassed).toBe(true);
-    expect(aggregate.uniqueApplicableJourneys).toBe(177);
+    expect(aggregate.uniqueApplicableJourneys).toBe(183);
   }, 120_000);
 
   it("firms of an industry share the verdict inputs (per-industry consistency)", async () => {

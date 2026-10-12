@@ -23,6 +23,7 @@ export * from "./firms.js";
 export * from "./incumbent.js";
 export * from "./verdicts.js";
 export * from "./adoption-run.js";
+export * from "./epoch-gate.js";
 export * from "./report.js";
 export * from "./digest.js";
 export * from "./convergence-delta.js";

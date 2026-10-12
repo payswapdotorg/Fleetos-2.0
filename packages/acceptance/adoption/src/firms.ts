@@ -8,8 +8,9 @@
  * (small 10s, medium 100s, large 1000s — informational record fields, NEVER
  * fake telemetry).
  *
- * TWO machine-verified REAL constraints shape this population (F271 seam
- * findings, evidenced in docs/evidence/F271):
+ * TWO REAL constraints shape this population (F271 seam findings, evidenced
+ * in docs/evidence/F271; constraint 2 superseded at F332 by the frozen D9
+ * schedule law — F330 §2):
  *
  * 1. TENANT FORMAT LAW: the identity package's validator accepts only
  *    `^tnt_[A-Za-z0-9_-]{4,128}$`. The packet's example shape
@@ -17,15 +18,22 @@
  *    (malformed-tenant-id refusals, machine-verified). Per-firm tenant ids
  *    therefore use the REAL format: `tnt_<industry>-<size>`.
  *
- * 2. EPOCH ANCHOR LAW: the F270A field corpus pins T0-anchored expectations
- *    (schedules, grants, deadlines, staleness baselines). Machine-verified:
- *    a +1s startedAt offset already fails 1 journey; +1h fails 3; multi-day
- *    offsets fail 12. The single supported logical epoch is the corpora's
- *    fixture epoch T0 = 1_774_000_000_000 — so every declared epoch ANCHORS
- *    there, and epochs ≥ 2 execute as byte-identical re-runs (proven per
- *    firm by the driver, never counted as executions).
+ * 2. EPOCH SCHEDULE LAW (F330 D9, frozen TL-owned values — landed at F332):
+ *    the declared epoch schedule per firm size is EXACTLY small `[T0]`,
+ *    medium `[T0, T0+30d]`, large `[T0, T0+30d, T0+90d]` with
+ *    `T0 = ADOPTION_T0 = 1_774_000_000_000` (the corpora's fixture epoch),
+ *    `30d = 2_592_000_000` ms and `90d = 7_776_000_000` ms. No lane may
+ *    choose its own spacing — these are the only anchors a parameterized
+ *    journey's per-epoch expectation tables may cover. EXECUTION anchoring
+ *    is governed by the counting gate (`EPOCH_COUNTING_ACTIVE`,
+ *    adoption-run.ts): while the gate is INACTIVE every declared epoch
+ *    executes at the fixture anchor T0 (the Wave-12 state persists
+ *    byte-identically — epoch 1 counted, epochs ≥ 2 asserted
+ *    byte-identical re-runs, never counted); when ACTIVE the epochs execute
+ *    at their D9 anchors and per-epoch distinct journeys may count iff the
+ *    D10 proof form passes and the D13 refusals hold (F330 §2).
  *
- * Pure deterministic TS. The epoch anchor is a fixed constant — no wall
+ * Pure deterministic TS. The epoch anchors are fixed constants — no wall
  * clock anywhere.
  */
 
@@ -36,12 +44,28 @@ export type FirmSize = "small" | "medium" | "large";
 export const FIRM_SIZES: readonly FirmSize[] = ["small", "medium", "large"];
 
 /**
- * The corpora's fixture epoch — the single machine-verified-supported
- * logical `startedAt` for the parameterizable field runner. Every firm's
- * epochs anchor here (see the module doc: the offset schedule is
- * unsupported by the T0-calibrated corpus).
+ * The corpora's fixture epoch — epoch 0 of every firm-size schedule (the
+ * D9 anchor-0 value; see FIRM_EPOCH_SCHEDULES below).
  */
 export const ADOPTION_T0 = 1_774_000_000_000;
+
+/** D9 frozen spacing (F330 §2 — TL-owned values, landed at F332). */
+export const EPOCH_30D_MS = 2_592_000_000;
+export const EPOCH_90D_MS = 7_776_000_000;
+
+/**
+ * The D9 frozen epoch schedule per firm size (F330 §2 — TL-owned values,
+ * exact): small `[T0]`; medium `[T0, T0+30d]`; large `[T0, T0+30d,
+ * T0+90d]`. The ONLY per-epoch anchors the corpora's expectation tables
+ * may cover; execution anchoring is governed by the counting gate
+ * (EPOCH_COUNTING_ACTIVE, adoption-run.ts) — while INACTIVE every epoch
+ * still executes at the fixture anchor T0 (byte-identical re-runs).
+ */
+export const FIRM_EPOCH_SCHEDULES: Readonly<Record<FirmSize, readonly number[]>> = {
+  small: [ADOPTION_T0],
+  medium: [ADOPTION_T0, ADOPTION_T0 + EPOCH_30D_MS],
+  large: [ADOPTION_T0, ADOPTION_T0 + EPOCH_30D_MS, ADOPTION_T0 + EPOCH_90D_MS],
+};
 
 /** The declared logical-time epoch schedule per firm size (packet law). */
 export const FIRM_EPOCH_COUNTS: Readonly<Record<FirmSize, number>> = {
@@ -72,7 +96,9 @@ export interface FirmWorkspace {
   readonly tenantId: string;
   /** Declared epoch count (1 / 2 / 3). */
   readonly epochCount: number;
-  /** The startedAt anchor each declared epoch executes at (all T0 — see module doc). */
+  /** The D9 frozen epoch schedule for this firm's size (startedAt anchors —
+   * see FIRM_EPOCH_SCHEDULES; while the counting gate is INACTIVE every
+   * epoch executes at the fixture anchor T0, byte-identical re-runs). */
   readonly epochs: readonly number[];
   readonly devicePopulation: DevicePopulationScale;
 }
@@ -85,7 +111,7 @@ function buildFirm(industry: IndustryDefinition, size: FirmSize): FirmWorkspace 
     size,
     tenantId: `tnt_${industry.id}-${size}`,
     epochCount,
-    epochs: Array.from({ length: epochCount }, () => ADOPTION_T0),
+    epochs: FIRM_EPOCH_SCHEDULES[size],
     devicePopulation: DEVICE_POPULATIONS[size] as DevicePopulationScale,
   };
 }
