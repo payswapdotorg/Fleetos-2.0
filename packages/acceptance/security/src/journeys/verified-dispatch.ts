@@ -26,7 +26,7 @@
  * tests/async-dispatch.test.ts (supporting evidence — not counted as a
  * corpus journey).
  *
- * Determinism: logical epochs (NOW_MS offsets) only; no clock, no
+ * Determinism: logical epochs (nowMs offsets) only; no clock, no
  * randomness, no network, no env.
  */
 
@@ -50,7 +50,7 @@ import {
 import type { CommandQueueState, ExecutionLedgerEntry } from "@fleetos/execution";
 import { buildDecisionRecord, evaluateCapability } from "@fleetos/policy";
 import { emitAuditTrail } from "@fleetos/actions";
-import { READ_CAPABILITY, TENANT, FOREIGN_TENANT, NOW_MS, isoOfEpochMs, tenantPolicy } from "./fixture-world.ts";
+import { READ_CAPABILITY, TENANT, FOREIGN_TENANT, isoOfEpochMs, tenantPolicy } from "./fixture-world.ts";
 import { appendLed, e2eActionChain } from "./wave10-world.ts";
 
 const QUEUE_KEY = "dispatch-cmd-1";
@@ -69,6 +69,7 @@ export const verifiedDispatchJourney: AcceptanceJourney = {
       packages: ["@fleetos/execution"],
       operations: ["createCommandQueue", "submitCommand", "ackCommand", "failCommand", "completeCommand", "dueCommands", "backoffDelayMs"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         // The pure backoff schedule — deterministic, capped, no jitter.
         ctx.record("backoff.attempt1", backoffDelayMs(1));
         ctx.record("backoff.attempt2", backoffDelayMs(2));
@@ -80,43 +81,43 @@ export const verifiedDispatchJourney: AcceptanceJourney = {
         let state: CommandQueueState = queue.state;
 
         // T0: submit A (due immediately).
-        const a = submit(state, QUEUE_KEY, NOW_MS);
+        const a = submit(state, QUEUE_KEY, nowMs);
         state = a;
-        ctx.record("due.atT0.keys", dueCommands(state, NOW_MS).map((c) => c.idempotencyKey));
+        ctx.record("due.atT0.keys", dueCommands(state, nowMs).map((c) => c.idempotencyKey));
 
         // T0+1s: ack A -> in-flight.
-        const ack1 = ackOf(state, QUEUE_KEY, NOW_MS + 1_000);
+        const ack1 = ackOf(state, QUEUE_KEY, nowMs + 1_000);
         state = ack1;
 
         // T0+2s: A fails -> re-queued with attempts 2 and
         // nextAttemptAt = T0+2s + backoff(2) = T0+4s.
-        const fail = failOf(state, QUEUE_KEY, "transport error", NOW_MS + 2_000);
+        const fail = failOf(state, QUEUE_KEY, "transport error", nowMs + 2_000);
         state = fail.state;
         ctx.record("due.failed.status", fail.command.status);
         ctx.record("due.failed.attempts", fail.command.attempts);
         ctx.record("due.failed.nextAttemptAt", fail.command.nextAttemptAt);
 
         // T0+3s: submit B (due at submission time).
-        state = submit(state, QUEUE_KEY_B, NOW_MS + 3_000);
+        state = submit(state, QUEUE_KEY_B, nowMs + 3_000);
 
         // At T0+3s: ONLY B is due (A backs off until T0+4s).
-        ctx.record("due.atT3.keys", dueCommands(state, NOW_MS + 3_000).map((c) => c.idempotencyKey));
+        ctx.record("due.atT3.keys", dueCommands(state, nowMs + 3_000).map((c) => c.idempotencyKey));
         // At T0+3.5s: still only B.
-        ctx.record("due.atT35.keys", dueCommands(state, NOW_MS + 3_500).map((c) => c.idempotencyKey));
+        ctx.record("due.atT35.keys", dueCommands(state, nowMs + 3_500).map((c) => c.idempotencyKey));
 
         // At T0+4s: A AND B are due, in ARRIVAL order (A first).
-        const atT4 = dueCommands(state, NOW_MS + 4_000);
+        const atT4 = dueCommands(state, nowMs + 4_000);
         ctx.record("due.atT4.keys", atT4.map((c) => c.idempotencyKey));
         ctx.record("due.atT4.order", atT4.map((c) => c.submissionSeq));
 
         // Dispatch A (ack -> complete) and B (ack -> complete).
-        state = ackOf(state, QUEUE_KEY, NOW_MS + 4_000);
-        state = completeOf(state, QUEUE_KEY, NOW_MS + 4_500);
-        state = ackOf(state, QUEUE_KEY_B, NOW_MS + 5_000);
-        state = completeOf(state, QUEUE_KEY_B, NOW_MS + 5_500);
+        state = ackOf(state, QUEUE_KEY, nowMs + 4_000);
+        state = completeOf(state, QUEUE_KEY, nowMs + 4_500);
+        state = ackOf(state, QUEUE_KEY_B, nowMs + 5_000);
+        state = completeOf(state, QUEUE_KEY_B, nowMs + 5_500);
 
         // Nothing left due — the queue is drained honestly.
-        ctx.record("due.atT6.keys", dueCommands(state, NOW_MS + 6_000).map((c) => c.idempotencyKey));
+        ctx.record("due.atT6.keys", dueCommands(state, nowMs + 6_000).map((c) => c.idempotencyKey));
         ctx.record("due.completedCount", state.commands.filter((c) => c.status === "completed").length);
       },
     },
@@ -156,6 +157,7 @@ export const verifiedDispatchJourney: AcceptanceJourney = {
       packages: ["@fleetos/execution", "@fleetos/policy", "@fleetos/actions"],
       operations: ["sealGuardianEvaluation", "sealActionEmission", "sealExecutionLedgerEntry", "buildIncidentAuditTrail", "verifyIncidentAuditTrail"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         // REAL Guardian evaluation -> DecisionRecord.
         const policy = tenantPolicy();
         const decision = evaluateCapability(policy, READ_CAPABILITY, {
@@ -171,21 +173,21 @@ export const verifiedDispatchJourney: AcceptanceJourney = {
           actorId: "analyst-kim",
           actorIsAutonomous: false,
           actorAuthority: ["tenant.engineer"],
-          evaluatedAt: isoOfEpochMs(NOW_MS),
+          evaluatedAt: isoOfEpochMs(nowMs),
           matchedFacts: [],
         });
 
         // REAL action emissions (the F300B e2e chain through the REAL protocol).
-        const emissions = emitAuditTrail(e2eActionChain("dispatch-intent-1", "dispatch-nonce-1", QUEUE_KEY), "operator-ada");
+        const emissions = emitAuditTrail(e2eActionChain("dispatch-intent-1", "dispatch-nonce-1", QUEUE_KEY, nowMs), "operator-ada");
 
         // REAL execution ledger entries.
         let ledger: readonly ExecutionLedgerEntry[] = [];
-        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "submitted", at: NOW_MS, detail: "" });
-        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "acked", at: NOW_MS + 1_000, detail: "" });
-        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "completed", at: NOW_MS + 2_000, detail: "state=ok" });
+        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "submitted", at: nowMs, detail: "" });
+        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "acked", at: nowMs + 1_000, detail: "" });
+        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "completed", at: nowMs + 2_000, detail: "state=ok" });
 
         // THE SEALERS: each REAL record maps onto its audit surface.
-        const sealedDecision = sealGuardianEvaluation(record, NOW_MS);
+        const sealedDecision = sealGuardianEvaluation(record, nowMs);
         const sealedEmission = sealActionEmission(emissions[0]!);
         const sealedEntry = sealExecutionLedgerEntry(ledger[0]!);
         ctx.record("seal.decision.surface", sealedDecision.surface);
@@ -204,14 +206,14 @@ export const verifiedDispatchJourney: AcceptanceJourney = {
         // ASSEMBLY: canonical order — reverse input order, identical chain.
         const trail = buildIncidentAuditTrail({
           tenantId: TENANT.tenantId,
-          decisions: [{ record, atMs: NOW_MS }],
+          decisions: [{ record, atMs: nowMs }],
           emissions,
           entries: [...ledger],
         });
         if (!trail.ok) throw new Error(`incident trail refused: ${trail.reason}`);
         const trailReversed = buildIncidentAuditTrail({
           tenantId: TENANT.tenantId,
-          decisions: [{ record, atMs: NOW_MS }],
+          decisions: [{ record, atMs: nowMs }],
           emissions: [...emissions].reverse(),
           entries: [...ledger].reverse(),
         });
@@ -229,14 +231,14 @@ export const verifiedDispatchJourney: AcceptanceJourney = {
           tenantId: FOREIGN_TENANT.tenantId,
           idempotencyKey: "foreign-cmd-1",
           kind: "submitted",
-          at: NOW_MS,
+          at: nowMs,
           detail: "",
         });
         if (!foreignAppend.ok) throw new Error("foreign ledger append refused");
         const foreignLedger: readonly ExecutionLedgerEntry[] = foreignAppend.ledger;
         const foreign = buildIncidentAuditTrail({
           tenantId: TENANT.tenantId,
-          decisions: [{ record, atMs: NOW_MS }],
+          decisions: [{ record, atMs: nowMs }],
           emissions,
           entries: [...ledger, ...foreignLedger],
         });

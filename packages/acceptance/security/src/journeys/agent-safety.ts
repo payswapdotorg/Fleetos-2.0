@@ -32,7 +32,6 @@ import {
   AUTONOMOUS_AGENT_CTX,
   AUTONOMOUS_WITH_APPROVAL_CTX,
   EXECUTE_CAPABILITY,
-  NOW_MS,
   READ_CAPABILITY,
   TENANT,
   FOREIGN_TENANT,
@@ -54,6 +53,7 @@ export const agentSafetyJourney: AcceptanceJourney = {
       packages: ["@fleetos/policy"],
       operations: ["issueGrant", "verifyGrantChain", "revokeGrant", "activeGrantsForActor", "assertGrantTenantIsolation"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         let grants: readonly GrantRecord[] = [];
         const root = issueGrant(grants, {
           grantId: "grant-agent-root",
@@ -61,7 +61,7 @@ export const agentSafetyJourney: AcceptanceJourney = {
           capabilityId: EXECUTE_CAPABILITY.id,
           granteeActorId: AGENT_ID,
           grantedByActorId: "operator-ada",
-          grantedAt: NOW_MS - 120_000,
+          grantedAt: nowMs - 120_000,
           expiresAt: null,
         });
         if (!root.ok) throw new Error(`root grant refused: ${root.reason}`);
@@ -72,26 +72,26 @@ export const agentSafetyJourney: AcceptanceJourney = {
           capabilityId: EXECUTE_CAPABILITY.id,
           granteeActorId: "agent-fleetos-02",
           grantedByActorId: AGENT_ID,
-          grantedAt: NOW_MS - 60_000,
-          expiresAt: NOW_MS + 3_600_000,
+          grantedAt: nowMs - 60_000,
+          expiresAt: nowMs + 3_600_000,
           parentGrantId: "grant-agent-root",
         });
         if (!derived.ok) throw new Error(`derived grant refused: ${derived.reason}`);
         grants = derived.grants;
-        const verifyChild = verifyGrantChain(grants, "grant-agent-child", NOW_MS);
+        const verifyChild = verifyGrantChain(grants, "grant-agent-child", nowMs);
         if (!verifyChild.valid) throw new Error(`child chain invalid: ${verifyChild.reason}`);
         ctx.record("grant.chainDepth", verifyChild.chainDepth);
         ctx.record(
           "grant.checkedChain",
           verifyChild.checkedGrantIds,
         );
-        const active = activeGrantsForActor(grants, TENANT.tenantId, AGENT_ID, NOW_MS);
+        const active = activeGrantsForActor(grants, TENANT.tenantId, AGENT_ID, nowMs);
         if (!active.ok) throw new Error(`active grants refused: ${active.reason}`);
         ctx.record("grant.activeCount", active.grants.length);
         const isolation = assertGrantTenantIsolation(grants, TENANT.tenantId);
         ctx.record("grant.tenantIsolated", isolation.isolated);
 
-        const revoked = revokeGrant(grants, "grant-agent-root", NOW_MS + 1_000, "operator-ada", "compromise suspected");
+        const revoked = revokeGrant(grants, "grant-agent-root", nowMs + 1_000, "operator-ada", "compromise suspected");
         if (!revoked.ok) throw new Error(`revoke refused: ${revoked.reason}`);
         ctx.record("revoke.count", revoked.revokedCount);
         const rootAfter = revoked.grants.find((g) => g.grantId === "grant-agent-root");
@@ -101,12 +101,12 @@ export const agentSafetyJourney: AcceptanceJourney = {
         ctx.record("revoke.rootReason", rootAfter.revocationReason);
         ctx.record("revoke.childStatus", childAfter.status);
         ctx.record("revoke.childPropagatedReason", childAfter.revocationReason);
-        const childVerifyAfter = verifyGrantChain(revoked.grants, "grant-agent-child", NOW_MS + 2_000);
+        const childVerifyAfter = verifyGrantChain(revoked.grants, "grant-agent-child", nowMs + 2_000);
         ctx.record("revoke.childStillValid", childVerifyAfter.valid);
         ctx.record("revoke.childRefusal", childVerifyAfter.valid ? "still-valid" : childVerifyAfter.reason);
-        const rootVerifyAfter = verifyGrantChain(revoked.grants, "grant-agent-root", NOW_MS + 2_000);
+        const rootVerifyAfter = verifyGrantChain(revoked.grants, "grant-agent-root", nowMs + 2_000);
         ctx.record("revoke.rootRefusal", rootVerifyAfter.valid ? "still-valid" : rootVerifyAfter.reason);
-        const activeAfter = activeGrantsForActor(revoked.grants, TENANT.tenantId, AGENT_ID, NOW_MS + 2_000);
+        const activeAfter = activeGrantsForActor(revoked.grants, TENANT.tenantId, AGENT_ID, nowMs + 2_000);
         if (!activeAfter.ok) throw new Error(`active read refused: ${activeAfter.reason}`);
         ctx.record("revoke.activeCountAfter", activeAfter.grants.length);
 
@@ -116,11 +116,11 @@ export const agentSafetyJourney: AcceptanceJourney = {
           capabilityId: READ_CAPABILITY.id,
           granteeActorId: AGENT_ID,
           grantedByActorId: "globex-admin",
-          grantedAt: NOW_MS,
+          grantedAt: nowMs,
           expiresAt: null,
         });
         if (!foreignGrant.ok) throw new Error("foreign grant refused");
-        const foreignActive = activeGrantsForActor([...revoked.grants, ...foreignGrant.grants], TENANT.tenantId, AGENT_ID, NOW_MS);
+        const foreignActive = activeGrantsForActor([...revoked.grants, ...foreignGrant.grants], TENANT.tenantId, AGENT_ID, nowMs);
         if (!foreignActive.ok) throw new Error("foreign active read refused");
         ctx.record("grant.foreverLeakCount", foreignActive.grants.length);
 
@@ -132,8 +132,8 @@ export const agentSafetyJourney: AcceptanceJourney = {
               capabilityId: READ_CAPABILITY.id,
               granteeActorId: AGENT_ID,
               grantedByActorId: "operator-ada",
-              grantedAt: NOW_MS - 10_000,
-              expiresAt: NOW_MS - 1_000,
+              grantedAt: nowMs - 10_000,
+              expiresAt: nowMs - 1_000,
               parentGrantId: null,
               status: "active",
               revokedAt: null,
@@ -142,7 +142,7 @@ export const agentSafetyJourney: AcceptanceJourney = {
             },
           ],
           "grant-expiring",
-          NOW_MS,
+          nowMs,
         );
         ctx.record("grant.expiredValid", expireCheck.valid);
         ctx.record("grant.expiredRefusal", expireCheck.valid ? "still-valid" : expireCheck.reason);

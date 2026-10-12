@@ -44,7 +44,6 @@ import {
 import type { DecisionRecord } from "@fleetos/policy";
 import {
   EXECUTE_CAPABILITY,
-  NOW_MS,
   OPERATOR_CTX,
   TENANT,
   FOREIGN_TENANT,
@@ -66,6 +65,7 @@ export const missionReplayJourney: AcceptanceJourney = {
       packages: ["@fleetos/policy"],
       operations: ["evaluateCapability", "evaluateRulesOrdered", "buildDecisionRecord", "buildDecisionAuditRef"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         const policy = tenantPolicy();
         const decision = evaluateCapability(policy, EXECUTE_CAPABILITY, OPERATOR_CTX(EXECUTE_CAPABILITY));
         const ordered = evaluateRulesOrdered(policy, EXECUTE_CAPABILITY, OPERATOR_CTX(EXECUTE_CAPABILITY));
@@ -77,17 +77,17 @@ export const missionReplayJourney: AcceptanceJourney = {
           actorId: "operator-ada",
           actorIsAutonomous: false,
           actorAuthority: ["tenant.operator", "human.approval", "asset.owner"],
-          evaluatedAt: isoOfEpochMs(NOW_MS + 500),
+          evaluatedAt: isoOfEpochMs(nowMs + 500),
           matchedFacts: ordered.evaluation.decisions[0]?.matchedFacts ?? [],
         });
-        const audit = buildDecisionAuditRef(ordered.evaluation, NOW_MS + 500);
+        const audit = buildDecisionAuditRef(ordered.evaluation, nowMs + 500);
         if (!audit.ok) throw new Error("audit ref refused");
         ctx.record("trace.decisionVerdict", decision.verdict);
         ctx.record("trace.decisionCount", ordered.evaluation.decisions.length);
         ctx.record("trace.recordIdPrefix", record.recordId.startsWith("rec-fleetos.device.execute-command-"));
         ctx.record("trace.recordDigestLength", record.recordDigest.length);
         ctx.record("trace.auditRefPrefix", audit.ref.auditRefId.startsWith("audit-"));
-        ctx.record("trace.auditRefCarriesTime", audit.ref.auditRefId.endsWith(String(NOW_MS + 500)));
+        ctx.record("trace.auditRefCarriesTime", audit.ref.auditRefId.endsWith(String(nowMs + 500)));
         ctx.record("trace.auditInputsDigestLength", audit.ref.inputsDigest.length);
       },
     },
@@ -98,8 +98,9 @@ export const missionReplayJourney: AcceptanceJourney = {
       packages: ["@fleetos/execution", "@fleetos/actions"],
       operations: ["replayIncident", "verifyIncidentReplayDeterminism", "emitAuditTrail"],
       run: (ctx) => {
-        const ledger = missionLedger();
-        const journal: readonly ActionAuditEvent[] = emitAuditTrail(missionAction(), "engineer-raj");
+        const nowMs = ctx.startedAt;
+        const ledger = missionLedger(nowMs);
+        const journal: readonly ActionAuditEvent[] = emitAuditTrail(missionAction(nowMs), "engineer-raj");
         const result = replayIncident({ tenantId: TENANT.tenantId, ledger, journal });
         if (!result.ok) throw new Error(`incident replay refused: ${result.reason}`);
         const replay: IncidentReplay = result.replay;
@@ -131,7 +132,8 @@ export const missionReplayJourney: AcceptanceJourney = {
       packages: ["@fleetos/execution"],
       operations: ["replayExecutionLedger", "verifyExecutionLedger"],
       run: (ctx) => {
-        const ledger = missionLedger();
+        const nowMs = ctx.startedAt;
+        const ledger = missionLedger(nowMs);
         const replay = replayExecutionLedger(ledger);
         if (!replay.ok) throw new Error(`ledger replay refused: ${replay.reason}`);
         ctx.record("ledgerReplay.commandCount", replay.commands.length);
@@ -159,8 +161,9 @@ export const missionReplayJourney: AcceptanceJourney = {
       packages: ["@fleetos/execution", "@fleetos/actions"],
       operations: ["diffIncidentReplays", "replayIncident"],
       run: (ctx) => {
-        const ledger = missionLedger();
-        const journal: readonly ActionAuditEvent[] = emitAuditTrail(missionAction(), "engineer-raj");
+        const nowMs = ctx.startedAt;
+        const ledger = missionLedger(nowMs);
+        const journal: readonly ActionAuditEvent[] = emitAuditTrail(missionAction(nowMs), "engineer-raj");
         const recorded = replayIncident({ tenantId: TENANT.tenantId, ledger, journal });
         if (!recorded.ok) throw new Error("recorded replay refused");
 
