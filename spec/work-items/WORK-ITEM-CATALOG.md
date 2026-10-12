@@ -445,6 +445,20 @@ The F310C §3.5 rows remain the honest path: row 36 (honest time-parameterizatio
 
 ---
 
+## Wave 14 — the small-firm remainder (F340 freeze, 2026-10-13)
+
+### F340 — Wave-14 preflight: the remainder freeze
+Owner: TL. DONE at dispatch time — `docs/evidence/F340/report.md` (machine census at `15a4f4b`: 5 verified candidates — A1 observations backpressure, A2 retention/projections, A3 sim-worlds checkpoint determinism, B1 evidence artifact-store, B2 world-context windowing; journal compaction + command storm have NO API = new-capability class, NOT remainder; the D14-D17 law; honest arithmetic: 5 land → small fully-applicable firms 99, +1 D17 slot → 100).
+
+### F341A — worker A: the three field remainder journeys
+Owner: A. Per F340 §4: A1 backpressure discipline, A2 retention projections, A3 checkpoint determinism. Acceptance: census citations, corpus laws, field suite green grow-only, exact SHA + owned-path diff + gate evidence. Optional D17 sixth-slot proposal with census evidence.
+
+### F341B — worker B: the two security remainder journeys
+Owner: B. Per F340 §4: B1 artifact-store completeness, B2 world-context windowing. Acceptance: same laws; security suite green grow-only. Optional D17 sixth-slot proposal with census evidence.
+
+### F342 — TL convergence, recount + verdict
+Owner: TL. Recount the ledger at the converged tree; re-pin; full battery; the honest verdict per F340 §3 (if 5 land: 99/100, NOT READY with a named 1-journey remainder; if a D17 sixth lands: 100, B-3 closes for fully-applicable firms; medium/large already closed at 102-110).
+
 ## Wave 13 — epoch-count activation + capability rows (frozen by F330)
 
 ### F330 — Wave-13 epoch-count law activation freeze
