@@ -24,10 +24,20 @@ import { COMMERCE_T0 } from "../journey-world.js";
 const HOUR = 3_600_000;
 const DAY = 86_400_000;
 const T0 = COMMERCE_T0;
+/** D9 frozen schedule epochs (TL-owned values; 30d = 2_592_000_000 ms, 90d = 7_776_000_000 ms). */
+const EPOCH_T0 = T0;
+const EPOCH_T0_30D = T0 + 2_592_000_000;
+const EPOCH_T0_90D = T0 + 7_776_000_000;
 const eq = (id: string, fact: string, expected: FactValue, description: string) =>
   ({ id, description, fact, op: "eq" as const, expected });
 const deq = (id: string, fact: string, expected: readonly string[], description: string) =>
   ({ id, description, fact, op: "deepEq" as const, expected });
+/** A D10 per-epoch table over the frozen D9 schedule; the T0 entry equals the single-valued expectation. */
+const byEpoch = (expectedAtT0: FactValue, at30d: FactValue, at90d: FactValue) => [
+  { epoch: EPOCH_T0, expected: expectedAtT0 },
+  { epoch: EPOCH_T0_30D, expected: at30d },
+  { epoch: EPOCH_T0_90D, expected: at90d },
+];
 
 /**
  * Tenant billing & invoicing: REAL usage ledger (appendUsage through
@@ -60,6 +70,11 @@ export const tenantBillingInvoicingJourney: AcceptanceJourney = {
     // The open-period invoice: refused at T0 (the issuance gate); issued beyond T0+2h.
     { stepId: "s3", kind: "billing-invoice-issue", factKey: "open", invoiceId: "inv-2",
       period: { from: T0 - 6 * HOUR, until: T0 + 2 * HOUR }, seatRateMinor: 25_000, limitMinor: 10_000_000,
+      subscription: "world", grants: "world", usage: "seeded", at: "now" },
+    // The late-period invoice: a second boundary at T0+45d — refused through +30d,
+    // issued at +90d (keeps the +30d and +90d epochs distinct).
+    { stepId: "s3b", kind: "billing-invoice-issue", factKey: "late", invoiceId: "inv-9",
+      period: { from: T0 + 30 * DAY, until: T0 + 45 * DAY }, seatRateMinor: 25_000, limitMinor: 10_000_000,
       subscription: "world", grants: "world", usage: "seeded", at: "now" },
     // No double billing.
     { stepId: "s4", kind: "billing-invoice-issue", factKey: "dup", invoiceId: "inv-1",
@@ -108,10 +123,22 @@ export const tenantBillingInvoicingJourney: AcceptanceJourney = {
       "consumption:model-beta-cheap:2req:16u:6400",
       "consumption:model-gamma-analytic:1req:4u:3600",
     ], "the line items compose from the REAL usage records (honest windowing: the future r4 never enters; seat first, then modelId lexical)"),
-    { id: "b12", description: "the open period refuses issuance at T0 (the window-boundary gate)", fact: "bil.invoice.open.ok", op: "eq", expected: false },
-    { id: "b13", description: "the open-period refusal names PERIOD_NOT_ENDED at T0", fact: "bil.invoice.open.reasonCode", op: "eq", expected: "PERIOD_NOT_ENDED" },
-    { id: "b14", description: "the open period has no issued status at T0 (it issues beyond the boundary)", fact: "bil.invoice.open.status", op: "eq", expected: null },
-    { id: "b15", description: "the open period has no total at T0 (its window holds no usage records when it issues)", fact: "bil.invoice.open.totalMinor", op: "eq", expected: null },
+    { id: "b12", description: "the open period refuses issuance at T0 (the window-boundary gate) and issues beyond it", fact: "bil.invoice.open.ok", op: "eq", expected: false,
+      expectedByEpoch: byEpoch(false, true, true) },
+    { id: "b13", description: "the open-period refusal names PERIOD_NOT_ENDED at T0; beyond the boundary it is null", fact: "bil.invoice.open.reasonCode", op: "eq", expected: "PERIOD_NOT_ENDED",
+      expectedByEpoch: byEpoch("PERIOD_NOT_ENDED", null, null) },
+    { id: "b14", description: "the open period has no issued status at T0 (it issues beyond the boundary)", fact: "bil.invoice.open.status", op: "eq", expected: null,
+      expectedByEpoch: byEpoch(null, "issued", "issued") },
+    { id: "b15", description: "the open period has no total at T0; beyond the boundary it is the seat-only 75_000 (its window holds no usage records)", fact: "bil.invoice.open.totalMinor", op: "eq", expected: null,
+      expectedByEpoch: byEpoch(null, 75_000, 75_000) },
+    { id: "b15b", description: "the late period (boundary T0+45d) refuses issuance through +30d and issues at +90d — the second boundary that keeps +30d and +90d distinct", fact: "bil.invoice.late.ok", op: "eq", expected: false,
+      expectedByEpoch: byEpoch(false, false, true) },
+    { id: "b16b", description: "the late-period refusal names PERIOD_NOT_ENDED at T0 and +30d; null at +90d", fact: "bil.invoice.late.reasonCode", op: "eq", expected: "PERIOD_NOT_ENDED",
+      expectedByEpoch: byEpoch("PERIOD_NOT_ENDED", "PERIOD_NOT_ENDED", null) },
+    { id: "b17b", description: "the late period has no issued status through +30d; issued at +90d", fact: "bil.invoice.late.status", op: "eq", expected: null,
+      expectedByEpoch: byEpoch(null, null, "issued") },
+    { id: "b18b", description: "the late period has no total through +30d; the seat-only 75_000 at +90d (its window holds no usage records)", fact: "bil.invoice.late.totalMinor", op: "eq", expected: null,
+      expectedByEpoch: byEpoch(null, null, 75_000) },
     eq("b16", "bil.invoice.dup.reasonCode", "DUPLICATE_INVOICE_ID", "a duplicate invoice id refuses"),
     eq("b17", "bil.invoice.overlap.reasonCode", "DUPLICATE_BILLING_PERIOD", "an overlapping period of the same subscription refuses — never double billed"),
     eq("b18", "bil.invoice.limit.reasonCode", "INVOICE_LIMIT_EXCEEDED", "the invoice limit path refuses with the exact overshoot"),

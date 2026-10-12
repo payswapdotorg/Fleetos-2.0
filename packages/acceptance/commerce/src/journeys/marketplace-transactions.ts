@@ -23,10 +23,20 @@ import { COMMERCE_T0 } from "../journey-world.js";
 const HOUR = 3_600_000;
 const DAY = 86_400_000;
 const T0 = COMMERCE_T0;
+/** D9 frozen schedule epochs (TL-owned values; 30d = 2_592_000_000 ms, 90d = 7_776_000_000 ms). */
+const EPOCH_T0 = T0;
+const EPOCH_T0_30D = T0 + 2_592_000_000;
+const EPOCH_T0_90D = T0 + 7_776_000_000;
 const eq = (id: string, fact: string, expected: FactValue, description: string) =>
   ({ id, description, fact, op: "eq" as const, expected });
 const deq = (id: string, fact: string, expected: readonly string[], description: string) =>
   ({ id, description, fact, op: "deepEq" as const, expected });
+/** A D10 per-epoch table over the frozen D9 schedule; the T0 entry equals the single-valued expectation. */
+const byEpoch = (expectedAtT0: FactValue, at30d: FactValue, at90d: FactValue) => [
+  { epoch: EPOCH_T0, expected: expectedAtT0 },
+  { epoch: EPOCH_T0_30D, expected: at30d },
+  { epoch: EPOCH_T0_90D, expected: at90d },
+];
 
 /**
  * The marketplace transaction flow: REAL publication gate → REAL
@@ -74,6 +84,8 @@ export const marketplaceTransactionFlowJourney: AcceptanceJourney = {
       quantity: 2, unitPriceMinor: 12_500, holdMs: 24 * HOUR, acknowledgeExclusions: true, at: T0 - 25 * HOUR },
     { stepId: "s10", kind: "mtx-place-order", factKey: "expiring", orderId: "ord-expiring", listingId: "lst-legacy", vendorId: "ven-1",
       quantity: 1, unitPriceMinor: 12_500, holdMs: 30 * HOUR, acknowledgeExclusions: true, at: T0 - 25 * HOUR },
+    { stepId: "s10b", kind: "mtx-place-order", factKey: "slow", orderId: "ord-slow", listingId: "lst-fresh", vendorId: "ven-1",
+      quantity: 4, unitPriceMinor: 12_500, holdMs: 45 * DAY + 25 * HOUR, acknowledgeExclusions: true, at: T0 - 25 * HOUR },
     { stepId: "s11", kind: "mtx-place-order", factKey: "big", orderId: "ord-big", listingId: "lst-fresh", vendorId: "ven-1",
       quantity: 80, unitPriceMinor: 12_500, holdMs: 48 * HOUR, acknowledgeExclusions: true, at: "now" },
     { stepId: "s12", kind: "mtx-place-order", factKey: "temp", orderId: "ord-temp", listingId: "lst-fresh", vendorId: "ven-1",
@@ -87,6 +99,7 @@ export const marketplaceTransactionFlowJourney: AcceptanceJourney = {
     { stepId: "s17", kind: "mtx-checkout-order", factKey: "limit", orderId: "ord-big", limitMinor: 999_999, at: "now" },
     { stepId: "s18", kind: "mtx-checkout-order", factKey: "tempAfterCancel", orderId: "ord-temp", limitMinor: 1_000_000, at: "now" },
     { stepId: "s19", kind: "mtx-checkout-order", factKey: "legacyOk", orderId: "ord-legacy", limitMinor: 1_000_000, at: "now" },
+    { stepId: "s19b", kind: "mtx-checkout-order", factKey: "slowOk", orderId: "ord-slow", limitMinor: 1_000_000, at: "now" },
     { stepId: "s20", kind: "mtx-checkout-order", factKey: "lapsed", orderId: "ord-lapsed", limitMinor: 1_000_000, at: "now" },
     // Expiries: the lapsed window (already lapsed at T0), the expiring window (open until T0+5h).
     { stepId: "s21", kind: "mtx-expire-order", factKey: "lapsed", orderId: "ord-lapsed", at: "now" },
@@ -117,25 +130,37 @@ export const marketplaceTransactionFlowJourney: AcceptanceJourney = {
     eq("a19", "mtx.checkout.limit.reasonCode", "CHECKOUT_LIMIT_EXCEEDED", "the checkout limit path refuses with the exact overshoot"),
     eq("a20", "mtx.checkout.limit.overshootMinor", 1, "the overshoot is exactly 1 minor unit — never clamped"),
     eq("a21", "mtx.checkout.limit.totalMinor", 1_000_000, "the refused checkout carries the exact would-be total"),
-    { id: "a22", description: "the anchored legacy order checks out within its absolute window at T0 (deadline breach beyond)", fact: "mtx.checkout.legacyOk.ok", op: "eq", expected: true },
-    { id: "a23", description: "the legacy checkout status is checked-out at T0 (flips to refused beyond the window)", fact: "mtx.checkout.legacyOk.status", op: "eq", expected: "checked-out" },
-    { id: "a24", description: "the legacy checkout has no refusal at T0 (the deadline breach names itself beyond the window)", fact: "mtx.checkout.legacyOk.reasonCode", op: "eq", expected: null },
+    { id: "a22", description: "the anchored legacy order checks out within its absolute window at T0 (deadline breach beyond)", fact: "mtx.checkout.legacyOk.ok", op: "eq", expected: true,
+      expectedByEpoch: byEpoch(true, false, false) },
+    { id: "a22b", description: "the anchored slow order checks out within its long window at T0 and +30d (its T0+45d deadline breaches only at +90d — the second boundary that keeps +30d and +90d distinct)", fact: "mtx.checkout.slowOk.ok", op: "eq", expected: true,
+      expectedByEpoch: byEpoch(true, true, false) },
+    { id: "a23", description: "the legacy checkout status is checked-out at T0 (refused beyond the window)", fact: "mtx.checkout.legacyOk.status", op: "eq", expected: "checked-out",
+      expectedByEpoch: byEpoch("checked-out", null, null) },
+    { id: "a23b", description: "the slow checkout status stays checked-out through +30d and flips at +90d", fact: "mtx.checkout.slowOk.status", op: "eq", expected: "checked-out",
+      expectedByEpoch: byEpoch("checked-out", "checked-out", null) },
+    { id: "a24", description: "the legacy checkout has no refusal at T0 (the deadline breach names itself beyond the window)", fact: "mtx.checkout.legacyOk.reasonCode", op: "eq", expected: null,
+      expectedByEpoch: byEpoch(null, "ORDER_WINDOW_EXPIRED", "ORDER_WINDOW_EXPIRED") },
+    { id: "a24b", description: "the slow checkout has no refusal through +30d; the T0+45d deadline breach names itself at +90d", fact: "mtx.checkout.slowOk.reasonCode", op: "eq", expected: null,
+      expectedByEpoch: byEpoch(null, null, "ORDER_WINDOW_EXPIRED") },
     eq("a25", "mtx.checkout.legacyOk.totalMinor", 50_000, "the legacy order's total is invariant across the window boundary (both paths carry it)"),
     eq("a26", "mtx.checkout.lapsed.ok", false, "the lapsed order's checkout is refused at T0 — its window ended at T0−1h"),
     eq("a27", "mtx.checkout.lapsed.reasonCode", "ORDER_WINDOW_EXPIRED", "the refusal names the deadline breach"),
     eq("a28", "mtx.checkout.lapsed.validUntil", T0 - HOUR, "the refusal carries the exact absolute deadline"),
     eq("a29", "mtx.expire.lapsed.ok", true, "the lapsed order expires through the explicit transition (its window had already lapsed at T0)"),
     eq("a30", "mtx.expire.lapsed.status", "expired", "the expiry transition lands in expired"),
-    { id: "a31", description: "the expiring order refuses early expiry at T0 (its window is open until T0+5h)", fact: "mtx.expire.expiring.ok", op: "eq", expected: false },
-    { id: "a32", description: "the expiring order is not yet expired at T0 (the transition lands beyond the window)", fact: "mtx.expire.expiring.status", op: "eq", expected: null },
-    { id: "a33", description: "the early-expiry refusal names NOT_EXPIRED_YET at T0", fact: "mtx.expire.expiring.reasonCode", op: "eq", expected: "NOT_EXPIRED_YET" },
+    { id: "a31", description: "the expiring order refuses early expiry at T0 (its window is open until T0+5h) and expires beyond", fact: "mtx.expire.expiring.ok", op: "eq", expected: false,
+      expectedByEpoch: byEpoch(false, true, true) },
+    { id: "a32", description: "the expiring order is not yet expired at T0 (the transition lands beyond the window)", fact: "mtx.expire.expiring.status", op: "eq", expected: null,
+      expectedByEpoch: byEpoch(null, "expired", "expired") },
+    { id: "a33", description: "the early-expiry refusal names NOT_EXPIRED_YET at T0; beyond the window the expiry succeeds", fact: "mtx.expire.expiring.reasonCode", op: "eq", expected: "NOT_EXPIRED_YET",
+      expectedByEpoch: byEpoch("NOT_EXPIRED_YET", null, null) },
     eq("a34", "mtx.expire.lapsedAgain.reasonCode", "ILLEGAL_TRANSITION", "an expired order is terminal — no second transition"),
     eq("a35", "mtx.cancel.tempNoReason.reasonCode", "CANCEL_REASON_REQUIRED", "cancellation without a reason refuses"),
     eq("a36", "mtx.cancel.temp.status", "cancelled", "the cancel transition lands in cancelled"),
     eq("a37", "mtx.cancel.temp.cancelledReason", "buyer switched carrier", "the cancellation reason is carried verbatim"),
     eq("a38", "mtx.checkout.tempAfterCancel.reasonCode", "ORDER_NOT_PLACED", "a cancelled order can never be checked out"),
-    eq("a39", "mtx.board.board.total", 6, "the board counts exactly the six placed orders"),
-    deq("a40", "mtx.board.board.orderIds", ["ord-big", "ord-expiring", "ord-fresh", "ord-lapsed", "ord-legacy", "ord-temp"], "the board lists the orders in the documented lexical order"),
+    eq("a39", "mtx.board.board.total", 7, "the board counts exactly the seven placed orders"),
+    deq("a40", "mtx.board.board.orderIds", ["ord-big", "ord-expiring", "ord-fresh", "ord-lapsed", "ord-legacy", "ord-slow", "ord-temp"], "the board lists the orders in the documented lexical order"),
   ],
 };
 

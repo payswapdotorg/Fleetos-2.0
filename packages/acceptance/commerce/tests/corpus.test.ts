@@ -127,15 +127,10 @@ describe("F331C epoch-table shape (D10)", () => {
     }
   });
 
-  it("epoch tables exist ONLY on census-certified journeys (the F331C census responder set)", () => {
+  it("epoch tables exist ONLY on census-certified journeys (the F331C census responder set), and every certified responder is parameterized", () => {
     for (const journey of JOURNEYS) {
       const hasTable = journey.assertions.some((a) => a.expectedByEpoch !== undefined);
-      // Subset law: a table may only exist on a census-certified journey.
-      // (The strict equality form — every certified responder is
-      // parameterized — lands with the D10 parameterization commit.)
-      if (hasTable) {
-        expect(EPOCH_TABLE_JOURNEYS.has(journey.id), journey.id).toBe(true);
-      }
+      expect(hasTable, journey.id).toBe(EPOCH_TABLE_JOURNEYS.has(journey.id));
     }
   });
 });
