@@ -29,8 +29,8 @@ describe("adoption report (2-industry simulation)", () => {
     expect(REPORT.industryVerdicts.length).toBe(2);
     const manufacturing = REPORT.industryVerdicts.find((v) => v.industryId === "manufacturing");
     expect(manufacturing?.verdict).toBe("SWITCH-ONLY");
-    expect(manufacturing?.coverageTotal).toBe(91);
-    expect(manufacturing?.coveragePassed).toBe(91);
+    expect(manufacturing?.coverageTotal).toBe(94);
+    expect(manufacturing?.coveragePassed).toBe(94);
     expect(manufacturing?.coverageRatio).toBe(1);
     expect(manufacturing?.unmappedCapabilities).toHaveLength(0);
     const agriculture = REPORT.industryVerdicts.find((v) => v.industryId === "agriculture");

@@ -21,13 +21,18 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(INDUSTRIES.length).toBe(10);
   });
 
-  it("executes 2523 COUNTED journeys over the REAL corpora (plus 855 raw epoch re-runs, never counted)", () => {
-    expect(SIMULATION.aggregate.fieldExecutions).toBe(855);
-    expect(SIMULATION.aggregate.commerceExecutions).toBe(897);
+  it("executes 2613 COUNTED journeys over the REAL corpora (plus 885 raw epoch re-runs, never counted)", () => {
+    expect(SIMULATION.aggregate.fieldExecutions).toBe(885);
+    expect(SIMULATION.aggregate.commerceExecutions).toBe(957);
     expect(SIMULATION.aggregate.securityExecutions).toBe(771);
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(2523);
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(841);
-    expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(855);
+    expect(SIMULATION.aggregate.journeyExecutions).toBe(2613);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(871);
+    expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(885);
+    // Wave-13 corpora at the INACTIVE counting gate (F332 machine-measured;
+    // the Wave-12 pins were 855/897/771/2523/841/855): field 31 (F331A) +
+    // commerce 36 (F331C), both unmasked everywhere → +30 field and +60
+    // commerce counted executions. Epoch variants count only when the F332
+    // gate is ACTIVE (D7) — see tests/f332.test.ts for that ledger.
   });
 
   it("journeys > 0 and every counted execution PASSED (REAL outcomes, never re-computed)", () => {
@@ -128,7 +133,7 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(honestCounts.entries.length).toBe(30);
     expect(honestCounts.entries.every((e) => e.executed < 100)).toBe(true);
     const maxExecuted = Math.max(...honestCounts.entries.map((e) => e.executed));
-    expect(maxExecuted).toBe(91); // manufacturing/energy fully applicable: 30+34+27 (Wave 12 converged corpora)
+    expect(maxExecuted).toBe(94); // manufacturing/energy fully applicable: 31+36+27 (Wave-13 corpora; epoch counts are gated by F332)
     expect(honestCounts.aggregateShortfall).toBe(30 * 100 - SIMULATION.aggregate.journeyExecutions);
     for (const reason of honestCounts.structuralReasons) {
       expect(reason.length).toBeGreaterThan(30);

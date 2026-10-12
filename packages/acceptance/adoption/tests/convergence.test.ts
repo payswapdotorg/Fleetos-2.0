@@ -21,8 +21,8 @@ describe("convergence expectation (honest parameterization)", () => {
     expect(verifyConvergenceExpectation()).toEqual([]);
   });
 
-  it("records ALL lane extensions (Wave 10 + Wave 12) with their branch tips", () => {
-    expect(LANE_EXTENSIONS.map((r) => r.workItem).sort()).toEqual(["F300A", "F300B", "F321A", "F321B", "F321C"]);
+  it("records ALL lane extensions (Wave 10 + 12 + 13) with their branch tips", () => {
+    expect(LANE_EXTENSIONS.map((r) => r.workItem).sort()).toEqual(["F300A", "F300B", "F321A", "F321B", "F321C", "F331A", "F331C"]);
     expect(LANE_EXTENSIONS.every((r) => r.branchTipCommit.length > 0)).toBe(true);
     expect(LANE_EXTENSIONS.every((r) => r.branch.startsWith("work/"))).toBe(true);
   });
@@ -37,14 +37,14 @@ describe("convergence expectation (honest parameterization)", () => {
   });
 
   it("the convergence expectation still falls short of the 100/firm target — the threshold is never weakened", () => {
-    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(91);
+    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(94);
     expect(CONVERGENCE_EXPECTATION.targetPerFirm).toBe(100);
-    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(9);
+    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(6);
     expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBeGreaterThan(0);
   });
 
-  it("the commerce corpus in this tree is the Wave-12 converged extension (34 distinct journeys — 15 via F300C, 21 via F310C, 34 via F321C)", () => {
-    expect(COMMERCE_JOURNEYS.length).toBe(34);
+  it("the commerce corpus in this tree is the Wave-13 converged extension (36 distinct journeys — 15 via F300C, 21 via F310C, 34 via F321C, 36 via F331C)", () => {
+    expect(COMMERCE_JOURNEYS.length).toBe(36);
     const ids = COMMERCE_JOURNEYS.map((j) => j.id);
     for (const extension of ["host-surface", "host-intents", "host-tenant-edges", "gateway-routing", "role-assignment-handoff", "work-order-blocking"]) {
       expect(ids).toContain(extension);
@@ -54,6 +54,9 @@ describe("convergence expectation (honest parameterization)", () => {
     }
     for (const f321c of ["marketplace-publication-lifecycle", "vendor-directory-service-relationship", "actor-job-failure-expiry"]) {
       expect(ids).toContain(f321c);
+    }
+    for (const f331c of ["marketplace-transaction-flow", "tenant-billing-invoicing"]) {
+      expect(ids).toContain(f331c);
     }
     expect(new Set(ids).size).toBe(ids.length);
   });

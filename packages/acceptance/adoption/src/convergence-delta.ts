@@ -2,22 +2,19 @@
  * @fleetos/acceptance-adoption — the Wave 11 convergence expectation
  * (F310C scoped TL grant; FINAL-RELEASE-HANDOFF Wave 11).
  *
- * HONEST PARAMETERIZATION RECORD, not a machine-run claim: this branch
- * (work/f310c) carries the F310C commerce corpus extension (21 → 31
- * journeys) — worker C's own corpus, extended in this lane's owned
- * paths. The Wave 11 sibling lanes (F310A root typecheck, F310B full
- * build) are VERIFICATION lanes: neither changes any corpus, so the
- * converged corpus sizes at F311 are exactly this tree's
- * (field 20 / commerce 31 / security 17). The historical Wave 10
- * sibling-extension records are preserved below (both merged at the
- * Wave 10 convergence — delta 0).
+ * HONEST PARAMETERIZATION RECORD, not a machine-run claim: this module
+ * records the corpora's convergence state per wave. Wave 13 (F332) updates
+ * the tree counts to the merged F331A (field 30→31) + F331C (commerce
+ * 34→36) corpora — machine-measured by the F332 probe (2613 counted at
+ * the INACTIVE gate; the ACTIVE ledger recompute is F332 phase 2).
+ * The historical lane-extension records are preserved below.
  *
  * The 100-counted-journeys-per-firm target is NEVER silently weakened:
- * the convergence expectation (68 for a fully-applicable firm) still
- * falls short of 100 by 32, and the shortfall stays STRUCTURAL
- * (runner/corpus shape), preserved in the honest-counts ledger for a
- * documented TL/user decision (the F310C decision packet records the
- * options).
+ * the convergence expectation (94 for a fully-applicable firm on the
+ * Wave-13 corpora, single-counted) still falls short of 100 by 6 as a
+ * single-count cap, and the shortfall stays STRUCTURAL (epoch counting
+ * gated by F332), preserved in the honest-counts ledger for a documented
+ * TL/user decision.
  */
 
 /** The sibling lanes' Wave 10 branch tips (fetched, unmerged — recorded for the TL). */
@@ -87,6 +84,26 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     journeysInThisTree: 31,
     delta: 3,
   },
+  {
+    workItem: "F331A",
+    lane: "worker-a (asset/field)",
+    branch: "work/f331a",
+    branchTipCommit: "d902e80",
+    corpus: "field",
+    journeysAtTip: 31,
+    journeysInThisTree: 30,
+    delta: 1,
+  },
+  {
+    workItem: "F331C",
+    lane: "worker-c (work/commerce)",
+    branch: "work/f331c",
+    branchTipCommit: "2dfa6e0",
+    corpus: "commerce",
+    journeysAtTip: 36,
+    journeysInThisTree: 34,
+    delta: 2,
+  },
 ];
 
 /** This branch's machine-run corpus counts (the CURRENT tree). */
@@ -99,10 +116,10 @@ export interface CurrentCorpusCounts {
 }
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
-  field: 30,
-  commerce: 34,
+  field: 31,
+  commerce: 36,
   security: 27,
-  fullyApplicableFirmCap: 30 + 34 + 27,
+  fullyApplicableFirmCap: 31 + 36 + 27,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -118,12 +135,12 @@ export interface ConvergenceExpectation {
 }
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
-  field: 30,
-  commerce: 34,
+  field: 31,
+  commerce: 36,
   security: 27,
-  fullyApplicableFirmCap: 30 + 34 + 27,
+  fullyApplicableFirmCap: 31 + 36 + 27,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (30 + 34 + 27),
+  shortfallPerFullyApplicableFirm: 100 - (31 + 36 + 27),
 };
 
 /** Machine-check the parameterization's internal consistency. */
