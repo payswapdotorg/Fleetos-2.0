@@ -27,6 +27,16 @@ export const FOREIGN_TENANT = { tenantId: "globex-rival" } as const;
 export const BASE_MS = 1_791_830_400_000;
 /** Fixed logical "now" used by every journey read model (18:50:00Z). */
 export const NOW_MS = BASE_MS + 600_000;
+/**
+ * The security corpus's run anchor — the `startedAt` seam default (F331B).
+ * Every corpus-mode run without an explicit `startedAt` executes at this
+ * fixed logical now, so the seam is byte-identical to the pre-seam corpus.
+ * The census (D12) runs the SAME corpus at the adoption-epoch anchors
+ * instead (`CENSUS_T0` in ./census.ts) — the security fixture clock and
+ * the adoption clock are deliberately DIFFERENT absolute values; the
+ * census measures the corpus at the adoption regime, not at this default.
+ */
+export const SECURITY_CORPUS_T0 = NOW_MS;
 /** ISO string of the logical "now" (for `computedAt`-style string fields). */
 export const NOW_ISO = "2026-10-12T18:50:00.000Z";
 /** Staleness thresholds shared by journeys (fresh < 10s <= stale-ish < 60s). */

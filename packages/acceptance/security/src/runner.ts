@@ -10,7 +10,10 @@
  *     step detail — the runner never swallows domain errors);
  *   - a FAILING assertion fails the journey — no soft passes;
  *   - re-running the same journey is byte-identical (same facts, same
- *     outcomes, same digest) — machine-tested.
+ *     outcomes, same digest) — machine-tested;
+ *   - the run's logical clock is the caller-supplied `startedAt` anchor
+ *     (the F331B time seam; the default SECURITY_CORPUS_T0 keeps the
+ *     pre-seam corpus behavior byte-for-byte).
  *
  * The runner records `null` actuals as MISSING facts (distinct from a
  * recorded `null` value) so an assertion against a path nobody recorded is
@@ -23,15 +26,33 @@ import type {
   JourneyFactMap,
   JourneyFactValue,
   JourneyOutcome,
-  JourneyRecorder,
+  JourneyStepContext,
   JourneyStepResult,
 } from "./journey-contracts.ts";
 import { canonicalEquals, journeyOutcomeDigest } from "./journey-contracts.ts";
+import { SECURITY_CORPUS_T0 } from "./journeys/fixture-world.ts";
 
 export interface JourneyRunResult {
   readonly outcome: JourneyOutcome;
   /** The facts recorded by the steps (assertion evaluation input). */
   readonly facts: JourneyFactMap;
+}
+
+/**
+ * The `startedAt`-class time seam (F331B, D12).
+ *
+ * `startedAt` is the absolute epoch-ms anchor of the run's logical clock.
+ * Default: `SECURITY_CORPUS_T0` (the corpus fixture's fixed logical now) —
+ * a run without options computes BYTE-IDENTICALLY to the pre-seam corpus
+ * (machine-proven by tests/seam.test.ts against the base-tree digests).
+ * A caller-supplied anchor re-bases every journey's active clock (the
+ * `NOW_MS`-class call sites re-rendered through the step context) while
+ * the fixture-world's BASE_MS-anchored reference data stays fixed — the
+ * execution shape the adoption runner's firm-epoch path uses for the
+ * field corpus (`adoption-run.ts:148`).
+ */
+export interface SecurityRunOptions {
+  readonly startedAt?: number;
 }
 
 function recordFact(facts: Record<string, JourneyFactValue>, path: string, value: JourneyFactValue): void {
@@ -52,9 +73,10 @@ function recordFact(facts: Record<string, JourneyFactValue>, path: string, value
  * order; every step runs to completion even after an earlier one failed
  * (honest full-trail outcomes), but any failed step fails the journey.
  */
-export function runJourney(journey: AcceptanceJourney): JourneyRunResult {
+export function runJourney(journey: AcceptanceJourney, options: SecurityRunOptions = {}): JourneyRunResult {
+  const startedAt = options.startedAt ?? SECURITY_CORPUS_T0;
   const facts: Record<string, JourneyFactValue> = {};
-  const recorder: JourneyRecorder = { record: (path, value) => recordFact(facts, path, value) };
+  const recorder: JourneyStepContext = { record: (path, value) => recordFact(facts, path, value), startedAt };
 
   const stepResults: JourneyStepResult[] = journey.steps.map((step) => {
     try {
@@ -108,9 +130,12 @@ export function runJourney(journey: AcceptanceJourney): JourneyRunResult {
   return { outcome: { ...withoutDigest, digest: journeyOutcomeDigest(withoutDigest) }, facts };
 }
 
-/** Run every journey in a corpus, in the declared order. */
-export function runAllJourneys(journeys: readonly AcceptanceJourney[]): readonly JourneyOutcome[] {
-  return journeys.map((j) => runJourney(j).outcome);
+/** Run every journey in a corpus, in the declared order, at one anchor. */
+export function runAllJourneys(
+  journeys: readonly AcceptanceJourney[],
+  options: SecurityRunOptions = {},
+): readonly JourneyOutcome[] {
+  return journeys.map((j) => runJourney(j, options).outcome);
 }
 
 /**
