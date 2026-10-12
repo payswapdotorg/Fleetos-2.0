@@ -34,6 +34,7 @@ capability + machine proofs, never counting changes.
 | typecheck (owned) | `pnpm --filter @fleetos/acceptance-field --filter @fleetos/maintenance --filter @fleetos/experience-asset-field typecheck` | exit 0 |
 | lint (owned) | same filter, `lint` | 0 warnings, 0 errors (file law ≤400 enforced by oxlint max-lines — all touched files pass) |
 | corpus at T0 | inside the field suite | 31/31 journeys pass; every parameterized journey's T0 outcome digest equals its epoch-0 outcome digest (the parameterization changed nothing at T0) |
+| corpus grow-only (machine-measured, both trees; step/assert counts cross-checked against `assembleAcceptanceReport` on the lane tree and the same grep-of-base-files on `main`) | base **30 journeys / 352 steps / 543 assertions** → lane **31 / 390 steps / 607 assertions** (+1 journey; +38 steps = +30 OTA-journey steps + 8 review/rollup steps across the reworked journeys; +64 assertions = +43 OTA journey + 21 across the 4 parameterized + 2 rewritten journeys; nothing removed) |
 | adoption transition (TL-owned, read-only measurement) | `pnpm --filter @fleetos/acceptance-adoption test` | 84 pass / **11 count-pin failures** — exactly the documented transition (§8), same class as the F321A precedent; NO adoption/release file was touched by this lane |
 
 ## 3. The epoch-execution capability (D10, mechanical)
