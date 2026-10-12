@@ -39,7 +39,7 @@ import { NOW_MS, TENANT, isoOfEpochMs } from "./fixture-world.ts";
 
 const CAPABILITY_REF = { capabilityId: "fleetos.device.execute-command", version: "1.2.0" } as const;
 
-function candidate(caseId: string, inputs: Readonly<Record<string, unknown>>, expected: string): CaseIntakeCandidate<string> {
+function candidate(caseId: string, inputs: Readonly<Record<string, unknown>>, expected: string, nowMs: number = NOW_MS): CaseIntakeCandidate<string> {
   return {
     caseId,
     tenant: TENANT,
@@ -49,7 +49,7 @@ function candidate(caseId: string, inputs: Readonly<Record<string, unknown>>, ex
     description: `Arena case ${caseId}`,
     tags: ["journey", "wave7b"],
     source: "journey-f270b",
-    submittedAtMs: NOW_MS,
+    submittedAtMs: nowMs,
   };
 }
 
@@ -61,10 +61,10 @@ function evaluationCases(): readonly EvaluationCase<string>[] {
   ];
 }
 
-function outcomes(): readonly OutcomeObservation<string>[] {
+function outcomes(nowMs: number = NOW_MS): readonly OutcomeObservation<string>[] {
   return [
-    { observationId: "out-1", caseId: "case-ack-1", actual: "ok", observedAt: isoOfEpochMs(NOW_MS), observationRef: "obs-out-1", success: true },
-    { observationId: "out-2", caseId: "case-ack-2", actual: "timeout", observedAt: isoOfEpochMs(NOW_MS), observationRef: "obs-out-2", success: false },
+    { observationId: "out-1", caseId: "case-ack-1", actual: "ok", observedAt: isoOfEpochMs(nowMs), observationRef: "obs-out-1", success: true },
+    { observationId: "out-2", caseId: "case-ack-2", actual: "timeout", observedAt: isoOfEpochMs(nowMs), observationRef: "obs-out-2", success: false },
   ];
 }
 
@@ -81,11 +81,12 @@ export const learningJourney: AcceptanceJourney = {
       packages: ["@fleetos/arena"],
       operations: ["intakeCases", "assembleCaseSet", "verifyCaseSetDigest", "makeReferenceArenaAdapter", "isArenaEvaluationProposal"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         const intake = intakeCases(
           [
-            candidate("case-ack-1", { assetId: "pump-7" }, "ok"),
-            candidate("case-ack-2", { assetId: "pump-8" }, "ok"),
-            candidate("case-ack-2", { assetId: "pump-8" }, "ok"),
+            candidate("case-ack-1", { assetId: "pump-7" }, "ok", nowMs),
+            candidate("case-ack-2", { assetId: "pump-8" }, "ok", nowMs),
+            candidate("case-ack-2", { assetId: "pump-8" }, "ok", nowMs),
           ],
           TENANT,
         );
@@ -95,7 +96,7 @@ export const learningJourney: AcceptanceJourney = {
         const caseSet = assembleCaseSet(intake.cases, {
           tenant: TENANT,
           capability: CAPABILITY_REF,
-          assembledAtMs: NOW_MS,
+          assembledAtMs: nowMs,
         });
         if (!caseSet.ok) throw new Error(`case set refused: ${caseSet.code}`);
         ctx.record("caseset.count", caseSet.caseSet.caseCount);
@@ -115,7 +116,7 @@ export const learningJourney: AcceptanceJourney = {
             tags: [...c.tags],
           })),
           requester: "ml-engineer-sam",
-          requestedAt: isoOfEpochMs(NOW_MS),
+          requestedAt: isoOfEpochMs(nowMs),
         });
         ctx.record("proposal.kind", proposal.kind);
         ctx.record("proposal.isProposal", isArenaEvaluationProposal(proposal));
@@ -133,7 +134,8 @@ export const learningJourney: AcceptanceJourney = {
       packages: ["@fleetos/learning"],
       operations: ["evaluateCapability", "proposeAdoption", "openAdoptionLifecycle", "beginGuardianReview", "authorizeAdoption", "completeAdoption"],
       run: (ctx) => {
-        const evaluation = evaluateCapability(evaluationCases(), outcomes(), { tenantId: TENANT.tenantId }, CAPABILITY_REF, isoOfEpochMs(NOW_MS));
+        const nowMs = ctx.startedAt;
+        const evaluation = evaluateCapability(evaluationCases(), outcomes(nowMs), { tenantId: TENANT.tenantId }, CAPABILITY_REF, isoOfEpochMs(nowMs));
         ctx.record("eval.totalCases", evaluation.totalCases);
         ctx.record("eval.successes", evaluation.successes);
         ctx.record("eval.failures", evaluation.failures);
@@ -144,44 +146,44 @@ export const learningJourney: AcceptanceJourney = {
           evaluation,
           proposedBy: "ml-engineer-sam",
           rationale: "2/3 observed outcomes succeeded",
-          proposedAt: isoOfEpochMs(NOW_MS),
+          proposedAt: isoOfEpochMs(nowMs),
         });
         ctx.record("adoption.initialStatus", proposal.status);
         const lifecycle = openAdoptionLifecycle({
           tenant: { tenantId: TENANT.tenantId },
           proposal,
           certificationId: "cert-arena-77",
-          openedAtMs: NOW_MS,
+          openedAtMs: nowMs,
         });
         if (!lifecycle.ok) throw new Error(`lifecycle refused: ${lifecycle.code} (${lifecycle.reason})`);
         ctx.record("adoption.initialStage", lifecycle.record.stage);
-        const prematureComplete = completeAdoption(lifecycle.record, "evidence-1", NOW_MS);
+        const prematureComplete = completeAdoption(lifecycle.record, "evidence-1", nowMs);
         ctx.record("adoption.prematureCompleteOk", prematureComplete.ok);
         ctx.record("adoption.prematureCompleteCode", prematureComplete.ok ? "unexpected" : prematureComplete.code);
         const unauthorized = authorizeLearning(lifecycle.record, {
           guardianDecisionId: "gd-1",
-          decidedAtMs: NOW_MS,
+          decidedAtMs: nowMs,
           authorizedBy: "guardian-reference",
           decisionDigest: "digest-gd-1",
-        }, NOW_MS);
+        }, nowMs);
         ctx.record("adoption.authorizeFromProposedOk", unauthorized.ok);
         ctx.record("adoption.authorizeFromProposedCode", unauthorized.ok ? "unexpected" : unauthorized.code);
-        const reviewed = beginGuardianReview(lifecycle.record, NOW_MS);
+        const reviewed = beginGuardianReview(lifecycle.record, nowMs);
         if (!reviewed.ok) throw new Error(`review refused: ${reviewed.code}`);
         ctx.record("adoption.reviewStage", reviewed.record.stage);
         const authorized = authorizeLearning(reviewed.record, {
           guardianDecisionId: "gd-1",
-          decidedAtMs: NOW_MS,
+          decidedAtMs: nowMs,
           authorizedBy: "guardian-reference",
           decisionDigest: "digest-gd-1",
-        }, NOW_MS + 1_000);
+        }, nowMs + 1_000);
         if (!authorized.ok) throw new Error(`authorize refused: ${authorized.code}`);
         ctx.record("adoption.authorizedStage", authorized.record.stage);
         ctx.record("adoption.authorizedProposalStatus", authorized.record.proposal.status);
-        const evidenceMissing = completeAdoption(authorized.record, "", NOW_MS);
+        const evidenceMissing = completeAdoption(authorized.record, "", nowMs);
         ctx.record("adoption.emptyEvidenceOk", evidenceMissing.ok);
         ctx.record("adoption.emptyEvidenceCode", evidenceMissing.ok ? "unexpected" : evidenceMissing.code);
-        const adopted = completeAdoption(authorized.record, "evidence-adoption-1", NOW_MS + 2_000);
+        const adopted = completeAdoption(authorized.record, "evidence-adoption-1", nowMs + 2_000);
         if (!adopted.ok) throw new Error(`complete refused: ${adopted.code}`);
         ctx.record("adoption.finalStage", adopted.record.stage);
         ctx.record("adoption.evidenceRef", adopted.record.adoptionEvidenceRef);
@@ -192,16 +194,16 @@ export const learningJourney: AcceptanceJourney = {
           evaluation,
           proposedBy: "ml-engineer-sam",
           rationale: "second dependent proposal",
-          proposedAt: isoOfEpochMs(NOW_MS),
+          proposedAt: isoOfEpochMs(nowMs),
         });
         const secondLifecycle = openAdoptionLifecycle({
           tenant: { tenantId: TENANT.tenantId },
           proposal: secondProposal,
           certificationId: "cert-arena-77",
-          openedAtMs: NOW_MS,
+          openedAtMs: nowMs,
         });
         if (!secondLifecycle.ok) throw new Error(`second lifecycle refused: ${secondLifecycle.code}`);
-        const secondReviewed = beginGuardianReview(secondLifecycle.record, NOW_MS);
+        const secondReviewed = beginGuardianReview(secondLifecycle.record, nowMs);
         if (!secondReviewed.ok) throw new Error(`second review refused: ${secondReviewed.code}`);
         const cascade = cascadeCertificationRevocation(
           [adopted.record, secondReviewed.record],
@@ -209,7 +211,7 @@ export const learningJourney: AcceptanceJourney = {
             certificationId: "cert-arena-77",
             tenantId: TENANT.tenantId,
             reason: "evaluation-fraud",
-            revokedAtMs: NOW_MS + 3_000,
+            revokedAtMs: nowMs + 3_000,
             revocationDigest: "digest-revoke-1",
           },
         );

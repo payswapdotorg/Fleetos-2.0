@@ -19,10 +19,9 @@ import type { WorldEntitySnapshot } from "@fleetos/world-context";
 import { classifyStaleness, foldWorldState } from "@fleetos/world-model";
 import {
   FOREIGN_TENANT,
-  NOW_MS,
-  NOW_ISO,
   STALENESS_THRESHOLDS,
   TENANT,
+  isoOfEpochMs,
   pumpJournal,
 } from "./fixture-world.ts";
 
@@ -59,12 +58,12 @@ export const reasoningJourney: AcceptanceJourney = {
           focus: {
             tenant: TENANT,
             entities: [
-              entity("pump-7", TENANT.tenantId, NOW_MS - 5_000),
-              entity("pump-8", TENANT.tenantId, NOW_MS - 120_000, "Ravi Patel"),
+              entity("pump-7", TENANT.tenantId, ctx.startedAt - 5_000),
+              entity("pump-8", TENANT.tenantId, ctx.startedAt - 120_000, "Ravi Patel"),
             ],
             purpose: "security-review",
           },
-          computedAt: NOW_ISO,
+          computedAt: isoOfEpochMs(ctx.startedAt),
         });
         if (!result.ok) throw new Error(`assembly refused: ${result.rejected} (${result.detail})`);
         const context = result.context;
@@ -81,10 +80,10 @@ export const reasoningJourney: AcceptanceJourney = {
         const planning = assembleContext({
           focus: {
             tenant: TENANT,
-            entities: [entity("pump-7", TENANT.tenantId, NOW_MS - 5_000)],
+            entities: [entity("pump-7", TENANT.tenantId, ctx.startedAt - 5_000)],
             purpose: "maintenance-planning",
           },
-          computedAt: NOW_ISO,
+          computedAt: isoOfEpochMs(ctx.startedAt),
         });
         if (!planning.ok) throw new Error("planning assembly refused");
         ctx.record("assembly.planningRedactedFields", planning.context.redactedFields);
@@ -101,17 +100,17 @@ export const reasoningJourney: AcceptanceJourney = {
         const crossing = assembleContext({
           focus: {
             tenant: TENANT,
-            entities: [entity("pump-7", TENANT.tenantId, NOW_MS - 5_000), entity("pump-99", FOREIGN_TENANT.tenantId, NOW_MS)],
+            entities: [entity("pump-7", TENANT.tenantId, ctx.startedAt - 5_000), entity("pump-99", FOREIGN_TENANT.tenantId, ctx.startedAt)],
             purpose: "security-review",
           },
-          computedAt: NOW_ISO,
+          computedAt: isoOfEpochMs(ctx.startedAt),
         });
         ctx.record("assembly.crossOk", crossing.ok);
         ctx.record("assembly.crossRejected", crossing.ok ? "unexpected-allow" : crossing.rejected);
         ctx.record("assembly.crossNamesOffender", crossing.ok ? "" : (crossing.detail.includes("pump-99") ? "pump-99" : "not-named"));
         const empty = assembleContext({
-          focus: { tenant: { tenantId: "" }, entities: [entity("pump-7", "", NOW_MS)], purpose: "security-review" },
-          computedAt: NOW_ISO,
+          focus: { tenant: { tenantId: "" }, entities: [entity("pump-7", "", ctx.startedAt)], purpose: "security-review" },
+          computedAt: isoOfEpochMs(ctx.startedAt),
         });
         ctx.record("assembly.emptyOk", empty.ok);
         ctx.record("assembly.emptyRejected", empty.ok ? "unexpected-allow" : empty.rejected);
@@ -132,19 +131,19 @@ export const reasoningJourney: AcceptanceJourney = {
         ctx.record("fold.entityCount", folded.state.entities.length);
         ctx.record("fold.observationCount", pump.observations.length);
         ctx.record("fold.journalLength", folded.state.journalLength);
-        const fresh = classifyStaleness(NOW_MS - 5_000, NOW_MS, STALENESS_THRESHOLDS);
+        const fresh = classifyStaleness(ctx.startedAt - 5_000, ctx.startedAt, STALENESS_THRESHOLDS);
         if (!fresh.ok) throw new Error("staleness classification refused");
         ctx.record("staleness.fresh.class", fresh.staleness);
         ctx.record("staleness.fresh.ageMs", fresh.ageMs);
-        const stale = classifyStaleness(NOW_MS - 30_000, NOW_MS, STALENESS_THRESHOLDS);
+        const stale = classifyStaleness(ctx.startedAt - 30_000, ctx.startedAt, STALENESS_THRESHOLDS);
         if (!stale.ok) throw new Error("staleness classification refused");
         ctx.record("staleness.stale.class", stale.staleness);
         ctx.record("staleness.stale.ageMs", stale.ageMs);
-        const beyond = classifyStaleness(NOW_MS - 120_000, NOW_MS, STALENESS_THRESHOLDS);
+        const beyond = classifyStaleness(ctx.startedAt - 120_000, ctx.startedAt, STALENESS_THRESHOLDS);
         if (!beyond.ok) throw new Error("staleness classification refused");
         ctx.record("staleness.beyond.class", beyond.staleness);
         ctx.record("staleness.beyond.ageMs", beyond.ageMs);
-        const never = classifyStaleness(null, NOW_MS, STALENESS_THRESHOLDS);
+        const never = classifyStaleness(null, ctx.startedAt, STALENESS_THRESHOLDS);
         if (!never.ok) throw new Error("staleness classification refused");
         ctx.record("staleness.neverObserved.class", never.staleness);
         ctx.record("staleness.neverObserved.ageMs", never.ageMs);

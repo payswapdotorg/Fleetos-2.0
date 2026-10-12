@@ -23,7 +23,9 @@
  *     boundary self-check in tests).
  *
  * Determinism: no Date.now(), no Math.random(), no network, no timers.
- * Logical `now` is caller-supplied everywhere (the corpus pins fixed epochs).
+ * Logical `now` is caller-supplied everywhere (the corpus pins fixed epochs;
+ * since F331B the run-level anchor is the runner's `startedAt` seam — the
+ * journeys read it off the step context, never a wall clock).
  */
 
 // ---------------------------------------------------------------------------
@@ -123,6 +125,27 @@ export interface JourneyRecorder {
   record(path: string, value: JourneyFactValue): void;
 }
 
+/**
+ * The step execution context — the recorder PLUS the run's logical anchor
+ * (the `startedAt`-class time seam, F331B).
+ *
+ * `startedAt` is the absolute epoch-ms anchor of THIS run's logical clock:
+ * every journey that consumes the corpus's fixed logical "now" reads it
+ * from here instead of a module constant. The corpus default anchor is
+ * `SECURITY_CORPUS_T0` (the fixture-world logical now) — a run without an
+ * explicit anchor computes byte-identically to the pre-seam corpus. A
+ * caller-supplied anchor re-bases the journey's active clock (event times,
+ * "now"-style domain call parameters, ISO renderings via `isoOfEpochMs`)
+ * while the fixture-world's BASE_MS-anchored reference data stays fixed —
+ * the same semantic shape as the field corpus's `ctx.clock` seam
+ * (F330 §1.2). Journeys that never read `startedAt` are anchor-invariant
+ * by construction.
+ */
+export interface JourneyStepContext extends JourneyRecorder {
+  /** The run's logical anchor in epoch-ms (F331B seam). */
+  readonly startedAt: number;
+}
+
 export type JourneyFactMap = Readonly<Record<string, JourneyFactValue>>;
 
 // ---------------------------------------------------------------------------
@@ -138,7 +161,7 @@ export interface JourneyStep {
   /** The REAL public operations this step drives (e.g. "runFindingIntake"). */
   readonly operations: readonly string[];
   /** Drives the REAL packages and records facts. A thrown error fails the step. */
-  readonly run: (ctx: JourneyRecorder) => void;
+  readonly run: (ctx: JourneyStepContext) => void;
 }
 
 export interface JourneyAssertion {

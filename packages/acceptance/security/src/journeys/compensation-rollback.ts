@@ -24,7 +24,7 @@
  * machine-run over deterministic ports in tests/async-dispatch.test.ts
  * (supporting evidence — not counted as a corpus journey).
  *
- * Determinism: logical epochs (NOW_MS offsets, pure isoOfEpochMs); no
+ * Determinism: logical epochs (nowMs offsets, pure isoOfEpochMs); no
  * clock, no randomness, no network.
  */
 
@@ -70,7 +70,7 @@ const IRREVERSIBLE_CONTROL: Capability = {
 };
 
 /** Build a REAL action record driven to the EXECUTED state (law A4 chain). */
-function executedAction(capability: Capability, intentId: string, nonce: string): ActionRecord {
+function executedAction(capability: Capability, intentId: string, nonce: string, nowMs: number = NOW_MS): ActionRecord {
   const policy = tenantPolicy();
   const decision = evaluateCapability(policy, capability, {
     tenant: TENANT,
@@ -84,17 +84,17 @@ function executedAction(capability: Capability, intentId: string, nonce: string)
     capability,
     idempotencyKey: { tenantId: TENANT.tenantId, capabilityId: capability.id, nonce },
     inputs: { assetId: "pump-7" },
-    proposedAt: isoOfEpochMs(NOW_MS),
+    proposedAt: isoOfEpochMs(nowMs),
     proposedBy: "operator-ada",
   });
   const steps: readonly [ActionRecord["state"], Parameters<typeof advanceActionState>[2]][] = [
-    ["authorized", { at: isoOfEpochMs(NOW_MS + 500), authorization: decision, tenantId: TENANT.tenantId }],
-    ["confirmed", { at: isoOfEpochMs(NOW_MS + 1_000), confirmedBy: "operator-ada", tenantId: TENANT.tenantId }],
-    ["dispatched", { at: isoOfEpochMs(NOW_MS + 1_500), dispatchReceipt: `receipt-${intentId}`, tenantId: TENANT.tenantId }],
-    ["executing", { at: isoOfEpochMs(NOW_MS + 1_800), tenantId: TENANT.tenantId }],
+    ["authorized", { at: isoOfEpochMs(nowMs + 500), authorization: decision, tenantId: TENANT.tenantId }],
+    ["confirmed", { at: isoOfEpochMs(nowMs + 1_000), confirmedBy: "operator-ada", tenantId: TENANT.tenantId }],
+    ["dispatched", { at: isoOfEpochMs(nowMs + 1_500), dispatchReceipt: `receipt-${intentId}`, tenantId: TENANT.tenantId }],
+    ["executing", { at: isoOfEpochMs(nowMs + 1_800), tenantId: TENANT.tenantId }],
     ["executed", {
-      at: isoOfEpochMs(NOW_MS + 2_000),
-      executionResult: { succeeded: true, outputs: { applied: true }, executedAt: isoOfEpochMs(NOW_MS + 2_000) },
+      at: isoOfEpochMs(nowMs + 2_000),
+      executionResult: { succeeded: true, outputs: { applied: true }, executedAt: isoOfEpochMs(nowMs + 2_000) },
       tenantId: TENANT.tenantId,
     }],
   ];
@@ -106,7 +106,10 @@ function executedAction(capability: Capability, intentId: string, nonce: string)
   return record;
 }
 
-const COMPENSATED_AT = isoOfEpochMs(NOW_MS + 60_000);
+/** The compensation time — 60s past the run's anchor (F331B seam: run-scoped). */
+function compensatedAt(nowMs: number = NOW_MS): string {
+  return isoOfEpochMs(nowMs + 60_000);
+}
 
 export const compensationRollbackJourney: AcceptanceJourney = {
   journeyId: "security.action-compensation-rollback",
@@ -121,7 +124,8 @@ export const compensationRollbackJourney: AcceptanceJourney = {
       packages: ["@fleetos/actions", "@fleetos/policy"],
       operations: ["proposeAction", "advanceActionState", "buildCompensationContract", "attemptCompensation"],
       run: (ctx) => {
-        const executed = executedAction(REVERSIBLE_CONTROL, "intent-throttle-1", "nonce-throttle-1");
+        const nowMs = ctx.startedAt;
+        const executed = executedAction(REVERSIBLE_CONTROL, "intent-throttle-1", "nonce-throttle-1", nowMs);
         ctx.record("reversible.executedState", executed.state);
         const contract = buildCompensationContract(executed);
         ctx.record("reversible.kind", contract.kind);
@@ -134,13 +138,13 @@ export const compensationRollbackJourney: AcceptanceJourney = {
         ctx.record("reversible.description", contract.description);
 
         // The attempt is a PROPOSAL — without Guardian authorization it REFUSES.
-        const refused = attemptCompensation(contract, false, COMPENSATED_AT);
+        const refused = attemptCompensation(contract, false, compensatedAt(nowMs));
         ctx.record("reversible.refusedOk", refused.ok);
         ctx.record("reversible.refusedReason", refused.reasonCode);
         ctx.record("reversible.refusedAt", refused.compensatedAt);
 
         // With the Guardian path's authorization it compensates successfully.
-        const succeeded = attemptCompensation(contract, true, COMPENSATED_AT);
+        const succeeded = attemptCompensation(contract, true, compensatedAt(nowMs));
         ctx.record("reversible.succeededOk", succeeded.ok);
         ctx.record("reversible.succeededReason", succeeded.reasonCode);
       },
@@ -152,14 +156,15 @@ export const compensationRollbackJourney: AcceptanceJourney = {
       packages: ["@fleetos/actions"],
       operations: ["buildCompensationContract", "cancelAction", "attemptCompensation", "buildIdempotencyKey"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         // IRREVERSIBLE: the contract demands humans; the attempt HONESTLY fails.
-        const purge = executedAction(IRREVERSIBLE_CONTROL, "intent-purge-1", "nonce-purge-1");
+        const purge = executedAction(IRREVERSIBLE_CONTROL, "intent-purge-1", "nonce-purge-1", nowMs);
         const purgeContract = buildCompensationContract(purge);
         ctx.record("irreversible.kind", purgeContract.kind);
         ctx.record("irreversible.compensatingCapabilityId", purgeContract.compensatingCapabilityId);
         ctx.record("irreversible.requiresGuardian", purgeContract.requiresGuardianAuthorization);
         ctx.record("irreversible.reversible", purgeContract.reversible);
-        const purgeAttempt = attemptCompensation(purgeContract, true, COMPENSATED_AT);
+        const purgeAttempt = attemptCompensation(purgeContract, true, compensatedAt(nowMs));
         ctx.record("irreversible.attemptOk", purgeAttempt.ok);
         ctx.record("irreversible.attemptReason", purgeAttempt.reasonCode);
 
@@ -170,21 +175,21 @@ export const compensationRollbackJourney: AcceptanceJourney = {
           capability: READ_CAPABILITY,
           idempotencyKey: { tenantId: TENANT.tenantId, capabilityId: READ_CAPABILITY.id, nonce: "nonce-read-1" },
           inputs: { assetId: "pump-7" },
-          proposedAt: isoOfEpochMs(NOW_MS),
+          proposedAt: isoOfEpochMs(nowMs),
           proposedBy: "operator-ada",
         });
-        const cancelled = cancelAction(read, isoOfEpochMs(NOW_MS + 1_000));
+        const cancelled = cancelAction(read, isoOfEpochMs(nowMs + 1_000));
         ctx.record("cancel.state", cancelled.record.state);
         ctx.record("cancel.kind", cancelled.contract.kind);
         ctx.record("cancel.description", cancelled.contract.description);
         ctx.record("cancel.requiresGuardian", cancelled.contract.requiresGuardianAuthorization);
-        const cancelAttempt = attemptCompensation(cancelled.contract, false, COMPENSATED_AT);
+        const cancelAttempt = attemptCompensation(cancelled.contract, false, compensatedAt(nowMs));
         ctx.record("cancel.attemptOk", cancelAttempt.ok);
         ctx.record("cancel.attemptReason", cancelAttempt.reasonCode);
         ctx.record("cancel.transitions", cancelled.record.stateHistory.map((t) => `${t.from}>${t.to}`));
 
         // CANCELLING A TERMINAL RECORD is a no-op — history is never rewritten.
-        const reCancel = cancelAction(cancelled.record, isoOfEpochMs(NOW_MS + 2_000));
+        const reCancel = cancelAction(cancelled.record, isoOfEpochMs(nowMs + 2_000));
         ctx.record("cancel.terminalNoop", reCancel.record === cancelled.record);
         ctx.record("cancel.terminalHistoryLen", reCancel.record.stateHistory.length);
 

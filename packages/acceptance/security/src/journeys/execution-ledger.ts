@@ -27,7 +27,7 @@ import {
   verifyExecutionLedgerReplayDeterminism,
 } from "@fleetos/execution";
 import type { CommandQueueState, ExecutionLedgerEntry } from "@fleetos/execution";
-import { EXECUTE_CAPABILITY, NOW_MS, TENANT } from "./fixture-world.ts";
+import { EXECUTE_CAPABILITY, TENANT } from "./fixture-world.ts";
 
 function append(ledger: readonly ExecutionLedgerEntry[], input: Parameters<typeof appendExecutionLedger>[1]): readonly ExecutionLedgerEntry[] {
   const result = appendExecutionLedger(ledger, input);
@@ -56,17 +56,17 @@ export const executionLedgerJourney: AcceptanceJourney = {
           idempotencyKey: "exec-ok-1",
           capabilityId: EXECUTE_CAPABILITY.id,
           payloadInputs: { assetId: "pump-7" },
-          at: NOW_MS,
+          at: ctx.startedAt,
           tenantId: TENANT.tenantId,
           authorizationDigest: "digest-allow-1",
           verdict: "ALLOW",
         });
         if (!ok.ok) throw new Error("ok submit refused");
         state = ok.state;
-        const ack1 = ackCommand(state, "exec-ok-1", NOW_MS + 1_000, TENANT.tenantId);
+        const ack1 = ackCommand(state, "exec-ok-1", ctx.startedAt + 1_000, TENANT.tenantId);
         if (!ack1.ok) throw new Error("ack refused");
         state = ack1.state;
-        const done = completeCommand(state, "exec-ok-1", { ack: true }, NOW_MS + 2_000, TENANT.tenantId);
+        const done = completeCommand(state, "exec-ok-1", { ack: true }, ctx.startedAt + 2_000, TENANT.tenantId);
         if (!done.ok) throw new Error("complete refused");
         state = done.state;
 
@@ -74,7 +74,7 @@ export const executionLedgerJourney: AcceptanceJourney = {
           idempotencyKey: "exec-doomed-1",
           capabilityId: EXECUTE_CAPABILITY.id,
           payloadInputs: { assetId: "pump-8" },
-          at: NOW_MS,
+          at: ctx.startedAt,
           tenantId: TENANT.tenantId,
           authorizationDigest: "digest-allow-2",
           verdict: "ALLOW",
@@ -83,10 +83,10 @@ export const executionLedgerJourney: AcceptanceJourney = {
         state = doomed.state;
         let attemptsSeen = 0;
         for (let round = 1; round <= 3; round += 1) {
-          const ack = ackCommand(state, "exec-doomed-1", NOW_MS + round * 3_000, TENANT.tenantId);
+          const ack = ackCommand(state, "exec-doomed-1", ctx.startedAt + round * 3_000, TENANT.tenantId);
           if (!ack.ok) throw new Error(`doomed ack ${round} refused`);
           state = ack.state;
-          const failure = failCommand(state, "exec-doomed-1", `transport error ${round}`, NOW_MS + round * 3_000 + 500, TENANT.tenantId);
+          const failure = failCommand(state, "exec-doomed-1", `transport error ${round}`, ctx.startedAt + round * 3_000 + 500, TENANT.tenantId);
           if (!failure.ok) throw new Error(`doomed fail ${round} refused: ${failure.reason}`);
           state = failure.state;
           attemptsSeen = failure.command.attempts;
@@ -106,7 +106,7 @@ export const executionLedgerJourney: AcceptanceJourney = {
           idempotencyKey: "exec-ok-1",
           capabilityId: EXECUTE_CAPABILITY.id,
           payloadInputs: {},
-          at: NOW_MS + 30_000,
+          at: ctx.startedAt + 30_000,
           tenantId: TENANT.tenantId,
         });
         if (!duplicate.ok) throw new Error("duplicate submit refused");
@@ -122,16 +122,16 @@ export const executionLedgerJourney: AcceptanceJourney = {
       operations: ["appendExecutionLedger", "verifyExecutionLedger", "replayExecutionLedger", "tamperExecutionEntry"],
       run: (ctx) => {
         let ledger: readonly ExecutionLedgerEntry[] = [];
-        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: "exec-ok-1", kind: "submitted", at: NOW_MS, detail: "" });
-        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: "exec-ok-1", kind: "acked", at: NOW_MS + 1_000, detail: "" });
-        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: "exec-ok-1", kind: "completed", at: NOW_MS + 2_000, detail: "" });
-        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: "exec-doomed-1", kind: "submitted", at: NOW_MS, detail: "" });
+        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: "exec-ok-1", kind: "submitted", at: ctx.startedAt, detail: "" });
+        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: "exec-ok-1", kind: "acked", at: ctx.startedAt + 1_000, detail: "" });
+        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: "exec-ok-1", kind: "completed", at: ctx.startedAt + 2_000, detail: "" });
+        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: "exec-doomed-1", kind: "submitted", at: ctx.startedAt, detail: "" });
         for (let round = 1; round <= 3; round += 1) {
           ledger = append(ledger, {
             tenantId: TENANT.tenantId,
             idempotencyKey: "exec-doomed-1",
             kind: round < 3 ? "retried" : "dead-lettered",
-            at: NOW_MS + round * 3_000,
+            at: ctx.startedAt + round * 3_000,
             detail: `transport error ${round}`,
           });
         }

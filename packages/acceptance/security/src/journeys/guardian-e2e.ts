@@ -41,7 +41,6 @@ import {
   BASE_MS,
   EXECUTE_CAPABILITY,
   IRREVERSIBLE_CAPABILITY,
-  NOW_MS,
   OPERATOR_CTX,
   READ_CAPABILITY,
   STALENESS_THRESHOLDS,
@@ -92,6 +91,7 @@ export const guardianE2eJourney: AcceptanceJourney = {
       packages: ["@fleetos/evidence"],
       operations: ["buildCompleteChain", "appendEvidence", "verifyEvidenceChain"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         const trace: TraceabilityChain = buildCompleteChain({
           tenantId: TENANT.tenantId,
           actorId: "operator-ada",
@@ -101,11 +101,11 @@ export const guardianE2eJourney: AcceptanceJourney = {
           verificationRef: "ev-verification-e2e",
           capabilityId: EXECUTE_CAPABILITY.id,
           capabilityVersion: EXECUTE_CAPABILITY.version,
-          recordedAt: isoOfEpochMs(NOW_MS),
+          recordedAt: isoOfEpochMs(nowMs),
         });
         let chain: readonly EvidenceChainEntry[] = [];
-        chain = appendEvidence(chain, { evidenceId: "ev-intake-e2e-1", tenantId: TENANT.tenantId, recordedAt: isoOfEpochMs(NOW_MS) });
-        chain = appendEvidence(chain, { evidenceId: "ev-verification-e2e", tenantId: TENANT.tenantId, recordedAt: isoOfEpochMs(NOW_MS + 6_000) });
+        chain = appendEvidence(chain, { evidenceId: "ev-intake-e2e-1", tenantId: TENANT.tenantId, recordedAt: isoOfEpochMs(nowMs) });
+        chain = appendEvidence(chain, { evidenceId: "ev-verification-e2e", tenantId: TENANT.tenantId, recordedAt: isoOfEpochMs(nowMs + 6_000) });
         const verification = verifyEvidenceChain(chain);
         ctx.record("evidence.traceLinkCount", trace.links.length);
         ctx.record("evidence.chainEntryCount", chain.length);
@@ -120,6 +120,7 @@ export const guardianE2eJourney: AcceptanceJourney = {
       packages: ["@fleetos/policy", "@fleetos/execution"],
       operations: ["evaluateCapability", "evaluateRulesOrdered", "buildDecisionAuditRef", "buildDecisionRecord", "authorizeCommand"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         const policy = tenantPolicy();
         const read = evaluateCapability(policy, READ_CAPABILITY, ANALYST_CTX(READ_CAPABILITY));
         const irreversible = evaluateCapability(policy, IRREVERSIBLE_CAPABILITY, OPERATOR_CTX(IRREVERSIBLE_CAPABILITY));
@@ -149,13 +150,13 @@ export const guardianE2eJourney: AcceptanceJourney = {
         // The reasoning trace: ordered evaluation + decision record + audit ref.
         const ordered = evaluateRulesOrdered(policy, EXECUTE_CAPABILITY, OPERATOR_CTX(EXECUTE_CAPABILITY));
         if (!ordered.ok) throw new Error(`ordered evaluation refused: ${ordered.reason}`);
-        const audit = buildDecisionAuditRef(ordered.evaluation, NOW_MS);
+        const audit = buildDecisionAuditRef(ordered.evaluation, nowMs);
         if (!audit.ok) throw new Error("audit ref refused");
         const executeDecision = evaluateCapability(policy, EXECUTE_CAPABILITY, OPERATOR_CTX(EXECUTE_CAPABILITY));
         const record = buildDecisionRecord(executeDecision, {
           policyId: policy.id, policyVersion: policy.version, capability: EXECUTE_CAPABILITY, actorId: "operator-ada",
           actorIsAutonomous: false, actorAuthority: ["tenant.operator", "human.approval", "asset.owner"],
-          evaluatedAt: isoOfEpochMs(NOW_MS), matchedFacts: ordered.evaluation.decisions[0]?.matchedFacts ?? [],
+          evaluatedAt: isoOfEpochMs(nowMs), matchedFacts: ordered.evaluation.decisions[0]?.matchedFacts ?? [],
         });
         ctx.record("guardian.ordered.decisionCount", ordered.evaluation.decisions.length);
         ctx.record("guardian.ordered.resolution", ordered.evaluation.resolution.verdict);
@@ -172,12 +173,13 @@ export const guardianE2eJourney: AcceptanceJourney = {
       packages: ["@fleetos/experience-safety-intel", "@fleetos/execution", "@fleetos/actions"],
       operations: ["requestRemediation", "submitCommand", "commandFromAuthorized", "ackCommand", "completeCommand", "e2eActionChain"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         // The INERT intent draft (host intent catalog builder) — a value,
         // never an execution; its seam fields submit into the REAL queue.
         const draft = requestRemediation({
           intentId: INTENT_ID, tenantId: TENANT.tenantId, actorId: "operator-ada",
           requiredCapabilityId: "fleetos.security.remediation", reason: "rotate the weak credential admitted by intake",
-          issuedAt: NOW_MS, proposalId: "prop-guardian-e2e-1", findingIds: ["finding-e2e-1"], remediationKind: "rotate_credential",
+          issuedAt: nowMs, proposalId: "prop-guardian-e2e-1", findingIds: ["finding-e2e-1"], remediationKind: "rotate_credential",
         });
         if (!draft.ok) throw new Error(`draft refused: ${draft.refused}`);
         ctx.record("intent.draft", draft.draft.intent.draft);
@@ -195,7 +197,7 @@ export const guardianE2eJourney: AcceptanceJourney = {
         state = draftSubmit.state;
         const duplicate = submitCommand(state, {
           idempotencyKey: draft.draft.idempotencyKey, capabilityId: draft.draft.intent.requiredCapabilityId,
-          payloadInputs: {}, at: NOW_MS + 1_000, tenantId: TENANT.tenantId,
+          payloadInputs: {}, at: nowMs + 1_000, tenantId: TENANT.tenantId,
         });
         if (!duplicate.ok) throw new Error("duplicate submit refused");
         ctx.record("intent.submittedStatus", draftSubmit.command.status);
@@ -206,7 +208,7 @@ export const guardianE2eJourney: AcceptanceJourney = {
         const decision = evaluateCapability(tenantPolicy(), READ_CAPABILITY, ANALYST_CTX(READ_CAPABILITY));
         const authorized = authorizeCommand(decision, { capabilityId: READ_CAPABILITY.id, inputs: { assetId: "pump-7" } }, TENANT, undefined, QUEUE_KEY);
         if (!authorized.ok) throw new Error(`authorization refused: ${authorized.reason}`);
-        const submitInput = commandFromAuthorized(authorized.command, NOW_MS);
+        const submitInput = commandFromAuthorized(authorized.command, nowMs);
         const submitted = submitCommand(state, {
           idempotencyKey: submitInput.idempotencyKey, capabilityId: submitInput.capabilityId, payloadInputs: submitInput.payloadInputs,
           at: submitInput.at, tenantId: submitInput.tenantId, authorizationDigest: authorized.command.authorizationDigest,
@@ -214,10 +216,10 @@ export const guardianE2eJourney: AcceptanceJourney = {
         });
         if (!submitted.ok) throw new Error("authorized submit refused");
         state = submitted.state;
-        const acked = ackCommand(state, QUEUE_KEY, NOW_MS + 1_000, TENANT.tenantId);
+        const acked = ackCommand(state, QUEUE_KEY, nowMs + 1_000, TENANT.tenantId);
         if (!acked.ok) throw new Error("ack refused");
         state = acked.state;
-        const completed = completeCommand(state, QUEUE_KEY, { state: "ok" }, NOW_MS + 2_000, TENANT.tenantId);
+        const completed = completeCommand(state, QUEUE_KEY, { state: "ok" }, nowMs + 2_000, TENANT.tenantId);
         if (!completed.ok) throw new Error("complete refused");
         state = completed.state;
         ctx.record("execution.finalStatus", completed.command.status);
@@ -225,7 +227,7 @@ export const guardianE2eJourney: AcceptanceJourney = {
         ctx.record("execution.queueCommandCount", state.commands.length);
 
         // The action chain carries the execution + verification records.
-        const action = e2eActionChain(INTENT_ID, "e2e-1", QUEUE_KEY);
+        const action = e2eActionChain(INTENT_ID, "e2e-1", QUEUE_KEY, nowMs);
         ctx.record("action.finalState", action.state);
         ctx.record("action.executedSucceeded", action.executionResult?.succeeded ?? false);
         ctx.record("action.verificationVerified", action.verificationRecord?.verified ?? false);
@@ -239,20 +241,21 @@ export const guardianE2eJourney: AcceptanceJourney = {
       packages: ["@fleetos/security", "@fleetos/execution", "@fleetos/actions", "@fleetos/policy"],
       operations: ["proposeRemediationRecord", "advanceRemediation", "verifyRemediationHistory", "verifyExecutionLedger", "emitAuditTrail", "buildIncidentAuditTrail", "verifyIncidentAuditTrail"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         // Remediation: evidence-gated lifecycle (never auto-done).
         const proposed = proposeRemediationRecord({
           proposalId: "prop-guardian-e2e-1",
           tenantId: TENANT.tenantId,
           findingIds: ["finding-e2e-1"],
           remediationKind: "rotate_credential",
-          at: NOW_MS,
+          at: nowMs,
         });
         if (!proposed.ok) throw new Error(`remediation proposal refused: ${proposed.reason}`);
         let remediation: RemediationProposalRecord = proposed.record;
         const gates: readonly [RemediationProposalRecord["state"], Parameters<typeof advanceRemediation>[2]][] = [
-          ["approved", { tenantId: TENANT.tenantId, actorId: "operator-ada", at: NOW_MS + 4_000, approvalRef: "audit-e2e-1" }],
-          ["applied", { tenantId: TENANT.tenantId, actorId: "operator-ada", at: NOW_MS + 5_000, verificationEvidenceRef: "ev-verification-e2e" }],
-          ["verified", { tenantId: TENANT.tenantId, actorId: "operator-ada", at: NOW_MS + 6_000, verificationOutcome: { verified: true, evidenceRef: "ev-verification-e2e" } }],
+          ["approved", { tenantId: TENANT.tenantId, actorId: "operator-ada", at: nowMs + 4_000, approvalRef: "audit-e2e-1" }],
+          ["applied", { tenantId: TENANT.tenantId, actorId: "operator-ada", at: nowMs + 5_000, verificationEvidenceRef: "ev-verification-e2e" }],
+          ["verified", { tenantId: TENANT.tenantId, actorId: "operator-ada", at: nowMs + 6_000, verificationOutcome: { verified: true, evidenceRef: "ev-verification-e2e" } }],
         ];
         for (const [target, advanceCtx] of gates) {
           const result = advanceRemediation(remediation, target, advanceCtx);
@@ -266,9 +269,9 @@ export const guardianE2eJourney: AcceptanceJourney = {
 
         // The execution ledger + its verification.
         let ledger: readonly ExecutionLedgerEntry[] = [];
-        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "submitted", at: NOW_MS, detail: "" });
-        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "acked", at: NOW_MS + 1_000, detail: "" });
-        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "completed", at: NOW_MS + 2_000, detail: "state=ok" });
+        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "submitted", at: nowMs, detail: "" });
+        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "acked", at: nowMs + 1_000, detail: "" });
+        ledger = appendLed(ledger, { tenantId: TENANT.tenantId, idempotencyKey: QUEUE_KEY, kind: "completed", at: nowMs + 2_000, detail: "state=ok" });
         const verified = verifyExecutionLedger(ledger);
         ctx.record("audit.ledgerVerified", verified.verified);
         ctx.record("audit.ledgerEntries", ledger.length);
@@ -280,13 +283,13 @@ export const guardianE2eJourney: AcceptanceJourney = {
         if (!ordered.ok) throw new Error("ordered evaluation refused");
         const decisionRecord = buildDecisionRecord(evaluateCapability(policy, READ_CAPABILITY, ANALYST_CTX(READ_CAPABILITY)), {
           policyId: policy.id, policyVersion: policy.version, capability: READ_CAPABILITY, actorId: "analyst-kim",
-          actorIsAutonomous: false, actorAuthority: ["tenant.engineer"], evaluatedAt: isoOfEpochMs(NOW_MS),
+          actorIsAutonomous: false, actorAuthority: ["tenant.engineer"], evaluatedAt: isoOfEpochMs(nowMs),
           matchedFacts: ordered.evaluation.decisions[0]?.matchedFacts ?? [],
         });
-        const emissions = emitAuditTrail(e2eActionChain(INTENT_ID, "e2e-1", QUEUE_KEY), "operator-ada");
+        const emissions = emitAuditTrail(e2eActionChain(INTENT_ID, "e2e-1", QUEUE_KEY, nowMs), "operator-ada");
         const trail = buildIncidentAuditTrail({
           tenantId: TENANT.tenantId,
-          decisions: [{ record: decisionRecord, atMs: NOW_MS }],
+          decisions: [{ record: decisionRecord, atMs: nowMs }],
           emissions,
           entries: [...ledger],
         });

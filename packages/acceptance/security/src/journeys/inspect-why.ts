@@ -42,26 +42,26 @@ function append(ledger: readonly ExecutionLedgerEntry[], input: Parameters<typeo
   return result.ledger;
 }
 
-function fullChain(): ActionRecord {
+function fullChain(nowMs: number = NOW_MS): ActionRecord {
   const intent = {
     intentId: INTENT_ID,
     tenant: TENANT,
     capability: EXECUTE_CAPABILITY,
     idempotencyKey: { tenantId: TENANT.tenantId, capabilityId: EXECUTE_CAPABILITY.id, nonce: "inspect-1" },
     inputs: { assetId: "pump-7", command: "isolate" },
-    proposedAt: isoOfEpochMs(NOW_MS),
+    proposedAt: isoOfEpochMs(nowMs),
     proposedBy: "engineer-raj",
   };
   const decision = evaluateCapability(tenantPolicy(), EXECUTE_CAPABILITY, OPERATOR_CTX(EXECUTE_CAPABILITY));
   let record = proposeAction(intent);
   const steps: readonly [ActionRecord["state"], Parameters<typeof advanceActionState>[2]][] = [
-    ["authorized", { at: isoOfEpochMs(NOW_MS + 1_000), authorization: decision, tenantId: TENANT.tenantId }],
-    ["confirmed", { at: isoOfEpochMs(NOW_MS + 2_000), confirmedBy: "operator-ada", tenantId: TENANT.tenantId }],
-    ["dispatched", { at: isoOfEpochMs(NOW_MS + 3_000), dispatchReceipt: IDEMPOTENCY_KEY, tenantId: TENANT.tenantId }],
-    ["executing", { at: isoOfEpochMs(NOW_MS + 4_000), tenantId: TENANT.tenantId }],
-    ["executed", { at: isoOfEpochMs(NOW_MS + 5_000), executionResult: { succeeded: true, outputs: { ack: true }, executedAt: isoOfEpochMs(NOW_MS + 5_000) }, tenantId: TENANT.tenantId }],
-    ["verified", { at: isoOfEpochMs(NOW_MS + 6_000), verificationRecord: { verified: true, verifierKind: "device.ack" as const, verifiedAt: isoOfEpochMs(NOW_MS + 6_000), proofRef: "ev-verification-1" }, tenantId: TENANT.tenantId }],
-    ["recorded", { at: isoOfEpochMs(NOW_MS + 7_000), evidenceRef: "bundle-investigation-1", tenantId: TENANT.tenantId }],
+    ["authorized", { at: isoOfEpochMs(nowMs + 1_000), authorization: decision, tenantId: TENANT.tenantId }],
+    ["confirmed", { at: isoOfEpochMs(nowMs + 2_000), confirmedBy: "operator-ada", tenantId: TENANT.tenantId }],
+    ["dispatched", { at: isoOfEpochMs(nowMs + 3_000), dispatchReceipt: IDEMPOTENCY_KEY, tenantId: TENANT.tenantId }],
+    ["executing", { at: isoOfEpochMs(nowMs + 4_000), tenantId: TENANT.tenantId }],
+    ["executed", { at: isoOfEpochMs(nowMs + 5_000), executionResult: { succeeded: true, outputs: { ack: true }, executedAt: isoOfEpochMs(nowMs + 5_000) }, tenantId: TENANT.tenantId }],
+    ["verified", { at: isoOfEpochMs(nowMs + 6_000), verificationRecord: { verified: true, verifierKind: "device.ack" as const, verifiedAt: isoOfEpochMs(nowMs + 6_000), proofRef: "ev-verification-1" }, tenantId: TENANT.tenantId }],
+    ["recorded", { at: isoOfEpochMs(nowMs + 7_000), evidenceRef: "bundle-investigation-1", tenantId: TENANT.tenantId }],
   ];
   for (const [target, ctx] of steps) {
     const result = advanceActionState(record, target, ctx);
@@ -84,7 +84,8 @@ export const inspectWhyJourney: AcceptanceJourney = {
       packages: ["@fleetos/actions", "@fleetos/policy"],
       operations: ["proposeAction", "evaluateCapability", "advanceActionState"],
       run: (ctx) => {
-        const record = fullChain();
+        const nowMs = ctx.startedAt;
+        const record = fullChain(nowMs);
         ctx.record("action.finalState", record.state);
         ctx.record(
           "action.stateHistory",
@@ -98,9 +99,9 @@ export const inspectWhyJourney: AcceptanceJourney = {
           capability: EXECUTE_CAPABILITY,
           idempotencyKey: { tenantId: TENANT.tenantId, capabilityId: EXECUTE_CAPABILITY.id, nonce: "x" },
           inputs: {},
-          proposedAt: isoOfEpochMs(NOW_MS),
+          proposedAt: isoOfEpochMs(nowMs),
           proposedBy: "engineer-raj",
-        }), "executing", { at: isoOfEpochMs(NOW_MS), tenantId: TENANT.tenantId });
+        }), "executing", { at: isoOfEpochMs(nowMs), tenantId: TENANT.tenantId });
         ctx.record("action.prematureOk", premature.ok);
         ctx.record("action.prematureReason", premature.ok ? "unexpected" : premature.reason);
       },
@@ -112,7 +113,8 @@ export const inspectWhyJourney: AcceptanceJourney = {
       packages: ["@fleetos/experience-safety-intel", "@fleetos/evidence", "@fleetos/execution", "@fleetos/policy"],
       operations: ["buildDecisionProvenance", "verifyDecisionProvenanceDigest", "buildTraceabilityChain", "evaluateRulesOrdered", "issueGrant"],
       run: (ctx) => {
-        const record = fullChain();
+        const nowMs = ctx.startedAt;
+        const record = fullChain(nowMs);
         const policy = tenantPolicy();
         const evaluation = evaluateRulesOrdered(policy, EXECUTE_CAPABILITY, OPERATOR_CTX(EXECUTE_CAPABILITY));
         if (!evaluation.ok) throw new Error(`ordered evaluation refused: ${evaluation.reason}`);
@@ -123,23 +125,23 @@ export const inspectWhyJourney: AcceptanceJourney = {
           capabilityId: EXECUTE_CAPABILITY.id,
           granteeActorId: "operator-ada",
           grantedByActorId: "tenant-admin",
-          grantedAt: NOW_MS - 60_000,
-          expiresAt: NOW_MS + 3_600_000,
+          grantedAt: nowMs - 60_000,
+          expiresAt: nowMs + 3_600_000,
         });
         if (!issued.ok) throw new Error(`grant refused: ${issued.reason}`);
         grants = issued.grants;
         const trace = buildTraceabilityChain(TENANT.tenantId, [
-          { kind: "actor", ref: "engineer-raj", recordedAt: isoOfEpochMs(NOW_MS), details: {} },
-          { kind: "intent", ref: INTENT_ID, recordedAt: isoOfEpochMs(NOW_MS), details: {} },
-          { kind: "authorization", ref: record.authorization?.decisionDigest ?? "", recordedAt: isoOfEpochMs(NOW_MS + 1_000), details: {} },
-          { kind: "execution", ref: IDEMPOTENCY_KEY, recordedAt: isoOfEpochMs(NOW_MS + 3_000), details: {} },
-          { kind: "verification", ref: "ev-verification-1", recordedAt: isoOfEpochMs(NOW_MS + 6_000), details: {} },
-          { kind: "capability_version", ref: `${EXECUTE_CAPABILITY.id}@${EXECUTE_CAPABILITY.version}`, recordedAt: isoOfEpochMs(NOW_MS), details: {} },
+          { kind: "actor", ref: "engineer-raj", recordedAt: isoOfEpochMs(nowMs), details: {} },
+          { kind: "intent", ref: INTENT_ID, recordedAt: isoOfEpochMs(nowMs), details: {} },
+          { kind: "authorization", ref: record.authorization?.decisionDigest ?? "", recordedAt: isoOfEpochMs(nowMs + 1_000), details: {} },
+          { kind: "execution", ref: IDEMPOTENCY_KEY, recordedAt: isoOfEpochMs(nowMs + 3_000), details: {} },
+          { kind: "verification", ref: "ev-verification-1", recordedAt: isoOfEpochMs(nowMs + 6_000), details: {} },
+          { kind: "capability_version", ref: `${EXECUTE_CAPABILITY.id}@${EXECUTE_CAPABILITY.version}`, recordedAt: isoOfEpochMs(nowMs), details: {} },
         ]);
         let ledger: readonly ExecutionLedgerEntry[] = [];
-        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: IDEMPOTENCY_KEY, kind: "submitted", at: NOW_MS + 3_000, detail: "" });
-        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: IDEMPOTENCY_KEY, kind: "acked", at: NOW_MS + 4_000, detail: "" });
-        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: IDEMPOTENCY_KEY, kind: "completed", at: NOW_MS + 5_000, detail: "ack=true" });
+        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: IDEMPOTENCY_KEY, kind: "submitted", at: nowMs + 3_000, detail: "" });
+        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: IDEMPOTENCY_KEY, kind: "acked", at: nowMs + 4_000, detail: "" });
+        ledger = append(ledger, { tenantId: TENANT.tenantId, idempotencyKey: IDEMPOTENCY_KEY, kind: "completed", at: nowMs + 5_000, detail: "ack=true" });
 
         const view = buildDecisionProvenance({
           tenantId: TENANT.tenantId,
@@ -176,7 +178,7 @@ export const inspectWhyJourney: AcceptanceJourney = {
             capability: EXECUTE_CAPABILITY,
             idempotencyKey: { tenantId: TENANT.tenantId, capabilityId: EXECUTE_CAPABILITY.id, nonce: "u" },
             inputs: {},
-            proposedAt: isoOfEpochMs(NOW_MS),
+            proposedAt: isoOfEpochMs(nowMs),
             proposedBy: "engineer-raj",
           }),
           grants,

@@ -25,7 +25,6 @@ import { buildActionPlanBoard } from "@fleetos/experience-safety-intel";
 import { evaluateCapability } from "@fleetos/policy";
 import {
   EXECUTE_CAPABILITY,
-  NOW_MS,
   OPERATOR_CTX,
   READ_CAPABILITY,
   TENANT,
@@ -115,28 +114,28 @@ export const actionPlanJourney: AcceptanceJourney = {
         const premature = advancePlanLifecycle(init.record, "authorized", {
           tenantId: TENANT.tenantId,
           actorId: "engineer-raj",
-          at: NOW_MS,
+          at: ctx.startedAt,
         });
         ctx.record("lifecycle.prematureOk", premature.ok);
         ctx.record("lifecycle.prematureReason", premature.ok ? "unexpected" : premature.reason);
         const authorized = advancePlanLifecycle(
           { ...init.record, authorizedStepCount: 2 },
           "authorized",
-          { tenantId: TENANT.tenantId, actorId: "guardian-path", at: NOW_MS },
+          { tenantId: TENANT.tenantId, actorId: "guardian-path", at: ctx.startedAt },
         );
         if (!authorized.ok) throw new Error(`authorize refused: ${authorized.reason}`);
         ctx.record("lifecycle.authorizedState", authorized.record.state);
         const partial = advancePlanLifecycle(init.record, "authorized", {
           tenantId: TENANT.tenantId,
           actorId: "guardian-path",
-          at: NOW_MS,
+          at: ctx.startedAt,
         });
         ctx.record("lifecycle.partialOk", partial.ok);
         ctx.record("lifecycle.partialReason", partial.ok ? "unexpected" : partial.reason);
         const dispatched = advancePlanLifecycle(authorized.record, "dispatched", {
           tenantId: TENANT.tenantId,
           actorId: "engineer-raj",
-          at: NOW_MS + 1_000,
+          at: ctx.startedAt + 1_000,
           dispatchRef: "queue-batch-1",
         });
         if (!dispatched.ok) throw new Error(`dispatch refused: ${dispatched.reason}`);
@@ -153,7 +152,7 @@ export const actionPlanJourney: AcceptanceJourney = {
             idempotencyKey: command.idempotencyKey,
             capabilityId: command.capabilityId,
             payloadInputs: command.inputs,
-            at: NOW_MS + 2_000,
+            at: ctx.startedAt + 2_000,
             tenantId: TENANT.tenantId,
             authorizationDigest: command.authorizationDigest,
             verdict: command.verdict,
@@ -165,7 +164,7 @@ export const actionPlanJourney: AcceptanceJourney = {
           idempotencyKey: emission.commands[0]!.idempotencyKey,
           capabilityId: READ_CAPABILITY.id,
           payloadInputs: {},
-          at: NOW_MS + 3_000,
+          at: ctx.startedAt + 3_000,
           tenantId: TENANT.tenantId,
         });
         if (!duplicate.ok) throw new Error(`duplicate submit refused: ${duplicate.reason}`);

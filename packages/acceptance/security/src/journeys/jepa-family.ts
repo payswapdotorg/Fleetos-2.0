@@ -40,7 +40,7 @@ import {
   maskedLatentPrediction,
   runJepaBenchmark,
 } from "@fleetos/world-model";
-import { NOW_ISO, TENANT } from "./fixture-world.ts";
+import { TENANT, isoOfEpochMs } from "./fixture-world.ts";
 
 const ASSET = { assetId: "pump-7" } as const;
 const FEATURES = { temperature: 42, vibration: 40, "jepa.horizon": 2 } as const;
@@ -59,7 +59,7 @@ export const jepaFamilyJourney: AcceptanceJourney = {
       operations: ["makeJepaMaskedAdapter", "makeJepaRolloutAdapter", "defaultMaskPolicy", "maskedLatentPrediction"],
       run: (ctx) => {
         const space = makeJepaSpace();
-        const masked = makeJepaMaskedAdapter(space, NOW_ISO);
+        const masked = makeJepaMaskedAdapter(space, isoOfEpochMs(ctx.startedAt));
         ctx.record("family.masked.name", masked.name);
 
         const rep = masked.represent({ tenant: TENANT, asset: ASSET, features: FEATURES });
@@ -106,7 +106,7 @@ export const jepaFamilyJourney: AcceptanceJourney = {
         ctx.record("family.mask.unknownReason", unknown.ok ? "unexpected-accept" : unknown.rejected);
 
         // The ROLLOUT adapter: 2-frame window with prev keys.
-        const rollout = makeJepaRolloutAdapter(space, NOW_ISO);
+        const rollout = makeJepaRolloutAdapter(space, isoOfEpochMs(ctx.startedAt));
         ctx.record("family.rollout.name", rollout.name);
         const rolloutFeatures = { temperature: 42, "jepa.prev.temperature": 38, "jepa.horizon": 2 } as const;
         const rolloutRep = rollout.represent({ tenant: TENANT, asset: ASSET, features: rolloutFeatures });
@@ -133,7 +133,7 @@ export const jepaFamilyJourney: AcceptanceJourney = {
       operations: ["latentCounterfactual"],
       run: (ctx) => {
         const space = makeJepaSpace();
-        const adapter = makeJepaMaskedAdapter(space, NOW_ISO);
+        const adapter = makeJepaMaskedAdapter(space, isoOfEpochMs(ctx.startedAt));
         const rep = adapter.represent({ tenant: TENANT, asset: ASSET, features: FEATURES });
         const cf = latentCounterfactual(space, {
           rep,

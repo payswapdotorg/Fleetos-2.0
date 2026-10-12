@@ -1,0 +1,225 @@
+/**
+ * @fleetos/acceptance-security — the F331B security time-census (D12:
+ * census-before-variants). Machine-measured, machine-verified.
+ *
+ * Method (F330 §1.1, the binding Wave-13 law): run the corpus through the
+ * `startedAt` seam at the ADOPTION anchors `T0 = ADOPTION_T0 =
+ * 1_774_000_000_000` for Δ ∈ {−1h, +1s, +1h, +1d, +30d, +90d, +365d}; a
+ * journey RESPONDS at Δ when its corpus-mode pass/fail flips vs the T0
+ * baseline. Class each responder: transition (D2(b) family), echo
+ * (absolute-timestamp equality pin — count-only variation, never earns
+ * epoch counts), or past-only (not parameterizable).
+ *
+ * Machine facts this module pins (all asserted in tests/census.test.ts):
+ *
+ *   - The T0 baseline: 19/27 pass; 8 fail (their absolute-timestamp
+ *     equality pins — the D13 echo family — fail uniformly because the
+ *     security corpus's fixture clock (BASE_MS, 2026-10-12) is displaced
+ *     ~206d from the adoption clock (ADOPTION_T0, 2026-04). The census
+ *     measures the corpus AT THE ADOPTION ANCHORS — the D9-schedule
+ *     regime in which firm epochs would execute — not at the fixture
+ *     default anchor).
+ *   - 19 journeys are byte-identical (same digest) at ALL 8 census
+ *     anchors — anchor-insensitive at the reading level, not merely
+ *     non-flipping.
+ *   - 6 journeys fail identically at T0 and every Δ (no flip —
+ *     non-responders per the census definition; their digests move with
+ *     the anchor, machine-evidenced: the readings move, the pins fail
+ *     uniformly in the displaced regime).
+ *   - exactly 2 responders, both TRANSITION-class (D2(b) family), both
+ *     at Δ=+365d ONLY:
+ *       · security.predictive-advice — staleness-class transition
+ *         (classifyStaleness(originMs = fixture BASE_MS+3s, nowMs =
+ *         anchor): "fresh" in the inverted regime, "unknown" once the
+ *         anchor passes the staleness window; crossing at anchor >
+ *         BASE_MS+63_000, Δ ≈ +206.4d);
+ *       · security.benchmark-trust — realized-outcome window boundary
+ *         (scoreBenchmarkSet refuses `now-before-realized` while the
+ *         anchor precedes the fixture journals' realized outcomes at
+ *         BASE_MS+5s; inclusive boundary, crossing at Δ = +17_830_405_000
+ *         ≈ +206.4d).
+ *   - Both crossings lie BETWEEN +90d and +365d — OUTSIDE the frozen D9
+ *     schedule [T0, T0+30d, T0+90d] (F330 D9, TL-owned spacing). Within
+ *     the frozen schedule both responders' outcomes are identical to the
+ *     T0 baseline (fail), so D10's proof form is impossible: per-epoch
+ *     tables cannot make the epochs PASS and no distinct asserted
+ *     reading exists on the schedule. They are SCHEDULE-EXCLUDED
+ *     responders — recorded honestly, no slot filled (the F330
+ *     `evidence-gated-recovery` precedent for out-of-schedule response).
+ *   - The D12 gate therefore yields an EMPTY parameterization set
+ *     (`PARAMETERIZED_SECURITY_JOURNEYS`): zero security journeys carry
+ *     per-epoch expectation tables this wave; all 27 stay single-counted.
+ *
+ * Determinism: the census is a pure function of the corpus + the frozen
+ * grid — no clock, no randomness, no network.
+ */
+
+import { runJourney } from "./runner.ts";
+import type { AcceptanceJourney } from "./journey-contracts.ts";
+import { SECURITY_JOURNEYS } from "./journeys/index.ts";
+
+// ---------------------------------------------------------------------------
+// The frozen grid (F330 D9/D12 — TL-owned values; no lane may choose spacing)
+// ---------------------------------------------------------------------------
+
+/** The census base anchor — ADOPTION_T0 (F330 §1.1; firms.ts:44). */
+export const CENSUS_T0 = 1_774_000_000_000;
+/** D9 frozen spacings (TL-owned). */
+export const EPOCH_30D_MS = 2_592_000_000;
+export const EPOCH_90D_MS = 7_776_000_000;
+
+/** The census Δ grid: −1h, +1s, +1h, +1d, +30d, +90d, +365d (ms). */
+export const CENSUS_DELTAS_MS: readonly number[] = [
+  -3_600_000,
+  1_000,
+  3_600_000,
+  86_400_000,
+  EPOCH_30D_MS,
+  EPOCH_90D_MS,
+  31_536_000_000,
+];
+
+/** The frozen D9 schedule (large firms — the maximal parameterization grid). */
+export const FROZEN_EPOCH_SCHEDULE: readonly number[] = [
+  CENSUS_T0,
+  CENSUS_T0 + EPOCH_30D_MS,
+  CENSUS_T0 + EPOCH_90D_MS,
+];
+
+// ---------------------------------------------------------------------------
+// The machine measurement
+// ---------------------------------------------------------------------------
+
+export interface CensusDeltaResult {
+  readonly deltaMs: number;
+  readonly pass: boolean;
+  readonly digest: string;
+  /** Assertion ids failing at this Δ that passed at T0 (flip evidence). */
+  readonly newlyFailing: readonly string[];
+  /** Assertion ids passing at this Δ that failed at T0 (flip evidence). */
+  readonly newlyPassing: readonly string[];
+}
+
+export interface CensusMeasurement {
+  readonly journeyId: string;
+  readonly baselinePass: boolean;
+  readonly baselineDigest: string;
+  readonly perDelta: readonly CensusDeltaResult[];
+  /** The Δs where pass/fail flips vs the T0 baseline (sorted by grid order). */
+  readonly respondingDeltas: readonly number[];
+  readonly responder: boolean;
+  /** True when the digest is identical at T0 and every Δ (anchor-insensitive). */
+  readonly byteIdenticalAcrossGrid: boolean;
+}
+
+/** Run the full census: every journey × every grid anchor, machine-measured. */
+export function runSecurityCensus(journeys: readonly AcceptanceJourney[] = SECURITY_JOURNEYS): readonly CensusMeasurement[] {
+  return journeys.map((journey) => {
+    const baseline = runJourney(journey, { startedAt: CENSUS_T0 }).outcome;
+    const baselineFailing = new Set(baseline.assertions.filter((a) => !a.pass).map((a) => a.assertionId));
+    const perDelta: CensusDeltaResult[] = CENSUS_DELTAS_MS.map((deltaMs) => {
+      const outcome = runJourney(journey, { startedAt: CENSUS_T0 + deltaMs }).outcome;
+      const newlyFailing: string[] = [];
+      const newlyPassing: string[] = [];
+      for (const a of outcome.assertions) {
+        const wasFailing = baselineFailing.has(a.assertionId);
+        if (!a.pass && !wasFailing) newlyFailing.push(a.assertionId);
+        if (a.pass && wasFailing) newlyPassing.push(a.assertionId);
+      }
+      return { deltaMs, pass: outcome.pass, digest: outcome.digest, newlyFailing, newlyPassing };
+    });
+    const respondingDeltas = perDelta.filter((d) => d.pass !== baseline.pass).map((d) => d.deltaMs);
+    const digests = [baseline.digest, ...perDelta.map((d) => d.digest)];
+    return {
+      journeyId: journey.journeyId,
+      baselinePass: baseline.pass,
+      baselineDigest: baseline.digest,
+      perDelta,
+      respondingDeltas,
+      responder: respondingDeltas.length > 0,
+      byteIdenticalAcrossGrid: digests.every((d) => d === digests[0]),
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
+// The declared census table (worker-B adjudication over the machine flips)
+// ---------------------------------------------------------------------------
+
+export type SecurityCensusClass = "transition" | "echo" | "past-only";
+
+export interface SecurityCensusEntry {
+  readonly journeyId: string;
+  /** True iff the machine measured ≥1 pass/fail flip vs the T0 baseline. */
+  readonly responder: boolean;
+  /** The responder class (null for non-responders — nothing to class). */
+  readonly censusClass: SecurityCensusClass | null;
+  /** The verbatim census row (the D10(3)-style citation). */
+  readonly citation: string;
+}
+
+const INVARIANT_CITATION =
+  "F331B census: invariant — byte-identical (same digest) at T0 and every census Δ; anchor-insensitive at the reading level; single-counted, NO epochs (D2(d))";
+
+const ECHO_UNIFORM_CITATION =
+  "F331B census: non-responder — absolute-timestamp equality pins (D13 echo family) fail IDENTICALLY at T0 and every Δ in the adoption-anchored regime (the security fixture clock BASE_MS 2026-10-12 is displaced ~206d from ADOPTION_T0 2026-04); digest moves with the anchor (machine-evidenced) but pass/fail never flips; single-counted";
+
+/**
+ * The declared 27-row census table. The two responders are transition-class
+ * (D2(b) family) but their crossings sit at Δ ≈ +206.4d — beyond the frozen
+ * D9 schedule [T0, T0+30d, T0+90d] — so they are SCHEDULE-EXCLUDED: no
+ * per-epoch tables, no epochs, single-counted (the F330 evidence-gated-
+ * recovery precedent: out-of-schedule response is recorded, never filled).
+ */
+export const SECURITY_CENSUS: readonly SecurityCensusEntry[] = [
+  { journeyId: "security.predictive-advice", responder: true, censusClass: "transition", citation: "F331B census: transition (forward, +365d only) | staleness-class transition — classifyStaleness(originMs = fixture BASE_MS+3s, nowMs = anchor) returns fresh in the inverted regime and unknown once the anchor passes the staleness window; crossing at anchor > BASE_MS+63_000 (Δ = +17_830_463_001 ≈ +206.4d) — OUTSIDE the frozen D9 schedule; schedule-excluded, NO epochs declared, single-counted" },
+  { journeyId: "security.benchmark-trust", responder: true, censusClass: "transition", citation: "F331B census: transition (forward, +365d only) | realized-outcome window boundary — scoreBenchmarkSet refuses now-before-realized while the anchor precedes the fixture journals' realized outcomes (BASE_MS+5s), inclusive boundary at anchor ≥ BASE_MS+5_000 (Δ = +17_830_405_000 ≈ +206.4d) — OUTSIDE the frozen D9 schedule; schedule-excluded, NO epochs declared, single-counted" },
+  ...[
+    "security.guardian-decision",
+    "security.execution-ledger",
+    "security.guardian-e2e",
+    "security.verified-execution-dispatch",
+    "security.action-compensation-rollback",
+    "security.jepa-family-honesty",
+  ].map((journeyId) => ({ journeyId, responder: false, censusClass: null, citation: ECHO_UNIFORM_CITATION })),
+  ...[
+    "security.investigate-finding",
+    "security.understand-evidence",
+    "security.action-plan",
+    "security.reasoning-context",
+    "security.counterfactual-reasoning",
+    "security.inspect-why",
+    "security.learn-from-outcomes",
+    "security.agent-safety",
+    "security.tenant-fail-closed",
+    "security.mission-replay",
+    "security.predictive-honesty",
+    "security.host-surface",
+    "security.tamper-evident-audit-ledger",
+    "security.finding-storm-triage",
+    "security.finding-suppression-lifecycle",
+    "security.capability-store-dr",
+    "security.outcome-evaluation-adoption",
+    "security.degradation-staleness-honesty",
+    "security.posture-fold-determinism",
+  ].map((journeyId) => ({ journeyId, responder: false, censusClass: null, citation: INVARIANT_CITATION })),
+];
+
+export function censusEntryOf(journeyId: string): SecurityCensusEntry | undefined {
+  return SECURITY_CENSUS.find((e) => e.journeyId === journeyId);
+}
+
+// ---------------------------------------------------------------------------
+// The D12 gate — the (empty) parameterization set
+// ---------------------------------------------------------------------------
+
+/**
+ * The journeys parameterized this wave per D10 (per-epoch expectation
+ * tables + runner distinctness proof + census citation). The census
+ * machine-measured ZERO transition-class responders whose flips fall
+ * within the frozen D9 schedule — the two census-certified transition
+ * responders cross at Δ ≈ +206.4d, beyond [T0, T0+30d, T0+90d] — so the
+ * honest set is EMPTY. Every security journey stays single-counted.
+ * tests/census.test.ts machine-enforces this against the measurement.
+ */
+export const PARAMETERIZED_SECURITY_JOURNEYS: readonly string[] = [];

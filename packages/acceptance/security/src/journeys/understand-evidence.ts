@@ -19,7 +19,7 @@ import {
   verifyTraceabilityChain,
 } from "@fleetos/evidence";
 import type { CanonicalEvidenceBundle } from "@fleetos/evidence";
-import { NOW_ISO, TENANT } from "./fixture-world.ts";
+import { TENANT, isoOfEpochMs } from "./fixture-world.ts";
 
 function entryInput(entryId: string, payload: Readonly<Record<string, unknown>>, at: number) {
   return {
@@ -95,12 +95,12 @@ export const understandEvidenceJourney: AcceptanceJourney = {
       operations: ["buildTraceabilityChain", "verifyTraceabilityChain"],
       run: (ctx) => {
         const chain = buildTraceabilityChain(TENANT.tenantId, [
-          { kind: "actor", ref: "operator-ada", recordedAt: NOW_ISO, details: {} },
-          { kind: "intent", ref: "intent-42", recordedAt: NOW_ISO, details: {} },
-          { kind: "authorization", ref: "bundle-investigation-1", recordedAt: NOW_ISO, details: {} },
-          { kind: "execution", ref: "ledger-entry-5", recordedAt: NOW_ISO, details: {} },
-          { kind: "verification", ref: "ver-1", recordedAt: NOW_ISO, details: {} },
-          { kind: "capability_version", ref: "fleetos.device.execute-command@1.2.0", recordedAt: NOW_ISO, details: {} },
+          { kind: "actor", ref: "operator-ada", recordedAt: isoOfEpochMs(ctx.startedAt), details: {} },
+          { kind: "intent", ref: "intent-42", recordedAt: isoOfEpochMs(ctx.startedAt), details: {} },
+          { kind: "authorization", ref: "bundle-investigation-1", recordedAt: isoOfEpochMs(ctx.startedAt), details: {} },
+          { kind: "execution", ref: "ledger-entry-5", recordedAt: isoOfEpochMs(ctx.startedAt), details: {} },
+          { kind: "verification", ref: "ver-1", recordedAt: isoOfEpochMs(ctx.startedAt), details: {} },
+          { kind: "capability_version", ref: "fleetos.device.execute-command@1.2.0", recordedAt: isoOfEpochMs(ctx.startedAt), details: {} },
         ]);
         const verified = verifyTraceabilityChain(chain);
         ctx.record("trace.verified", verified.verified);

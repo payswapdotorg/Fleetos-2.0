@@ -41,7 +41,7 @@ import {
   widenUncertainty,
 } from "@fleetos/predictive";
 import type { ClassifiedInput, FeatureProjection, UncertaintyInterval } from "@fleetos/predictive";
-import { TENANT, FOREIGN_TENANT, NOW_MS } from "./fixture-world.ts";
+import { TENANT, FOREIGN_TENANT } from "./fixture-world.ts";
 
 const ASSET = { assetId: "pump-7" } as const;
 const FEATURES: FeatureProjection = {
@@ -159,9 +159,9 @@ export const degradationStalenessJourney: AcceptanceJourney = {
       run: (ctx) => {
         // A mixed bag: fresh + stale + unknown — worst-of wins (unknown).
         const inputs: readonly ClassifiedInput[] = [
-          input("obs-pump-7-1", "fresh", 2_000, NOW_MS),
-          input("obs-pump-7-2", "stale", 45_000, NOW_MS),
-          input("obs-pump-7-3", "unknown", null, NOW_MS),
+          input("obs-pump-7-1", "fresh", 2_000, ctx.startedAt),
+          input("obs-pump-7-2", "stale", 45_000, ctx.startedAt),
+          input("obs-pump-7-3", "unknown", null, ctx.startedAt),
         ];
         const propagated = propagateStaleness(inputs, TENANT.tenantId);
         if (!propagated.ok) throw new Error(`propagation refused: ${propagated.reason}`);
@@ -198,7 +198,7 @@ export const degradationStalenessJourney: AcceptanceJourney = {
 
         // NEGATIVE: a cross-tenant input REFUSES naming the offender (A8).
         const cross = propagateStaleness(
-          [input("obs-pump-7-1", "fresh", 2_000, NOW_MS), { ...input("obs-foreign-1", "fresh", 1_000, NOW_MS), tenantId: FOREIGN_TENANT.tenantId }],
+          [input("obs-pump-7-1", "fresh", 2_000, ctx.startedAt), { ...input("obs-foreign-1", "fresh", 1_000, ctx.startedAt), tenantId: FOREIGN_TENANT.tenantId }],
           TENANT.tenantId,
         );
         ctx.record("staleness.crossOk", cross.ok);
@@ -212,7 +212,7 @@ export const degradationStalenessJourney: AcceptanceJourney = {
 
         // Stale-wins propagation (no unknown in the bag).
         const staleOnly = propagateStaleness(
-          [input("obs-a", "fresh", 2_000, NOW_MS), input("obs-b", "stale", 45_000, NOW_MS)],
+          [input("obs-a", "fresh", 2_000, ctx.startedAt), input("obs-b", "stale", 45_000, ctx.startedAt)],
           TENANT.tenantId,
         );
         ctx.record("staleness.staleWins", staleOnly.ok ? staleOnly.propagation.headline : "refused");

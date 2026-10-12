@@ -19,7 +19,7 @@
  *     (`store.snapshot-digest-mismatch`); a cross-tenant tombstone log
  *     REFUSES (`store.tenant-mismatch`).
  *
- * Determinism: logical epochs (NOW_MS offsets) only; no clock, no
+ * Determinism: logical epochs (nowMs offsets) only; no clock, no
  * randomness, no network.
  */
 
@@ -37,7 +37,7 @@ import {
   verifySnapshotEquivalence,
 } from "@fleetos/policy";
 import type { CapabilityStore, Capability, GuardianContext, AuthorityKind, RevocationLog, DecisionCorpusCase } from "@fleetos/policy";
-import { EXECUTE_CAPABILITY, READ_CAPABILITY, TENANT, FOREIGN_TENANT, NOW_MS, tenantPolicy } from "./fixture-world.ts";
+import { EXECUTE_CAPABILITY, READ_CAPABILITY, TENANT, FOREIGN_TENANT, tenantPolicy } from "./fixture-world.ts";
 
 const ANALYST = { actorId: "analyst-kim", authority: ["tenant.engineer"] as readonly AuthorityKind[], isAutonomous: false } as const;
 const OPERATOR = { actorId: "operator-ada", authority: ["tenant.operator", "human.approval", "asset.owner"] as readonly AuthorityKind[], isAutonomous: false } as const;
@@ -74,6 +74,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
       packages: ["@fleetos/policy"],
       operations: ["openCapabilityStore", "enrollPolicy", "enrollCapability", "issueCapabilityGrant", "decideCapability"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         // Empty tenant REFUSES (A8 fail-closed).
         ctx.record("store.openEmptyTenant", openCapabilityStore("") === null ? null : "unexpected-store");
         ctx.record("store.openRevocationLogEmpty", openRevocationLog("") === null ? null : "unexpected-log");
@@ -95,7 +96,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
           capabilityId: READ_CAPABILITY.id,
           granteeActorId: ANALYST.actorId,
           grantedByActorId: "tenant-operator",
-          grantedAt: NOW_MS,
+          grantedAt: nowMs,
         });
         if (!root.ok) throw new Error(`root grant refused: ${root.reason}`);
         let store = root.store;
@@ -106,7 +107,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
           capabilityId: READ_CAPABILITY.id,
           granteeActorId: ANALYST.actorId,
           grantedByActorId: "analyst-kim",
-          grantedAt: NOW_MS + 1_000,
+          grantedAt: nowMs + 1_000,
           parentGrantId: "grant-dr-root",
         });
         if (!child.ok) throw new Error(`child grant refused: ${child.reason}`);
@@ -119,7 +120,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
           capabilityId: READ_CAPABILITY.id,
           granteeActorId: ANALYST.actorId,
           grantedByActorId: "tenant-operator",
-          grantedAt: NOW_MS + 2_000,
+          grantedAt: nowMs + 2_000,
         });
         ctx.record("grant.duplicateOk", dupGrant.ok);
         ctx.record("grant.duplicateReason", dupGrant.ok ? "unexpected-allow" : dupGrant.reason);
@@ -129,7 +130,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
           policyId: tenantPolicy().id,
           capabilityId: READ_CAPABILITY.id,
           ctx: guardianCtx(READ_CAPABILITY, ANALYST),
-          at: NOW_MS + 3_000,
+          at: nowMs + 3_000,
         });
         if (!allowed.ok) throw new Error(`allow decision refused: ${allowed.reason}`);
         ctx.record("decide.allow.outcome", allowed.decision.outcome);
@@ -153,14 +154,14 @@ export const capabilityDrJourney: AcceptanceJourney = {
           capabilityId: EXECUTE_CAPABILITY.id,
           granteeActorId: OPERATOR.actorId,
           grantedByActorId: "tenant-operator",
-          grantedAt: NOW_MS,
+          grantedAt: nowMs,
         });
         if (!execGrant.ok) throw new Error(`exec grant refused: ${execGrant.reason}`);
         const escalated = decideCapability(execGrant.store, {
           policyId: tenantPolicy().id,
           capabilityId: EXECUTE_CAPABILITY.id,
           ctx: guardianCtx(EXECUTE_CAPABILITY, OPERATOR),
-          at: NOW_MS + 3_000,
+          at: nowMs + 3_000,
         });
         if (!escalated.ok) throw new Error(`escalate decision refused: ${escalated.reason}`);
         ctx.record("decide.escalate.outcome", escalated.decision.outcome);
@@ -173,7 +174,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
           policyId: tenantPolicy().id,
           capabilityId: READ_CAPABILITY.id,
           ctx: guardianCtx(READ_CAPABILITY, { actorId: "visitor-sam", authority: [], isAutonomous: false }),
-          at: NOW_MS + 3_000,
+          at: nowMs + 3_000,
         });
         if (!noGrant.ok) throw new Error(`no-grant decision refused: ${noGrant.reason}`);
         ctx.record("decide.noGrant.outcome", noGrant.decision.outcome);
@@ -183,7 +184,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
           policyId: "policy-missing",
           capabilityId: READ_CAPABILITY.id,
           ctx: guardianCtx(READ_CAPABILITY, ANALYST),
-          at: NOW_MS,
+          at: nowMs,
         }).ok);
       },
     },
@@ -194,6 +195,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
       packages: ["@fleetos/policy"],
       operations: ["revokeCapabilityGrant", "decideCapability", "snapshotCapabilityStore", "restoreCapabilityStore", "verifySnapshotEquivalence"],
       run: (ctx) => {
+        const nowMs = ctx.startedAt;
         const { store: s0, log: l0 } = freshStore();
         const root = issueCapabilityGrant(s0, l0, {
           grantId: "grant-dr-root",
@@ -201,7 +203,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
           capabilityId: READ_CAPABILITY.id,
           granteeActorId: ANALYST.actorId,
           grantedByActorId: "tenant-operator",
-          grantedAt: NOW_MS,
+          grantedAt: nowMs,
         });
         if (!root.ok) throw new Error("root grant refused");
         let store = root.store;
@@ -212,7 +214,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
           capabilityId: READ_CAPABILITY.id,
           granteeActorId: ANALYST.actorId,
           grantedByActorId: "analyst-kim",
-          grantedAt: NOW_MS + 1_000,
+          grantedAt: nowMs + 1_000,
           parentGrantId: "grant-dr-root",
         });
         if (!child.ok) throw new Error("child grant refused");
@@ -220,11 +222,11 @@ export const capabilityDrJourney: AcceptanceJourney = {
         log = child.log;
 
         // A snapshot BEFORE any revocation (the pre-disaster backup).
-        const before = snapshotCapabilityStore(store, log, NOW_MS + 2_000);
+        const before = snapshotCapabilityStore(store, log, nowMs + 2_000);
         if (before === null) throw new Error("pre-revocation snapshot refused");
 
         // REVOKE the root: propagation revokes the child too + tombstone.
-        const revoked = revokeCapabilityGrant(store, log, "grant-dr-root", NOW_MS + 3_000, "tenant-operator", "operator-initiated revocation");
+        const revoked = revokeCapabilityGrant(store, log, "grant-dr-root", nowMs + 3_000, "tenant-operator", "operator-initiated revocation");
         if (!revoked.ok) throw new Error(`revocation refused: ${revoked.reason}`);
         store = revoked.store;
         log = revoked.log;
@@ -238,7 +240,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
           policyId: tenantPolicy().id,
           capabilityId: READ_CAPABILITY.id,
           ctx: guardianCtx(READ_CAPABILITY, ANALYST),
-          at: NOW_MS + 4_000,
+          at: nowMs + 4_000,
         });
         if (!denied.ok) throw new Error("denied decision refused");
         ctx.record("revoke.decision.outcome", denied.decision.outcome);
@@ -254,7 +256,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
           policyId: tenantPolicy().id,
           capabilityId: READ_CAPABILITY.id,
           ctx: guardianCtx(READ_CAPABILITY, ANALYST),
-          at: NOW_MS + 5_000,
+          at: nowMs + 5_000,
         });
         if (!after.ok) throw new Error("post-restore decision refused");
         ctx.record("dr.postRestore.outcome", after.decision.outcome);
@@ -262,9 +264,9 @@ export const capabilityDrJourney: AcceptanceJourney = {
 
         // SNAPSHOT EQUIVALENCE over a decision corpus (byte-identical).
         const corpus: readonly DecisionCorpusCase[] = [
-          { policyId: tenantPolicy().id, capabilityId: READ_CAPABILITY.id, ctx: guardianCtx(READ_CAPABILITY, ANALYST), at: NOW_MS + 5_000 },
-          { policyId: tenantPolicy().id, capabilityId: READ_CAPABILITY.id, ctx: guardianCtx(READ_CAPABILITY, { actorId: "visitor-sam", authority: [], isAutonomous: false }), at: NOW_MS + 5_000 },
-          { policyId: tenantPolicy().id, capabilityId: READ_CAPABILITY.id, ctx: guardianCtx(READ_CAPABILITY, OPERATOR), at: NOW_MS + 5_000 },
+          { policyId: tenantPolicy().id, capabilityId: READ_CAPABILITY.id, ctx: guardianCtx(READ_CAPABILITY, ANALYST), at: nowMs + 5_000 },
+          { policyId: tenantPolicy().id, capabilityId: READ_CAPABILITY.id, ctx: guardianCtx(READ_CAPABILITY, { actorId: "visitor-sam", authority: [], isAutonomous: false }), at: nowMs + 5_000 },
+          { policyId: tenantPolicy().id, capabilityId: READ_CAPABILITY.id, ctx: guardianCtx(READ_CAPABILITY, OPERATOR), at: nowMs + 5_000 },
         ];
         const equivalence = verifySnapshotEquivalence(store, restored.store, corpus);
         ctx.record("dr.equivalence.equivalent", equivalence.equivalent);
@@ -272,7 +274,7 @@ export const capabilityDrJourney: AcceptanceJourney = {
         ctx.record("dr.equivalence.divergedAt", equivalence.divergedAt);
 
         // A snapshot AFTER the revocation restores with zero replayed tombstones.
-        const afterSnapshot = snapshotCapabilityStore(store, log, NOW_MS + 6_000);
+        const afterSnapshot = snapshotCapabilityStore(store, log, nowMs + 6_000);
         if (afterSnapshot === null) throw new Error("post-revocation snapshot refused");
         const restoredAfter = restoreCapabilityStore(afterSnapshot, log);
         if (!restoredAfter.ok) throw new Error(`post-revocation restore refused: ${restoredAfter.reason}`);
