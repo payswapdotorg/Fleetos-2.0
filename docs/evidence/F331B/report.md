@@ -211,7 +211,7 @@ parity; all at the branch tip):
 | release (TL-owned, evidence only) | `pnpm --filter @fleetos/acceptance-release test` | identical pre-existing 4 pin failures at base and this tree (field 31/30, commerce 36/34, 2613/2523 — the F331A/F331C-era transition; nothing security-related) |
 
 Corpus shape (unchanged, grow-only in tests only): 27 journeys,
-933 assertions, 66 steps. No journey was added, removed or renamed; no
+933 assertions, 70 steps. No journey was added, removed or renamed; no
 assertion was altered (the base-digest proof pins them all).
 
 ## 6. Honest limitations
