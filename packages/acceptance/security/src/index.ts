@@ -9,16 +9,22 @@
  *     digest + verify, JourneyReport double-digest form);
  *   - `./journeys` — the 13-journey corpus driving the REAL public entry
  *     points of this lane's packages;
- *   - `./runner` — the deterministic journey runner;
+ *   - `./runner` — the deterministic journey runner (with the F331B
+ *     `startedAt` time seam);
+ *   - `./census` — the F331B security time-census (D12): the frozen grid,
+ *     the machine measurement, the declared 27-row table and the (empty)
+ *     parameterization set;
  *   - `./report` — acceptance report assembly (coverage matrix persona x
  *     capability, honest zero-inflation, digest + verify).
  *
  * Determinism laws: no Date.now(), no Math.random(), no network, no timers.
- * Logical `now` is caller-supplied everywhere. Tenant fail-closed (A8) is
- * asserted inside journeys, not assumed.
+ * Logical `now` is caller-supplied everywhere (the F331B seam: the run
+ * anchor is `runJourney`'s `startedAt`, defaulting to the corpus fixture
+ * clock). Tenant fail-closed (A8) is asserted inside journeys, not assumed.
  */
 
 export * from "./journey-contracts.ts";
 export * from "./journeys/index.ts";
 export * from "./runner.ts";
+export * from "./census.ts";
 export * from "./report.ts";
