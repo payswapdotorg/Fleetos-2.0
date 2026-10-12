@@ -171,13 +171,13 @@ describe("release gate — the all-green path", () => {
     expect(verifyReleaseGateVerdict(verdict)).toBe(true);
   });
 
-  it("the REAL baseline counts the gate verified: field 30, security 27, commerce 34, adoption 30 workspaces (converged Wave 12 corpora)", () => {
-    expect(FIELD_JOURNEYS.length).toBe(30);
+  it("the REAL baseline counts the gate verified: field 31, security 27, commerce 36, adoption 30 workspaces (converged Wave 13 corpora)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(31);
     expect(SECURITY_JOURNEYS.length).toBe(27);
-    expect(COMMERCE_JOURNEYS.length).toBe(34);
-    expect(fieldReport.aggregate.journeys).toBe(30);
+    expect(COMMERCE_JOURNEYS.length).toBe(36);
+    expect(fieldReport.aggregate.journeys).toBe(31);
     expect(securityReport.totalJourneys).toBe(27);
-    expect(commerceReport.totals.journeyCount).toBe(34);
+    expect(commerceReport.totals.journeyCount).toBe(36);
     expect(adoptionReport.aggregate.workspaces).toBe(30);
     expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
   });
@@ -448,11 +448,11 @@ describe("release gate — acceptance baselines (present, green, count-exact, un
     expect(blocker!.detail).toContain("allJourneysPassed=false");
   });
 
-  it("short field corpus (REAL assembler over a subset) → ACCEPTANCE_COUNT_MISMATCH (expected 30, got 29)", () => {
+  it("short field corpus (REAL assembler over a subset) → ACCEPTANCE_COUNT_MISMATCH (expected 31, got 29)", () => {
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: subsetFieldReport(), security: securityReport, commerce: commerceReport, adoption: adoptionReport } });
     expect(verdict.verdict).toBe("NOT-READY");
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 30");
+    expect(blocker!.detail).toContain("expected 31");
     expect(blocker!.detail).toContain("report carries 29");
   });
 
@@ -466,7 +466,7 @@ describe("release gate — acceptance baselines (present, green, count-exact, un
     const subset = await subsetCommerceReport();
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: fieldReport, security: securityReport, commerce: subset, adoption: adoptionReport } });
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 34");
+    expect(blocker!.detail).toContain("expected 36");
     expect(blocker!.detail).toContain("report carries 33");
   });
 

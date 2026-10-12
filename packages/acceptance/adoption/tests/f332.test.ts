@@ -1,11 +1,12 @@
 /**
  * F332 — the counting-gate battery (the F330 §2 law, machine-verified).
  *
- * Four gates (the packet's phase-1 battery):
- *  1. INACTIVE-state parity — all 30 firms byte-identical to the current
- *     pinned numbers (phase 1's core invariant: the mechanism moved
- *     NOTHING; the pins are the machine-measured INACTIVE numbers at the
- *     Wave-13 corpora, recorded by the F332 probe).
+ * Four gates (the packet's battery):
+ *  1. Mode parity — all 30 firms byte-identical to the pinned numbers of the
+ *     gate's CURRENT mode (phase 1: INACTIVE parity — the mechanism moved
+ *     NOTHING, machine-proven by the F332 probe; phase 2: the ACTIVE
+ *     activation ledger, machine-measured — the epoch-count ledger with the
+ *     D8 census citations).
  *  2. The exact D9 frozen schedule values per firm size + every pre-F332
  *     firms.ts export preserved.
  *  3. Non-frozen anchors are MISSING_EPOCH-style refusals — never silent
@@ -47,9 +48,13 @@ const T0 = ADOPTION_T0;
 const T0_30D = T0 + EPOCH_30D_MS;
 const T0_90D = T0 + EPOCH_90D_MS;
 
-// The machine-measured INACTIVE pins at the Wave-13 corpora (the F332
-// probe, run on this tree): per-industry counted executions per firm —
-// identical across sizes while the gate is INACTIVE (epochs never count).
+// The machine-measured pins at the Wave-13 corpora (the F332 probes, run on
+// this tree). Per-industry counted executions per firm — the INACTIVE gate
+// (identical across sizes: no epoch counts) and the ACTIVE gate (per size:
+// base + the census-certified responders' D9 epoch counts — +8/+16 for
+// medium/large where all 6 field responders apply; agriculture large is
+// 76+16=92, healthcare/facilities large 79+14=93 / 80+14=94 — 5 field
+// responders there because edge-command-lifecycle is masked).
 const INACTIVE_PER_FIRM: Record<string, number> = {
   manufacturing: 94,
   construction: 91,
@@ -63,47 +68,124 @@ const INACTIVE_PER_FIRM: Record<string, number> = {
   "water-waste": 89,
 };
 
+const ACTIVE_PER_FIRM: Record<string, [number, number, number]> = {
+  manufacturing: [94, 102, 110],
+  construction: [91, 99, 107],
+  "energy-utilities": [94, 102, 110],
+  "transportation-logistics": [87, 95, 103],
+  agriculture: [76, 84, 92],
+  "healthcare-facilities": [79, 86, 93],
+  "facilities-management": [80, 87, 94],
+  telecommunications: [89, 97, 105],
+  mining: [92, 100, 108],
+  "water-waste": [89, 97, 105],
+};
+
 const SIMULATION = await runAdoptionSimulation();
 
 // ---------------------------------------------------------------------------
-// 1. INACTIVE-state parity (phase 1's core invariant)
+// 1. Mode parity — every firm byte-identical to the pinned numbers of the
+//    gate's CURRENT mode (INACTIVE: phase 1's core invariant; ACTIVE: the
+//    phase-2 activation ledger, machine-measured by the F332 probe).
 // ---------------------------------------------------------------------------
 
-describe("F332 gate 1 — INACTIVE-state parity (all 30 firms byte-identical to the pinned numbers)", () => {
-  it("the gate is INACTIVE at the phase-1 boundary (D7: no epoch variant counts)", () => {
-    expect(EPOCH_COUNTING_ACTIVE).toBe(false);
+describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)", () => {
+  it("the gate's mode is explicit (D7: the phase-1 boundary was INACTIVE; phase 2 flipped it)", () => {
+    expect(EPOCH_COUNTING_ACTIVE).toBe(true); // flipped at phase 2 (its own commit)
   });
 
-  it("every firm's counted executions are exactly the pinned INACTIVE numbers (30/30)", () => {
+  it("every firm's counted executions are exactly the pinned numbers (30/30)", () => {
     expect(SIMULATION.firmRuns.length).toBe(30);
     for (const run of SIMULATION.firmRuns) {
-      expect(run.executionCounts.total).toBe(INACTIVE_PER_FIRM[run.firm.industryId]);
-      expect(run.executionCounts.field).toBe(applicableFieldJourneys(run.industry).length);
-      expect(run.executionCounts.commerce).toBe(applicableCommerceJourneys(run.industry).length);
+      const expected = EPOCH_COUNTING_ACTIVE
+        ? ACTIVE_PER_FIRM[run.firm.industryId]![run.firm.size === "small" ? 0 : run.firm.size === "medium" ? 1 : 2]
+        : INACTIVE_PER_FIRM[run.firm.industryId];
+      expect(run.executionCounts.total).toBe(expected);
+      expect(run.executionCounts.field).toBe(
+        applicableFieldJourneys(run.industry).length
+        + (EPOCH_COUNTING_ACTIVE ? run.epochDecisions.filter((d) => d.corpus === "field").reduce((a, d) => a + d.countedEpochs.length, 0) : 0),
+      );
+      expect(run.executionCounts.commerce).toBe(
+        applicableCommerceJourneys(run.industry).length
+        + (EPOCH_COUNTING_ACTIVE ? run.epochDecisions.filter((d) => d.corpus === "commerce").reduce((a, d) => a + d.countedEpochs.length, 0) : 0),
+      );
       expect(run.executionCounts.security).toBe(applicableSecurityJourneys(run.industry).length);
     }
   });
 
-  it("the aggregate is exactly the pinned INACTIVE numbers (machine-measured, never copied)", () => {
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(2613);
-    expect(SIMULATION.aggregate.fieldExecutions).toBe(885);
-    expect(SIMULATION.aggregate.commerceExecutions).toBe(957);
-    expect(SIMULATION.aggregate.securityExecutions).toBe(771);
-    expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(885);
+  it("the aggregate is exactly the pinned numbers of the current mode (machine-measured, never copied)", () => {
+    if (EPOCH_COUNTING_ACTIVE) {
+      expect(SIMULATION.aggregate.journeyExecutions).toBe(2847);
+      expect(SIMULATION.aggregate.fieldExecutions).toBe(1059);
+      expect(SIMULATION.aggregate.commerceExecutions).toBe(1017);
+      expect(SIMULATION.aggregate.securityExecutions).toBe(771);
+      expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
+      expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(897);
+    } else {
+      expect(SIMULATION.aggregate.journeyExecutions).toBe(2613);
+      expect(SIMULATION.aggregate.fieldExecutions).toBe(885);
+      expect(SIMULATION.aggregate.commerceExecutions).toBe(957);
+      expect(SIMULATION.aggregate.securityExecutions).toBe(771);
+      expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(885);
+    }
     expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(871);
     expect(SIMULATION.aggregate.determinismVerified).toBe(true);
     expect(SIMULATION.aggregate.allJourneysPassed).toBe(true);
   });
 
-  it("every firm: epochs >= 2 are asserted byte-identical re-runs (the Wave-12 law persists) and NEVER counted", () => {
+  it("the ACTIVE determinism laws hold on every firm (D10 proofs + D13 evidence)", () => {
     for (const run of SIMULATION.firmRuns) {
-      expect(run.determinismProof.epochCountingActive).toBe(false);
-      expect(run.determinismProof.fieldEpochsByteIdentical).toBe(true);
+      expect(run.determinismProof.epochCountingActive).toBe(EPOCH_COUNTING_ACTIVE);
       expect(run.determinismProof.verified).toBe(true);
-      expect(run.epochDecisions).toEqual([]);
-      expect(run.executionFacts.every((f) => f.epoch === 0)).toBe(true);
+      if (!EPOCH_COUNTING_ACTIVE) {
+        expect(run.determinismProof.fieldEpochsByteIdentical).toBe(true);
+        expect(run.epochDecisions).toEqual([]);
+        expect(SIMULATION.epochCountLedger).toEqual([]);
+        expect(run.executionFacts.every((f) => f.epoch === 0)).toBe(true);
+        continue;
+      }
+      // ACTIVE: the D10 proofs verified + only the declaring journeys vary
+      // (D2(d) distinctness makes the raw cross-epoch identity honestly false
+      // for medium/large firms; small firms have no epoch dimension).
+      expect(run.determinismProof.fieldEpochProofsVerified).toBe(true);
+      expect(run.determinismProof.fieldInvariantsByteIdentical).toBe(true);
+      expect(run.determinismProof.commerceEpochsByteIdentical).toBe(true);
+      expect(run.determinismProof.fieldEpochsByteIdentical).toBe(run.firm.size === "small");
+      // Every counted epoch >= 1 belongs to a census-certified journey.
+      for (const fact of run.executionFacts.filter((f) => f.epoch > 0)) {
+        const decision = run.epochDecisions.find((d) => d.journeyId === fact.journeyId);
+        expect(decision?.countedEpochs).toContain(fact.epoch);
+        expect(decision?.refusalReason).toBeNull();
+      }
     }
-    expect(SIMULATION.epochCountLedger).toEqual([]);
+  });
+
+  it("the epoch-count ledger: exactly the 8 census-certified journey IDs with their D8 citations", () => {
+    if (EPOCH_COUNTING_ACTIVE) {
+      expect(SIMULATION.epochCountLedger.map((e) => `${e.corpus}:${e.journeyId}`).sort()).toEqual([
+        "commerce:marketplace-transaction-flow",
+        "commerce:tenant-billing-invoicing",
+        "field:connectivity-postures",
+        "field:edge-command-lifecycle",
+        "field:host-health-evidence-timeline",
+        "field:host-maintenance-intent-to-verification",
+        "field:maintain-asset-schedule",
+        "field:recover-lost-device",
+      ]);
+      for (const entry of SIMULATION.epochCountLedger) {
+        expect(entry.censusCitation).toMatch(/F330 §1\.1|F331C §5 census row/);
+      }
+      // Per-journey totals: 30 counted epochs (3 per industry) except
+      // edge-command-lifecycle (masked in healthcare + facilities → 24).
+      const byJourney = new Map(SIMULATION.epochCountLedger.map((e) => [e.journeyId, e.countedExecutions] as const));
+      expect(byJourney.get("edge-command-lifecycle")).toBe(24);
+      for (const id of ["recover-lost-device", "maintain-asset-schedule", "connectivity-postures", "host-health-evidence-timeline", "host-maintenance-intent-to-verification", "marketplace-transaction-flow", "tenant-billing-invoicing"]) {
+        expect(byJourney.get(id)).toBe(30);
+      }
+      expect([...byJourney.values()].reduce((a, b) => a + b, 0)).toBe(234);
+    } else {
+      expect(SIMULATION.epochCountLedger).toEqual([]);
+    }
   });
 
   it("the commerce composition site is byte-identical to the no-options direct run (seam parity at T0)", async () => {

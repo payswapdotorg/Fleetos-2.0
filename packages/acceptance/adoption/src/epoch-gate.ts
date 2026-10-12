@@ -69,15 +69,15 @@ import { FIRM_EPOCH_SCHEDULES } from "./firms.js";
 
 /**
  * D7 (F330 §2): the counting gate's activation switch. false at the F332
- * phase-1 boundary — the Wave-12 state persists byte-identically (epoch 1
- * counted; epochs >= 2 asserted byte-identical re-runs, never counted).
- * PHASE 2 flips this to true as its own commit; per-epoch distinct
- * journeys then count iff the D10 proof form passes and the D13 refusals
- * hold. Tests exercise the ACTIVE counting mechanics through the pure
+ * phase-1 boundary (the Wave-12 state persisted byte-identically: epoch 1
+ * counted; epochs >= 2 asserted byte-identical re-runs, never counted);
+ * PHASE 2 flips it to true AS ITS OWN COMMIT. Now ACTIVE: per-epoch
+ * distinct journeys count iff the D10 proof form passes and the D13
+ * refusals hold. Tests exercise the counting mechanics through the pure
  * decision functions below (test-only switch injection) — NEVER by editing
  * this constant.
  */
-export const EPOCH_COUNTING_ACTIVE = false;
+export const EPOCH_COUNTING_ACTIVE = true;
 
 // ---------------------------------------------------------------------------
 // D9 — the frozen anchors (composition-site refusal law)
@@ -276,47 +276,74 @@ export interface FieldEpochSiteResult {
    * epoch pairs exist to prove; small firms). */
   readonly proofs: readonly EpochExecutionProof[] | null;
   readonly decisions: readonly EpochCountDecision[];
-  /** The proofs re-verified AND each proof's outcome digests match the
-   * driver's own epoch runs at the same anchors (execution consistency). */
+  /** The proofs re-verified AND each proof's anchor-0 outcome digest matches
+   * the driver's own epoch-0 corpus run for that journey (execution
+   * consistency at T0). */
   readonly proofsVerified: boolean;
-  /** D13 evidence: every field journey WITHOUT an epoch declaration is
-   * byte-identical across ALL declared epochs (only D10-certified journeys
-   * may vary across epochs). */
+  /** D8 rerun supremacy (D13 evidence): the epoch dimension executed ONLY
+   * the epoch-declaring (census-certified) journeys — a non-certified
+   * journey NEVER executes an epoch >= 2 (its expectations are
+   * T0-anchored; the epoch dimension is not its domain). */
   readonly invariantsByteIdentical: boolean;
+  /** The epoch dimension's per-anchor digest vectors (index-aligned with
+   * the schedule, anchors >= 1): the DECLARING journeys' proof outcome
+   * digests at each anchor. */
+  readonly epochDimension: readonly (readonly { readonly journeyId: string; readonly digest: string }[])[];
+  /** Raw epoch-dimension executions NOT counted (each declaring journey runs
+   * TWICE per anchor — the run + its D2(c) same-epoch re-run — including at
+   * anchor 0, which re-executes the epoch-0 run: all re-runs by D13). */
+  readonly rawEpochExecutions: number;
 }
 
 /**
  * The ACTIVE field composition site: run the F331A capability
  * (`runJourneyEpochs`) at the firm's D9 schedule and consume its outcomes
  * (the capability enforces the D10 proof mechanically — a violation
- * throws); the gate re-verifies and decides counting. `epochRuns` are the
- * driver's own raw per-anchor corpus runs (transparency + consistency).
+ * throws); the gate re-verifies and decides counting. The epoch dimension
+ * (anchors >= 1) executes ONLY the epoch-declaring journeys — D8 rerun
+ * supremacy: non-certified journeys never execute an epoch >= 2 (their
+ * expectations are T0-anchored single-valued tables; the F330 §1.2 corpus
+ * law). `epoch0Outcomes` are the driver's full-corpus epoch-0 run (the
+ * counted epoch-1 base + the T0 consistency check).
  */
 export function verifyFieldEpochSite(
   journeys: readonly FieldJourney[],
   tenantId: string,
   epochs: readonly number[],
-  epochRuns: readonly (readonly FieldOutcome[])[],
+  epoch0Outcomes: readonly FieldOutcome[],
 ): FieldEpochSiteResult {
   for (const anchor of epochs) assertFrozenEpochAnchor(anchor);
   if (epochs.length < 2) {
-    return { proofs: null, decisions: [], proofsVerified: true, invariantsByteIdentical: true };
+    return {
+      proofs: null,
+      decisions: [],
+      proofsVerified: true,
+      invariantsByteIdentical: true,
+      epochDimension: [],
+      rawEpochExecutions: 0,
+    };
   }
   const proofs = runJourneyEpochs(journeys, { tenantId, schedule: epochs });
   const decisions = proofs.map(decideFieldEpochCounting);
-  const declaring = new Set(proofs.map((p) => p.journeyId));
-  const epoch0 = epochRuns[0] ?? [];
-  const invariantsByteIdentical = epochRuns.every((runs, e) =>
-    e === 0 || runs.every((o, i) => declaring.has(o.journeyId) || o.digest === epoch0[i]?.digest));
+  const declaringIds = new Set(journeys.filter((j) => j.epochs !== undefined).map((j) => j.id));
+  const epochDimension = epochs.slice(1).map((_, k) =>
+    proofs.map((p) => ({ journeyId: p.journeyId, digest: (p.outcomes[k + 1] as FieldOutcome).digest })));
   const proofsVerified =
     decisions.every((d) => d.refusalReason === null) &&
-    proofs.every((p) =>
-      p.outcomes.every((o, k) => {
-        const run = (epochRuns[k] ?? []).find((r) => r.journeyId === p.journeyId);
-        return run !== undefined && run.digest === o.digest;
-      }),
-    );
-  return { proofs, decisions, proofsVerified, invariantsByteIdentical };
+    proofs.every((p) => {
+      const epoch0 = epoch0Outcomes.find((o) => o.journeyId === p.journeyId);
+      return epoch0 !== undefined && (p.outcomes[0] as FieldOutcome).digest === epoch0.digest;
+    });
+  const invariantsByteIdentical = proofs.every((p) => declaringIds.has(p.journeyId));
+  const counted = decisions.reduce((acc, d) => acc + d.countedEpochs.length, 0);
+  return {
+    proofs,
+    decisions,
+    proofsVerified,
+    invariantsByteIdentical,
+    epochDimension,
+    rawEpochExecutions: Math.max(0, proofs.length * epochs.length * 2 - counted),
+  };
 }
 
 /** The commerce epoch site's outcome (consumed by the adoption driver). */
@@ -324,8 +351,9 @@ export interface CommerceEpochSiteResult {
   /** The corpus run at every declared epoch anchor (index-aligned with the
    * schedule; epoch 0 is the T0 run — byte-identical to the no-options run). */
   readonly runs: readonly (readonly CommerceOutcome[])[];
-  /** Counting decisions for every table-bearing journey (certified or not —
-   * a non-certified table-bearing journey is REFUSED, honestly recorded). */
+  /** Counting decisions for every table-bearing journey when the schedule
+   * has >= 2 anchors (certified or not — a non-certified table-bearing
+   * journey is REFUSED, honestly recorded; no epoch pairs => no decisions). */
   readonly decisions: readonly EpochCountDecision[];
   /** D2(c)/D13 evidence: every table-bearing journey's same-anchor re-run
    * is byte-identical AND every table-less journey is byte-identical
@@ -350,7 +378,9 @@ export async function runCommerceEpochSite(
   for (let e = 0; e < epochs.length; e += 1) {
     runs.push(await runAllJourneys(journeys, { startedAt: epochs[e] as number }));
   }
-  const tableJourneys = journeys.filter((j) => j.assertions.some((a) => a.expectedByEpoch !== undefined));
+  const tableJourneys = epochs.length >= 2
+    ? journeys.filter((j) => j.assertions.some((a) => a.expectedByEpoch !== undefined))
+    : [];
   const tableIds = new Set(tableJourneys.map((j) => j.id));
   const decisions: EpochCountDecision[] = [];
   let sameAnchorRerunsIdentical = true;

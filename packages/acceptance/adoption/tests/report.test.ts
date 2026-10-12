@@ -79,10 +79,15 @@ describe("adoption report (2-industry simulation)", () => {
   it("honest-counts ledger is complete and exact", () => {
     expect(REPORT.honestCounts.targetPerFirm).toBe(100);
     expect(REPORT.honestCounts.entries.length).toBe(6);
+    // F332 ACTIVE: manufacturing's medium (102) and large (110) firms REACH
+    // 100+ honestly (shortfall 0); agriculture's firms stay below.
     for (const entry of REPORT.honestCounts.entries) {
-      expect(entry.shortfall).toBe(entry.target - entry.executed);
-      expect(entry.executed).toBeLessThan(100);
+      expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
+      expect(entry.executed).toBeLessThanOrEqual(110);
     }
+    const manufacturingMedium = REPORT.honestCounts.entries.find((e) => e.firmId === "firm-manufacturing-medium");
+    expect(manufacturingMedium?.executed).toBe(102);
+    expect(manufacturingMedium?.shortfall).toBe(0);
     expect(REPORT.honestCounts.structuralReasons.length).toBe(5);
     expect(REPORT.honestCounts.aggregateShortfall).toBe(
       REPORT.honestCounts.entries.reduce((acc, e) => acc + e.shortfall, 0),

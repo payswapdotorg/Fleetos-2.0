@@ -203,7 +203,7 @@ describe("REAL-run integration — the hardened surfaces feed the gate", () => {
     expect(adoptionReport.aggregate.workspaces).toBe(30);
     expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
     expect(adoptionReport.aggregate.determinismVerified).toBe(true);
-    expect(adoptionReport.aggregate.journeyExecutions).toBe(2523); // Wave 12 converged: 1848 (Wave 11) + 300 (F321A field) + 300 (F321B security) + 75 (F321C commerce, net of the 15 actor-job-failure-expiry mask executions) = 2523 counted
+    expect(adoptionReport.aggregate.journeyExecutions).toBe(2847); // F332 ACTIVE (machine-measured): 2613 counted at the INACTIVE gate (Wave-13 corpora: field 31 via F331A + commerce 36 via F331C) + 234 D10-proof-passing epoch counts (174 field: 6 census-certified journeys; 60 commerce: 2 census-certified responders)
   });
 
   it("gate re-evaluation is byte-identical (determinism over the REAL stack)", () => {
