@@ -9,3 +9,4 @@ export * from "./directory.js";
 export * from "./entitlement-grants.js";
 export * from "./renewal-windows.js";
 export * from "./seat-allocation.js";
+export * from "./tenant-billing.js";
