@@ -17,10 +17,12 @@
 import {
   type AcceptanceJourney,
   type AssertionOutcome,
+  type EpochExpectation,
   type FactValue,
   type JourneyOutcome,
   type StepOutcome,
   MISSING_FACT,
+  MISSING_EPOCH,
   computeJourneyDigest,
 } from "./journey-contracts.js";
 import { buildJourneyWorld, type JourneyState } from "./journey-world.js";
@@ -38,7 +40,10 @@ import { runResilienceStep } from "./drivers-resilience.js";
 import { runMarketplaceStep } from "./drivers-marketplace.js";
 import { runVendorDirectoryStep } from "./drivers-vendor-directory.js";
 import { runActorJobStep } from "./drivers-actor-jobs.js";
+import { runMarketplaceTransactionStep } from "./drivers-marketplace-transactions.js";
+import { runTenantBillingStep } from "./drivers-tenant-billing.js";
 import type { ActorJobStep, AurumStep, CommerceStep, FinanceStep, GatewayStep, HostStep, LifecycleStep, MarketplaceStep, OrgStep, ResilienceStep, VendorDirectoryStep, WorkStep } from "./journey-contracts.js";
+import type { MarketplaceTransactionStep, TenantBillingStep } from "./journey-contracts-f331c.js";
 
 const WORK_KINDS: ReadonlySet<string> = new Set([
   "work-create", "work-assign", "work-transition", "work-board",
@@ -107,8 +112,18 @@ const ACTOR_JOB_KINDS: ReadonlySet<string> = new Set([
   "apify-job-create-idempotent", "apify-job-fail", "apify-job-expire-at",
 ]);
 
+// F331C (Wave 13 lane C) step-kind families.
+const MARKETPLACE_TRANSACTION_KINDS: ReadonlySet<string> = new Set([
+  "mtx-listing-seed", "mtx-place-order", "mtx-checkout-order", "mtx-cancel-order",
+  "mtx-expire-order", "mtx-order-board",
+]);
+
+const TENANT_BILLING_KINDS: ReadonlySet<string> = new Set([
+  "billing-usage-seed", "billing-invoice-issue",
+]);
+
 export async function executeStep(
-  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep,
+  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep,
   state: JourneyState,
 ): Promise<Record<string, FactValue>> {
   if (WORK_KINDS.has(step.kind)) return runWorkStep(step as WorkStep, state);
@@ -124,14 +139,40 @@ export async function executeStep(
   if (MARKETPLACE_KINDS.has(step.kind)) return runMarketplaceStep(step as MarketplaceStep, state);
   if (VENDOR_DIRECTORY_KINDS.has(step.kind)) return runVendorDirectoryStep(step as VendorDirectoryStep, state);
   if (ACTOR_JOB_KINDS.has(step.kind)) return runActorJobStep(step as ActorJobStep, state);
+  if (MARKETPLACE_TRANSACTION_KINDS.has(step.kind)) return runMarketplaceTransactionStep(step as MarketplaceTransactionStep, state);
+  if (TENANT_BILLING_KINDS.has(step.kind)) return runTenantBillingStep(step as TenantBillingStep, state);
   return runOrgStep(step as OrgStep, state);
 }
 
 function evaluateAssertion(
-  assertion: { readonly id: string; readonly description: string; readonly fact: string; readonly op: "eq" | "deepEq" | "gt" | "gte" | "lt" | "includes" | "uniform"; readonly expected: FactValue },
+  assertion: { readonly id: string; readonly description: string; readonly fact: string; readonly op: "eq" | "deepEq" | "gt" | "gte" | "lt" | "includes" | "uniform"; readonly expected: FactValue; readonly expectedByEpoch?: readonly EpochExpectation[] },
   facts: ReadonlyMap<string, FactValue>,
+  runStartedAt: number,
 ): AssertionOutcome {
+  // F331C D10: resolve a per-epoch table when present. A run at an
+  // unlisted anchor fails with the MISSING_EPOCH sentinel — the journey
+  // is certified only at the frozen epochs (D9).
+  let expected = assertion.expected;
+  let missingEpoch = false;
+  if (assertion.expectedByEpoch !== undefined) {
+    const entry = assertion.expectedByEpoch.find((e) => e.epoch === runStartedAt);
+    if (entry === undefined) {
+      missingEpoch = true;
+    } else {
+      expected = entry.expected;
+    }
+  }
   const actual = facts.get(assertion.fact);
+  if (missingEpoch) {
+    return {
+      assertionId: assertion.id,
+      description: assertion.description,
+      ok: false,
+      op: assertion.op,
+      actual: actual === undefined ? MISSING_FACT : actual,
+      expected: MISSING_EPOCH,
+    };
+  }
   if (actual === undefined) {
     return {
       assertionId: assertion.id,
@@ -139,11 +180,10 @@ function evaluateAssertion(
       ok: false,
       op: assertion.op,
       actual: MISSING_FACT,
-      expected: assertion.expected,
+      expected,
     };
   }
   let ok = false;
-  const expected = assertion.expected;
   switch (assertion.op) {
     case "eq":
       ok = actual === expected;
@@ -159,16 +199,16 @@ function evaluateAssertion(
       break;
     }
     case "gt":
-      ok = typeof actual === "number" && typeof assertion.expected === "number" && actual > assertion.expected;
+      ok = typeof actual === "number" && typeof expected === "number" && actual > expected;
       break;
     case "gte":
-      ok = typeof actual === "number" && typeof assertion.expected === "number" && actual >= assertion.expected;
+      ok = typeof actual === "number" && typeof expected === "number" && actual >= expected;
       break;
     case "lt":
-      ok = typeof actual === "number" && typeof assertion.expected === "number" && actual < assertion.expected;
+      ok = typeof actual === "number" && typeof expected === "number" && actual < expected;
       break;
     case "includes":
-      ok = Array.isArray(actual) && actual.includes(assertion.expected);
+      ok = Array.isArray(actual) && actual.includes(expected);
       break;
     case "uniform":
       ok = Array.isArray(actual) && actual.length >= 2 && actual.every((v) => v === actual[0]);
@@ -180,7 +220,7 @@ function evaluateAssertion(
     ok,
     op: assertion.op,
     actual,
-    expected: assertion.expected,
+    expected,
   };
 }
 
@@ -191,8 +231,9 @@ export interface RunJourneyResult {
 }
 
 /** Execute one journey against a fresh deterministic world. */
-export async function runJourney(journey: AcceptanceJourney): Promise<RunJourneyResult> {
-  const state = buildJourneyWorld();
+export async function runJourney(journey: AcceptanceJourney, options: RunOptions = {}): Promise<RunJourneyResult> {
+  const state = buildJourneyWorld(options.startedAt === undefined ? {} : { startedAt: options.startedAt });
+  const runStartedAt = state.time.startedAt;
   const facts = new Map<string, FactValue>();
   const stepOutcomes: StepOutcome[] = [];
   for (const step of journey.steps) {
@@ -211,7 +252,7 @@ export async function runJourney(journey: AcceptanceJourney): Promise<RunJourney
       facts.set(`step.${step.stepId}.error`, error instanceof Error ? error.message : "unknown-error");
     }
   }
-  const assertionOutcomes = journey.assertions.map((a) => evaluateAssertion(a, facts));
+  const assertionOutcomes = journey.assertions.map((a) => evaluateAssertion(a, facts, runStartedAt));
   const passed =
     assertionOutcomes.every((a) => a.ok) && stepOutcomes.every((s) => s.executed && s.ok);
   const base = {
@@ -226,13 +267,24 @@ export async function runJourney(journey: AcceptanceJourney): Promise<RunJourney
   return { outcome: { ...base, digest: computeJourneyDigest(base) }, facts };
 }
 
+/**
+ * F331C time seam (D12): the run options. `startedAt` is the run anchor
+ * (epoch ms); absent = COMMERCE_T0 — the pre-seam default, so a no-options
+ * call is byte-identical to the pre-seam tree (ZERO behavior change at
+ * T0, machine-verified by the suite).
+ */
+export interface RunOptions {
+  readonly startedAt?: number;
+}
+
 /** Execute every journey against its own fresh world (deterministic order). */
 export async function runAllJourneys(
   journeys: readonly AcceptanceJourney[],
+  options: RunOptions = {},
 ): Promise<readonly JourneyOutcome[]> {
   const outcomes: JourneyOutcome[] = [];
   for (const journey of journeys) {
-    const { outcome } = await runJourney(journey);
+    const { outcome } = await runJourney(journey, options);
     outcomes.push(outcome);
   }
   return outcomes;

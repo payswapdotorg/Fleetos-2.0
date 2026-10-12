@@ -19,6 +19,7 @@
 
 import type { FinanceStep, LifecycleStep, ResilienceStep } from "./journey-contracts-f310c.js";
 import type { ActorJobStep, MarketplaceStep, VendorDirectoryStep } from "./journey-contracts-f321c.js";
+import type { MarketplaceTransactionStep, TenantBillingStep } from "./journey-contracts-f331c.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabularies.
@@ -69,6 +70,10 @@ export const JOURNEY_CAPABILITIES: readonly string[] = [
   // F321C extension (Wave 12 lane C): the vendor marketplace publication
   // lifecycle (publication gate, delisting cascade, deterministic search).
   "vendor-marketplace",
+  // F331C extensions (Wave 13 lane C): the marketplace transaction flow
+  // (row 34) and tenant billing & invoicing (row 35).
+  "marketplace-transactions",
+  "tenant-billing",
 ] as const;
 
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
@@ -101,8 +106,28 @@ export interface JourneyAssertion {
   /** The fact key produced by a step driver (stable, namespaced). */
   readonly fact: string;
   readonly op: AssertionOperator;
+  /** The T0-anchored expectation (identical to the expectedByEpoch T0 entry when a table is present). */
+  readonly expected: FactValue;
+  /**
+   * D10 per-epoch expectation table (F331C): present ONLY on
+   * census-certified responding assertions. Each entry's `epoch` is an
+   * EXACT frozen-schedule value (D9). A run whose startedAt matches an
+   * entry evaluates against that entry; a run at an unlisted anchor
+   * fails the assertion with the MISSING_EPOCH sentinel — the journey
+   * is certified only at the frozen epochs. Non-responding assertions
+   * stay single-valued (no table).
+   */
+  readonly expectedByEpoch?: readonly EpochExpectation[];
+}
+
+export interface EpochExpectation {
+  /** Exact epoch ms — a D9 frozen-schedule value. */
+  readonly epoch: number;
   readonly expected: FactValue;
 }
+
+/** Sentinel recorded when the run anchor matches no epoch table entry. */
+export const MISSING_EPOCH = "__missing-epoch__" as const;
 
 export interface AssertionOutcome {
   readonly assertionId: string;
@@ -297,12 +322,16 @@ export type JourneyStep =
   | ResilienceStep
   | MarketplaceStep
   | VendorDirectoryStep
-  | ActorJobStep;
+  | ActorJobStep
+  | MarketplaceTransactionStep
+  | TenantBillingStep;
 
 // The F310C step families live in journey-contracts-f310c.ts (file law):
 export type { LifecycleStep, FinanceStep, ResilienceStep } from "./journey-contracts-f310c.js";
 // The F321C step families live in journey-contracts-f321c.ts (file law):
 export type { MarketplaceStep, VendorDirectoryStep, ActorJobStep } from "./journey-contracts-f321c.js";
+// The F331C step families live in journey-contracts-f331c.ts (file law):
+export type { MarketplaceTransactionStep, TenantBillingStep } from "./journey-contracts-f331c.js";
 
 // ---------------------------------------------------------------------------
 // The journey.

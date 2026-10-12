@@ -1,28 +1,34 @@
 /**
  * Corpus shape invariants — the journey corpus is well-formed data before
- * any of it is run.
+ * any of it is run. F331C additions: the 34 → 36 count law, the two new
+ * required capabilities, and the D10 epoch-table shape laws (T0 entry
+ * identity, unique epochs, census-certified journeys only).
  */
 
 import { describe, expect, it } from "vitest";
-import { JOURNEYS, WORK_JOURNEYS, COMMERCE_JOURNEYS, ORG_JOURNEYS, HOST_JOURNEYS, GATEWAY_JOURNEYS, LIFECYCLE_JOURNEYS, FINANCE_JOURNEYS, RESILIENCE_JOURNEYS, MARKETPLACE_JOURNEYS, ACTOR_JOBS_JOURNEYS } from "../src/journeys/index.js";
+import { JOURNEYS, WORK_JOURNEYS, COMMERCE_JOURNEYS, ORG_JOURNEYS, HOST_JOURNEYS, GATEWAY_JOURNEYS, LIFECYCLE_JOURNEYS, FINANCE_JOURNEYS, RESILIENCE_JOURNEYS, MARKETPLACE_JOURNEYS, ACTOR_JOBS_JOURNEYS, MARKETPLACE_TRANSACTION_JOURNEYS, TENANT_BILLING_JOURNEYS } from "../src/journeys/index.js";
 import {
   JOURNEY_PERSONAS,
   JOURNEY_CAPABILITIES,
   type AcceptanceJourney,
 } from "../src/journey-contracts.js";
+import { COMMERCE_T0 as WORLD_T0 } from "../src/journey-world.js";
+
+const EPOCH_TABLE_JOURNEYS = new Set(["marketplace-transaction-flow", "tenant-billing-invoicing"]);
 
 describe("journey corpus shape", () => {
   it("has at least 12 distinct journeys", () => {
     expect(JOURNEYS.length).toBeGreaterThanOrEqual(12);
-    expect(JOURNEYS.length).toBe(34);
+    expect(JOURNEYS.length).toBe(36);
   });
 
-  it("is assembled from the ten journey files without loss", () => {
+  it("is assembled from the twelve journey files without loss", () => {
     expect(JOURNEYS.length).toBe(
       WORK_JOURNEYS.length + COMMERCE_JOURNEYS.length + ORG_JOURNEYS.length +
       HOST_JOURNEYS.length + GATEWAY_JOURNEYS.length +
       LIFECYCLE_JOURNEYS.length + FINANCE_JOURNEYS.length + RESILIENCE_JOURNEYS.length +
-      MARKETPLACE_JOURNEYS.length + ACTOR_JOBS_JOURNEYS.length,
+      MARKETPLACE_JOURNEYS.length + ACTOR_JOBS_JOURNEYS.length +
+      MARKETPLACE_TRANSACTION_JOURNEYS.length + TENANT_BILLING_JOURNEYS.length,
     );
   });
 
@@ -54,6 +60,8 @@ describe("journey corpus shape", () => {
       "host-integration", "model-gateway-routing", "role-assignment",
       "work-assignment-management", "work-deadlines", "sla-management", "cost-allocation",
       "vendor-marketplace",
+      // F331C (Wave 13 lane C): rows 34–35.
+      "marketplace-transactions", "tenant-billing",
     ];
     for (const capability of required) {
       expect(covered.has(capability as (typeof JOURNEY_CAPABILITIES)[number])).toBe(true);
@@ -94,6 +102,35 @@ describe("journey corpus shape", () => {
   it("every journey states a non-empty goal", () => {
     for (const journey of JOURNEYS) {
       expect(journey.goal.trim().length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe("F331C epoch-table shape (D10)", () => {
+  it("every expectedByEpoch table has unique epochs, a T0 entry identical to the single-valued expectation, and only frozen-schedule values", () => {
+    const COMMERCE_T0 = WORLD_T0;
+    const frozen = new Set([COMMERCE_T0, COMMERCE_T0 + 2_592_000_000, COMMERCE_T0 + 7_776_000_000]);
+    for (const journey of JOURNEYS) {
+      for (const assertion of journey.assertions) {
+        if (assertion.expectedByEpoch === undefined) continue;
+        const epochs = assertion.expectedByEpoch.map((e) => e.epoch);
+        expect(new Set(epochs).size, `${journey.id}:${assertion.id}`).toBe(epochs.length);
+        for (const epoch of epochs) {
+          expect(frozen.has(epoch), `${journey.id}:${assertion.id}:${epoch}`).toBe(true);
+        }
+        const t0Entry = assertion.expectedByEpoch.find((e) => e.epoch === COMMERCE_T0);
+        expect(t0Entry, `${journey.id}:${assertion.id}:t0-entry`).toBeDefined();
+        if (t0Entry !== undefined) {
+          expect(t0Entry.expected, `${journey.id}:${assertion.id}:t0-identity`).toStrictEqual(assertion.expected);
+        }
+      }
+    }
+  });
+
+  it("epoch tables exist ONLY on census-certified journeys (the F331C census responder set), and every certified responder is parameterized", () => {
+    for (const journey of JOURNEYS) {
+      const hasTable = journey.assertions.some((a) => a.expectedByEpoch !== undefined);
+      expect(hasTable, journey.id).toBe(EPOCH_TABLE_JOURNEYS.has(journey.id));
     }
   });
 });
