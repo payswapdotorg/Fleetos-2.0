@@ -31,43 +31,84 @@ describe("adoption driver (per-firm)", () => {
     expect(run.executionFacts.every((f) => f.failureNote === null)).toBe(true);
   }, 60_000);
 
-  it("COUNT HONESTY: only epoch 1 counts — later declared epochs are byte-identical re-runs", async () => {
+  it("COUNT HONESTY (F332 ACTIVE): epoch 1 + D10-proof-passing epochs count — non-certified journeys never earn epochs", async () => {
     const firm = firmById("firm-agriculture-large")!; // 3 declared epochs
     const run = await runFirm(firm);
     const industry = industryById("agriculture")!;
+    const applicable = applicableFieldJourneys(industry).length;
     expect(firm.epochCount).toBe(3);
-    expect(run.fieldEpochDigests.length).toBe(3);
-    expect(run.executionCounts.field).toBe(applicableFieldJourneys(industry).length); // ONE epoch counted
-    expect(run.determinismProof.fieldEpochsByteIdentical).toBe(true);
+    expect(run.fieldEpochDigests.length).toBe(3); // epoch 0 vector + 2 epoch-dimension vectors
+    // 6 census-certified field journeys x 2 epochs = 12 counted beyond epoch 1.
+    expect(run.executionCounts.field).toBe(applicable + 12);
+    // Only the certified journeys' epochs count (D8/D10); the D2(d) distinctness
+    // makes the epoch dimension's digests differ from epoch 0 — honestly false.
+    expect(run.determinismProof.fieldEpochsByteIdentical).toBe(false);
+    expect(run.determinismProof.fieldEpochProofsVerified).toBe(true);
+    expect(run.determinismProof.verified).toBe(true);
+    const certifiedField = run.epochDecisions.filter((d) => d.corpus === "field");
+    expect(certifiedField.map((d) => d.journeyId).sort()).toEqual([
+      "connectivity-postures",
+      "edge-command-lifecycle",
+      "host-health-evidence-timeline",
+      "host-maintenance-intent-to-verification",
+      "maintain-asset-schedule",
+      "recover-lost-device",
+    ]);
+    for (const decision of certifiedField) {
+      expect(decision.countedEpochs).toEqual([1, 2]);
+      expect(decision.refusalReason).toBeNull();
+      expect(decision.censusCitation).toContain("F330 §1.1");
+    }
   }, 60_000);
 
-  it("COUNT HONESTY: commerce and security run ONCE per workspace (never per epoch)", async () => {
+  it("COUNT HONESTY (F332 ACTIVE): commerce epochs count ONLY for the 2 certified responders; security stays once-per-workspace", async () => {
     const run = await runFirm(firmById("firm-manufacturing-large")!);
     const industry = industryById("manufacturing")!;
-    expect(run.executionCounts.commerce).toBe(applicableCommerceJourneys(industry).length);
+    const applicable = applicableCommerceJourneys(industry).length;
+    // The epoch-0 (T0) corpus pass + 2 certified responders x 2 epochs.
+    expect(run.executionCounts.commerce).toBe(applicable + 4);
+    expect(run.commerceOutcomes.length).toBe(applicable); // the epoch-0 pass
+    expect(run.commerceEpochRunCount).toBe(2 * applicable); // epochs >= 2 run the full applicable set (raw)
+    const commerceDecisions = run.epochDecisions.filter((d) => d.corpus === "commerce");
+    expect(commerceDecisions.map((d) => d.journeyId).sort()).toEqual([
+      "marketplace-transaction-flow",
+      "tenant-billing-invoicing",
+    ]);
+    for (const decision of commerceDecisions) {
+      expect(decision.countedEpochs).toEqual([1, 2]);
+      expect(decision.censusCitation).toContain("F331C §5 census row");
+    }
+    // TODO-F332-SECURITY: security never earns epochs (F331B platform-blocked).
     expect(run.executionCounts.security).toBe(applicableSecurityJourneys(industry).length);
-    expect(run.commerceOutcomes.length).toBe(run.executionCounts.commerce);
     expect(run.securityOutcomes.length).toBe(run.executionCounts.security);
   }, 60_000);
 
-  it("DETERMINISM PROOF (large firm): the full applicable set re-runs byte-identical", async () => {
+  it("DETERMINISM PROOF (large firm): the ACTIVE laws hold (D10 proofs + D13 evidence + full-set re-runs)", async () => {
     const run = await runFirm(firmById("firm-construction-large")!);
     expect(run.determinismProof.verified).toBe(true);
-    expect(run.determinismProof.commerceByteIdentical).toBe(true);
+    expect(run.determinismProof.epochCountingActive).toBe(true);
+    expect(run.determinismProof.fieldEpochProofsVerified).toBe(true);
+    expect(run.determinismProof.fieldInvariantsByteIdentical).toBe(true);
+    expect(run.determinismProof.commerceEpochsByteIdentical).toBe(true);
+    expect(run.determinismProof.commerceByteIdentical).toBe(true); // the full-set T0 re-run
     expect(run.determinismProof.securityByteIdentical).toBe(true);
-    expect(run.determinismProof.fieldEpochsByteIdentical).toBe(true);
     expect(run.determinismProof.runDigest).toMatch(/^[0-9a-f]{8}$/);
   }, 60_000);
 
-  it("medium firms prove epoch repeatability; small firms carry the proof structure", async () => {
+  it("medium firms carry one epoch-dimension vector; small firms carry the epoch-0 proof only", async () => {
     const medium = await runFirm(firmById("firm-mining-medium")!);
     expect(medium.firm.epochCount).toBe(2);
     expect(medium.fieldEpochDigests.length).toBe(2);
-    expect(medium.determinismProof.fieldEpochsByteIdentical).toBe(true);
+    expect(medium.fieldEpochDigests[0]!.length).toBe(applicableFieldJourneys(medium.industry).length);
+    expect(medium.fieldEpochDigests[1]!.length).toBe(6); // the declaring journeys only
+    expect(medium.determinismProof.fieldEpochsByteIdentical).toBe(false);
+    expect(medium.determinismProof.verified).toBe(true);
     expect(medium.determinismProof.commerceByteIdentical).toBeNull(); // full re-run proof is large-firm-only
 
     const small = await runFirm(firmById("firm-mining-small")!);
     expect(small.firm.epochCount).toBe(1);
+    expect(small.fieldEpochDigests.length).toBe(1); // epoch 0 only — no epoch dimension
+    expect(small.epochDecisions).toEqual([]);
     expect(small.determinismProof.verified).toBe(true);
   }, 60_000);
 
@@ -81,16 +122,18 @@ describe("adoption driver (per-firm)", () => {
     expect(a.firm.tenantId).not.toBe(b.firm.tenantId);
   }, 60_000);
 
-  it("honest-counts ledger: every firm records its exact shortfall with reasons", async () => {
+  it("honest-counts ledger: every firm records its exact shortfall with the ACTIVE structural reasons", async () => {
     const simulation = await runAdoptionSimulation({ industryIds: ["agriculture"] });
     expect(simulation.honestCounts.targetPerFirm).toBe(TARGET_JOURNEYS_PER_FIRM);
     expect(simulation.honestCounts.entries.length).toBe(3);
     for (const entry of simulation.honestCounts.entries) {
+      // Agriculture's firms stay below 100 (76/84/92 machine-measured).
       expect(entry.executed).toBeLessThan(TARGET_JOURNEYS_PER_FIRM);
       expect(entry.shortfall).toBe(TARGET_JOURNEYS_PER_FIRM - entry.executed);
       expect(entry.reasons.length).toBeGreaterThanOrEqual(5);
       expect(entry.reasons.some((r) => r.includes("T0-anchored"))).toBe(true);
-      expect(entry.reasons.some((r) => r.includes("not tenant/time-parameterizable"))).toBe(true);
+      expect(entry.reasons.some((r) => r.includes("census-certified"))).toBe(true);
+      expect(entry.reasons.some((r) => r.includes("TODO-F332-SECURITY"))).toBe(true);
       expect(entry.reasons.some((r) => r.includes("masked out"))).toBe(true);
     }
     expect(simulation.honestCounts.aggregateShortfall).toBe(
@@ -103,21 +146,27 @@ describe("adoption driver (per-firm)", () => {
     const { aggregate } = simulation;
     expect(aggregate.workspaces).toBe(6);
     expect(aggregate.journeyExecutions).toBe(aggregate.fieldExecutions + aggregate.commerceExecutions + aggregate.securityExecutions);
-    // construction (91 applicable) + mining (92 applicable), 3 firms each
-    // (Wave-13 corpora at the INACTIVE counting gate, machine-measured).
-    expect(aggregate.journeyExecutions).toBe((91 + 92) * 3);
+    // F332 ACTIVE (machine-measured): construction 91/99/107 + mining
+    // 92/100/108 (the base applicable set + the certified epoch counts per
+    // size: +8/+16 field-commerce epochs for medium/large).
+    expect(aggregate.journeyExecutions).toBe(297 + 300);
     expect(aggregate.fieldEpochReRuns).toBeGreaterThan(0); // transparency, never counted
+    expect(aggregate.commerceEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.determinismVerified).toBe(true);
     expect(aggregate.allJourneysPassed).toBe(true);
-    expect(aggregate.uniqueApplicableJourneys).toBe(183);
+    expect(aggregate.uniqueApplicableJourneys).toBe(183); // journey-level (epochs add executions, not journeys)
   }, 120_000);
 
   it("firms of an industry share the verdict inputs (per-industry consistency)", async () => {
     const runs = await Promise.all(firmsOfIndustry("water-waste").map((f) => runFirm(f)));
     const counted = runs.map((r) => r.executionCounts.total);
-    // All three sizes execute the SAME counted journeys (the epoch schedule
-    // changes re-run counts, never counted coverage).
-    expect(new Set(counted).size).toBe(1);
-    expect(runs.every((r) => r.executionFacts.every((f) => f.passed))).toBe(true);
+    // All three sizes share the SAME epoch-1 counted set (89 applicable);
+    // the epoch dimension grows counted executions by size only — the
+    // certified responders' D9 epochs (never the verdict denominator).
+    expect(counted).toEqual([89, 89 + 8, 89 + 16]);
+    for (const run of runs) {
+      expect(run.executionFacts.filter((f) => f.epoch === 0).length).toBe(89);
+      expect(run.executionFacts.every((f) => f.passed)).toBe(true);
+    }
   }, 120_000);
 });

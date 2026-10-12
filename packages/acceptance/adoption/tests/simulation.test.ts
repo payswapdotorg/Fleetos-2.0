@@ -21,18 +21,22 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(INDUSTRIES.length).toBe(10);
   });
 
-  it("executes 2613 COUNTED journeys over the REAL corpora (plus 885 raw epoch re-runs, never counted)", () => {
-    expect(SIMULATION.aggregate.fieldExecutions).toBe(885);
-    expect(SIMULATION.aggregate.commerceExecutions).toBe(957);
+  it("executes 2847 COUNTED journeys over the REAL corpora (plus raw epoch re-runs, never counted)", () => {
+    expect(SIMULATION.aggregate.fieldExecutions).toBe(1059);
+    expect(SIMULATION.aggregate.commerceExecutions).toBe(1017);
     expect(SIMULATION.aggregate.securityExecutions).toBe(771);
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(2613);
+    expect(SIMULATION.aggregate.journeyExecutions).toBe(2847);
     expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(871);
-    expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(885);
-    // Wave-13 corpora at the INACTIVE counting gate (F332 machine-measured;
-    // the Wave-12 pins were 855/897/771/2523/841/855): field 31 (F331A) +
-    // commerce 36 (F331C), both unmasked everywhere → +30 field and +60
-    // commerce counted executions. Epoch variants count only when the F332
-    // gate is ACTIVE (D7) — see tests/f332.test.ts for that ledger.
+    expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
+    expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(897);
+    // F332 ACTIVE (machine-measured, never copied): the INACTIVE gate counted
+    // 2613 (Wave-13 corpora: field 31 + commerce 36); activation adds the
+    // D10-proof-passing epoch counts — 174 field (6 census-certified journeys
+    // x their per-firm epoch counts; edge-command-lifecycle masked in 2
+    // industries) + 60 commerce (2 census-certified responders x 3 epochs per
+    // industry) = 234. Raw re-runs (field 406 = the capability's D2(c)
+    // re-runs + anchor-0 re-executions; commerce 897 = the 34 invariant
+    // journeys' epoch runs) are NEVER counted (D13).
   });
 
   it("journeys > 0 and every counted execution PASSED (REAL outcomes, never re-computed)", () => {
@@ -127,14 +131,24 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     }
   });
 
-  it("honest-counts ledger: every firm below 100 with exact shortfalls + structural reasons", () => {
+  it("honest-counts ledger: exact shortfalls + structural reasons; the epoch-earning firms reach 100+ honestly", () => {
     const { honestCounts } = REPORT;
     expect(honestCounts.targetPerFirm).toBe(100);
     expect(honestCounts.entries.length).toBe(30);
-    expect(honestCounts.entries.every((e) => e.executed < 100)).toBe(true);
+    // F332 ACTIVE: 10 firms reach 100+ (the epoch-earning medium/large of the
+    // fully-applicable industries — machine-measured, never rounded); every
+    // other firm carries its exact shortfall with reasons.
+    const atOrAbove = honestCounts.entries.filter((e) => e.executed >= 100);
+    expect(atOrAbove.length).toBe(10);
+    for (const entry of atOrAbove) {
+      expect(entry.shortfall).toBe(0);
+    }
+    for (const entry of honestCounts.entries) {
+      expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
+    }
     const maxExecuted = Math.max(...honestCounts.entries.map((e) => e.executed));
-    expect(maxExecuted).toBe(94); // manufacturing/energy fully applicable: 31+36+27 (Wave-13 corpora; epoch counts are gated by F332)
-    expect(honestCounts.aggregateShortfall).toBe(30 * 100 - SIMULATION.aggregate.journeyExecutions);
+    expect(maxExecuted).toBe(110); // manufacturing/energy large: 94 + 12 field epochs + 4 commerce epochs
+    expect(honestCounts.aggregateShortfall).toBe(205);
     for (const reason of honestCounts.structuralReasons) {
       expect(reason.length).toBeGreaterThan(30);
     }

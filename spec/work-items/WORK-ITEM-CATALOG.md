@@ -461,6 +461,7 @@ Owner: C. Row 34 marketplace transaction flow package; row 35 tenant billing/inv
 
 ### F332 — TL convergence, counting-gate activation and disposition
 Owner: TL. Depends on F330 + all F331 lane evidence. Adjudicate every epoch variant against D2/D8–D13; merge; land the adoption counting gate + D9 schedules; recompute the 30-workspace ledger; re-pin; full clean-checkout gates on the frozen candidate; browser-verify; verdict per the B-3 closure condition (every fully-applicable firm at 100; per-size honesty — small firms bounded by single journeys). Do not lower the target or broaden masks.
+DELIVERED (TL-delegated worker session, two phases): `docs/evidence/F332/report.md` — D9 schedules + the counting gate landed INACTIVE (phase 1 `7471a9c`, INACTIVE-parity machine-proven), activation flipped as its own commit (`889bb75`), ACTIVE ledger machine-measured (2,847 counted; 8 census-certified journey IDs; 10 firms at 100+; every shortfall structural), adoption/release re-pinned, security stays TODO-F332-SECURITY (F331B platform-blocked); TL retains merge gates + verdict + browser verification.
 
 ### Standing rules (Wave 13)
 - F323 stays DEFERRED (providers CONTRACT_ONLY; no lane drives provider APIs; row 38 out of scope).

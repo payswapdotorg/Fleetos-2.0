@@ -151,7 +151,12 @@ export interface FirmRunResult {
   readonly commerceOutcomes: readonly CommerceOutcome[];
   /** REAL security runner outputs (once per workspace — TODO-F332-SECURITY). */
   readonly securityOutcomes: readonly SecurityOutcome[];
-  /** Outcome digests of every declared field epoch (raw runs, incl. re-runs). */
+  /** Outcome digests of every declared field epoch. INACTIVE: the full
+   * corpus per declared epoch (all at the fixture anchor — the asserted
+   * byte-identical re-runs). ACTIVE: epoch 0 (the full corpus at T0)
+   * followed by the epoch dimension's per-anchor vectors — the DECLARING
+   * (census-certified) journeys' proof outcome digests, the only journeys
+   * that execute an epoch >= 2 (D8 rerun supremacy). */
   readonly fieldEpochDigests: readonly (readonly string[])[];
   readonly executionCounts: ExecutionCounts;
   readonly executionFacts: readonly JourneyExecutionFact[];
@@ -163,6 +168,12 @@ export interface FirmRunResult {
   /** F332: raw commerce epoch runs EXECUTED (every declared anchor beyond
    * epoch 0; 0 while INACTIVE — the corpus runs once per workspace then). */
   readonly commerceEpochRunCount: number;
+  /** F332: raw field epoch-dimension re-runs executed but NOT counted
+   * (INACTIVE: the full corpus per epoch >= 2 at the fixture anchor;
+   * ACTIVE: the capability's executions that are not counted epochs —
+   * each declaring journey's D2(c) re-run at every anchor + its anchor-0
+   * re-execution). */
+  readonly fieldEpochReRunCount: number;
 }
 
 function proofDigest(field: readonly FieldOutcome[], commerce: readonly CommerceOutcome[], security: readonly SecurityOutcome[]): string {
@@ -184,24 +195,38 @@ export async function runFirm(firm: FirmWorkspace): Promise<FirmRunResult> {
   // FIELD composition site (F332): the D9 schedule + the counting gate.
   // INACTIVE (D7: "Until the F332 convergence lands the counting gate, NO
   // epoch variant counts" — the Wave-12 state persists byte-identically):
-  // every declared epoch executes at the fixture anchor (epoch 0's anchor)
-  // as an asserted byte-identical re-run, never counted. ACTIVE: every
-  // declared epoch executes at its D9 anchor (raw runs — transparency +
-  // D13 evidence), and the F331A capability produces the D10 proofs the
-  // gate consumes for counting.
+  // every declared epoch executes the full corpus at the fixture anchor
+  // (epoch 0's anchor) as an asserted byte-identical re-run, never counted.
+  // ACTIVE: epoch 0 executes the full applicable corpus at its D9 anchor
+  // (T0); the epoch dimension (anchors >= 1) executes ONLY the
+  // epoch-declaring (census-certified) journeys through the F331A
+  // capability — D8 rerun supremacy: a non-certified journey never executes
+  // an epoch >= 2 (its expectations are T0-anchored; the epoch dimension is
+  // not its domain) — and the gate consumes the capability's D10 proofs.
   const epochOutcomes: FieldOutcome[][] = [];
-  for (let epoch = 0; epoch < firm.epochs.length; epoch += 1) {
-    const anchor = countingActive ? (firm.epochs[epoch] as number) : (firm.epochs[0] as number);
+  if (countingActive) {
     epochOutcomes.push([
-      ...runJourneyCorpus(fieldJourneys, { tenantId: firm.tenantId, startedAt: anchor }),
+      ...runJourneyCorpus(fieldJourneys, { tenantId: firm.tenantId, startedAt: firm.epochs[0] as number }),
     ]);
+  } else {
+    for (let epoch = 0; epoch < firm.epochs.length; epoch += 1) {
+      epochOutcomes.push([
+        ...runJourneyCorpus(fieldJourneys, { tenantId: firm.tenantId, startedAt: firm.epochs[0] as number }),
+      ]);
+    }
   }
   const fieldOutcomes = epochOutcomes[0] as readonly FieldOutcome[];
-  const fieldEpochsByteIdentical = epochOutcomes.every((o) => byteIdentical(o, fieldOutcomes));
-
   const fieldSite = countingActive
-    ? verifyFieldEpochSite(fieldJourneys, firm.tenantId, firm.epochs, epochOutcomes)
+    ? verifyFieldEpochSite(fieldJourneys, firm.tenantId, firm.epochs, fieldOutcomes)
     : null;
+  // ACTIVE: "identical" means the epoch dimension's executed journeys (the
+  // declaring set) produced the SAME digests as their epoch-0 runs — D2(d)
+  // distinctness makes this FALSE whenever a D10-certified journey genuinely
+  // varies (the ACTIVE laws live in DeterminismProof's F332 fields).
+  const fieldEpochsByteIdentical = countingActive
+    ? (fieldSite?.epochDimension ?? []).every((vec) =>
+      vec.every(({ journeyId, digest }) => digest === fieldOutcomes.find((o) => o.journeyId === journeyId)?.digest))
+    : epochOutcomes.every((o) => byteIdentical(o, fieldOutcomes));
 
   // COMMERCE composition site (F332, the F331C seam): pass `{ startedAt }`
   // from the firm schedule into runAllJourneys at FROZEN anchors only
@@ -261,12 +286,16 @@ export async function runFirm(firm: FirmWorkspace): Promise<FirmRunResult> {
     });
   }
   // The counted epoch executions (ACTIVE only — D10 proof + D13 refusals
-  // decided; the facts carry the REAL outcome digests of the counted runs).
+  // decided; the facts carry the REAL outcome digests of the counted runs —
+  // the capability's proof outcomes at the counted anchors).
   for (const decision of epochDecisions) {
     for (const epochIdx of decision.countedEpochs) {
       if (decision.corpus === "field") {
-        const outcome = (epochOutcomes[epochIdx] ?? []).find((o) => o.journeyId === decision.journeyId);
-        if (outcome === undefined) throw new Error(`counted field epoch missing its run: ${decision.journeyId} @ ${epochIdx}`);
+        const proof = (fieldSite?.proofs ?? []).find((p) => p.journeyId === decision.journeyId);
+        const outcome = proof?.outcomes[epochIdx];
+        if (proof === undefined || outcome === undefined) {
+          throw new Error(`counted field epoch missing its D10 proof outcome: ${decision.journeyId} @ ${epochIdx}`);
+        }
         executionFacts.push({
           corpus: "field",
           journeyId: decision.journeyId,
@@ -336,7 +365,17 @@ export async function runFirm(firm: FirmWorkspace): Promise<FirmRunResult> {
     fieldOutcomes,
     commerceOutcomes,
     securityOutcomes,
-    fieldEpochDigests: epochOutcomes.map((o) => o.map((x) => x.digest)),
+    // INACTIVE: the full corpus per declared epoch (all at the fixture
+    // anchor — the asserted byte-identical re-runs). ACTIVE: epoch 0 (the
+    // full corpus at T0) followed by the epoch dimension's per-anchor
+    // vectors (the DECLARING journeys' proof outcomes — the only journeys
+    // that execute an epoch >= 2).
+    fieldEpochDigests: countingActive
+      ? [
+        fieldOutcomes.map((o) => o.digest),
+        ...(fieldSite?.epochDimension ?? []).map((vec) => vec.map((v) => v.digest)),
+      ]
+      : epochOutcomes.map((o) => o.map((x) => x.digest)),
     executionCounts: {
       field: fieldOutcomes.length + countedFieldEpochs,
       commerce: commerceOutcomes.length + countedCommerceEpochs,
@@ -349,6 +388,9 @@ export async function runFirm(firm: FirmWorkspace): Promise<FirmRunResult> {
     determinismProof,
     epochDecisions,
     commerceEpochRunCount: commerceSite === null ? 0 : Math.max(0, commerceSite.runs.length - 1) * commerceOutcomes.length,
+    fieldEpochReRunCount: countingActive
+      ? (fieldSite?.rawEpochExecutions ?? 0)
+      : Math.max(0, firm.epochs.length - 1) * fieldOutcomes.length,
   };
 }
 
@@ -376,11 +418,11 @@ export interface HonestCountsLedger {
 }
 
 const STRUCTURAL_REASONS = [
-  "field corpus (F270A) is the only parameterizable runner (runJourneyCorpus takes tenantId + startedAt), but its journeys pin T0-anchored expectations — machine-verified: a +1s startedAt offset fails 1 journey, +1h fails 3, multi-day offsets fail 12 — so every declared epoch executes at the corpus fixture epoch 1774000000000 and only epoch 1 is counted (epochs ≥ 2 are byte-identical re-runs, proven per firm, never counted)",
-  "commerce corpus runner (runAllJourneys) is not tenant/time-parameterizable — the corpus runs ONCE per workspace; re-runs are byte-identical and counting them would inflate (count-honesty law)",
-  "security corpus runner (runJourney) is single-parameter (journey only) — once-per-workspace per the packet; re-runs are byte-identical and are not counted",
-  "even under the packet's assumed full parameterization (field + commerce × 3 epochs + security), a fully-applicable large firm would reach 20×3 + 31×3 + 17 = 170 counted executions on this tree; the REAL corpora support 20 + 31 + 17 = 68 — the shortfall is structural (runner/corpus shape), not a coverage gap",
-  "the F310C Wave 11 commerce extension (21 → 31 distinct journeys, this tree) grows the fully-applicable cap to 20 + 31 + 17 = 68 counted journeys, still 32 short of the 100 target; the Wave 11 sibling lanes (F310A/F310B) are verification lanes with no corpus changes, so the converged cap at F311 is this tree's 68; the expectation is recorded in convergence-delta.ts and the TL recomputes at F311 — the threshold is never silently weakened",
+  "field corpus (F332 ACTIVE): the epoch dimension executes ONLY the 6 census-certified journeys (4 count-eligible + 2 D8-rewritten echo journeys — F330 §1.1) at the D9 frozen schedule [T0, T0+30d, T0+90d] via runJourneyEpochs, whose D10 proofs the gate counts; every other field journey pins T0-anchored single-valued expectations and NEVER executes an epoch >= 2 (D8 rerun supremacy — its epoch runs would be out of its certified domain), so it stays single-counted",
+  "commerce corpus (F332 ACTIVE): the F331C time seam (runAllJourneys { startedAt }) runs at every frozen D9 anchor, but only the 2 census-certified responders (marketplace-transaction-flow, tenant-billing-invoicing — F331C §5) carry per-epoch tables and earn counted epochs; the other 34 journeys are invariant across the whole schedule (byte-identical, machine-verified per firm — D13, never counted)",
+  "security corpus (TODO-F332-SECURITY): the F331B lane (security time seam + census) is platform-blocked (capacity crunch, 3 dispatch attempts evidenced) — the runner is single-parameter, security stays once-per-workspace single-counted, and NO security responder is ever assumed",
+  "the epoch dimension is bounded by the D8/D12 census-certified sets (6 field + 2 commerce journeys — nothing outside them may ever count), so a firm's reachable cap = its applicable single-counted journeys + (certified responders applicable to it) x (its D9 epoch count - 1); small firms (1 epoch) gain NOTHING from epochs — their residual to 100 is single journeys alone (the 6-journey remainder is the honest post-Wave-13 gap; do NOT fabricate)",
+  "the 100-journeys-per-firm target is NEVER silently weakened: every firm below 100 carries its exact shortfall here with structural reasons (per-industry masks + the size-bounded epoch arithmetic above); firms at or above 100 (the epoch-earning medium/large of fully-applicable industries) are machine-measured, never rounded — the full ACTIVE ledger is in docs/evidence/F332/report.md",
 ] as const;
 
 function firmShortfall(run: FirmRunResult): FirmShortfall {
@@ -469,15 +511,10 @@ export async function runAdoptionSimulation(
   const fieldExecutions = firmRuns.reduce((acc, r) => acc + r.executionCounts.field, 0);
   const commerceExecutions = firmRuns.reduce((acc, r) => acc + r.executionCounts.commerce, 0);
   const securityExecutions = firmRuns.reduce((acc, r) => acc + r.executionCounts.security, 0);
-  // Raw declared-epoch field runs NOT counted: every epoch ≥ 2 run minus the
-  // counted ones (INACTIVE: all of them — the Wave-12 law; ACTIVE: only the
-  // D13-refused ones, e.g. the invariant journeys' byte-identical re-runs).
-  const fieldEpochReRuns = firmRuns.reduce(
-    (acc, r) =>
-      acc + r.fieldEpochDigests.slice(1).reduce((a, d) => a + d.length, 0)
-      - (r.executionCounts.field - r.fieldOutcomes.length),
-    0,
-  );
+  // Raw declared-epoch field runs NOT counted (transparency; INACTIVE: all
+  // the fixture-anchor re-runs; ACTIVE: the capability's non-counted
+  // epoch-dimension executions — the D2(c) re-runs + anchor-0 re-executions).
+  const fieldEpochReRuns = firmRuns.reduce((acc, r) => acc + r.fieldEpochReRunCount, 0);
   // Raw commerce epoch runs NOT counted (ACTIVE only — the INACTIVE law runs
   // the corpus once per workspace, so there are none).
   const commerceEpochReRuns = firmRuns.reduce(
