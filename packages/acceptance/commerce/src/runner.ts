@@ -191,8 +191,8 @@ export interface RunJourneyResult {
 }
 
 /** Execute one journey against a fresh deterministic world. */
-export async function runJourney(journey: AcceptanceJourney): Promise<RunJourneyResult> {
-  const state = buildJourneyWorld();
+export async function runJourney(journey: AcceptanceJourney, options: RunOptions = {}): Promise<RunJourneyResult> {
+  const state = buildJourneyWorld({ ...(options.startedAt !== undefined ? { startedAt: options.startedAt } : {}) });
   const facts = new Map<string, FactValue>();
   const stepOutcomes: StepOutcome[] = [];
   for (const step of journey.steps) {
@@ -226,13 +226,24 @@ export async function runJourney(journey: AcceptanceJourney): Promise<RunJourney
   return { outcome: { ...base, digest: computeJourneyDigest(base) }, facts };
 }
 
+/**
+ * F331C time seam (D12): the run options. `startedAt` is the run anchor
+ * (epoch ms); absent = COMMERCE_T0 — the pre-seam default, so a no-options
+ * call is byte-identical to the pre-seam tree (ZERO behavior change at
+ * T0, machine-verified by the suite).
+ */
+export interface RunOptions {
+  readonly startedAt?: number;
+}
+
 /** Execute every journey against its own fresh world (deterministic order). */
 export async function runAllJourneys(
   journeys: readonly AcceptanceJourney[],
+  options: RunOptions = {},
 ): Promise<readonly JourneyOutcome[]> {
   const outcomes: JourneyOutcome[] = [];
   for (const journey of journeys) {
-    const { outcome } = await runJourney(journey);
+    const { outcome } = await runJourney(journey, options);
     outcomes.push(outcome);
   }
   return outcomes;

@@ -167,6 +167,8 @@ export interface JourneyState {
   };
   /** Sequence logs drivers append to (assertable as array facts). */
   readonly logs: Record<string, string[]>;
+  /** F331C time seam: the run anchor (D12). */
+  readonly time: JourneyTime;
 }
 
 export const JOURNEY_TENANT: TenantScope = { tenantId: "acme" };
@@ -217,8 +219,37 @@ export function realBudgetPort(state: JourneyState): BudgetCheckPort {
 /**
  * buildJourneyWorld — the deterministic initial state. Pure function of
  * the tenant ids (fixed); byte-identical every call.
+ *
+ * F331C time seam (D12): the world gains a `time` dimension — the
+ * caller-supplied run anchor `startedAt` (epoch ms). The seam is
+ * ADDITIVE-ONLY: every pre-F331C seed value and driver input stays
+ * exactly as it was, so a run at the default anchor (or with no options
+ * at all) produces byte-identical facts to the pre-seam tree — ZERO
+ * behavior change at T0 (machine-verified: the full suite and the
+ * census-at-T0 are byte-identical to the no-options run). Journeys that
+ * genuinely consume the anchor (the F331C time-aware drivers) read
+ * `state.time.startedAt`; nothing else does.
  */
-export function buildJourneyWorld(): JourneyState {
+export interface JourneyTime {
+  /** The run's anchor (epoch ms). Default: COMMERCE_T0. */
+  readonly startedAt: number;
+}
+
+/**
+ * The commerce corpus time anchor — the F330 §1.1 census value
+ * `ADOPTION_T0 = 1_774_000_000_000` (docs/evidence/F330/report.md),
+ * defined LOCALLY here (the adoption package is TL-owned; no import —
+ * the numeric identity is the documented law, cited per F331C D12).
+ */
+export const COMMERCE_T0 = 1_774_000_000_000;
+
+export interface BuildWorldOptions {
+  /** The run anchor. Absent = COMMERCE_T0 (the pre-seam default). */
+  readonly startedAt?: number;
+}
+
+export function buildJourneyWorld(options: BuildWorldOptions = {}): JourneyState {
+  const time: JourneyTime = { startedAt: options.startedAt ?? COMMERCE_T0 };
   const tenant = JOURNEY_TENANT;
   const repo = createInMemoryWorkRepository([]);
   const directory = createWorkItemDirectory(repo);
@@ -377,6 +408,7 @@ export function buildJourneyWorld(): JourneyState {
     },
     gateway,
     logs: {},
+    time,
   };
 }
 
