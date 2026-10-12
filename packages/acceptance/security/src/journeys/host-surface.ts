@@ -24,11 +24,11 @@ import {
   isKnownIntentEvent,
 } from "@fleetos/experience-safety-intel";
 import type { SafetyIntelSlice } from "@fleetos/experience-safety-intel";
-import { TENANT, FOREIGN_TENANT, NOW_MS } from "./fixture-world.ts";
-import { HOST_CTX, hostJourneySlice } from "./wave10-world.ts";
+import { TENANT, FOREIGN_TENANT } from "./fixture-world.ts";
+import { hostCtx, hostJourneySlice } from "./wave10-world.ts";
 
-function surfaceBuild(): ReturnType<typeof SAFETY_INTEL_HOST_SURFACE.buildViewModels> {
-  return SAFETY_INTEL_HOST_SURFACE.buildViewModels(hostJourneySlice(), HOST_CTX);
+function surfaceBuild(nowMs: number): ReturnType<typeof SAFETY_INTEL_HOST_SURFACE.buildViewModels> {
+  return SAFETY_INTEL_HOST_SURFACE.buildViewModels(hostJourneySlice(nowMs), hostCtx(nowMs));
 }
 
 /** Omit one key from a readonly slice (honest not-composed composition). */
@@ -71,7 +71,7 @@ export const hostSurfaceJourney: AcceptanceJourney = {
       packages: ["@fleetos/experience-safety-intel"],
       operations: ["buildViewModels"],
       run: (ctx) => {
-        const first = surfaceBuild();
+        const first = surfaceBuild(ctx.startedAt);
         if (!first.ok) throw new Error(`view models refused: ${first.refused.code} (${first.refused.detail})`);
         const views = first.views;
         ctx.record("vm.tenantId", views.tenantId);
@@ -102,13 +102,13 @@ export const hostSurfaceJourney: AcceptanceJourney = {
           : 0);
         ctx.record("vm.digestLength", views.viewModelsDigest.length);
 
-        const second = surfaceBuild();
+        const second = surfaceBuild(ctx.startedAt);
         if (!second.ok) throw new Error("second build refused");
         ctx.record("vm.deterministic", JSON.stringify(second.views) === JSON.stringify(views));
         ctx.record("vm.digestStable", second.views.viewModelsDigest === views.viewModelsDigest);
 
         // Honest not-composed: a slice without the plan composes the marker.
-        const marker = SAFETY_INTEL_HOST_SURFACE.buildViewModels(withoutPlan(hostJourneySlice()), HOST_CTX);
+        const marker = SAFETY_INTEL_HOST_SURFACE.buildViewModels(withoutPlan(hostJourneySlice(ctx.startedAt)), hostCtx(ctx.startedAt));
         ctx.record("vm.noPlanComposed", marker.ok && !marker.views.routes["action-authorization"].composed ? "not-composed" : "composed");
       },
     },
@@ -126,7 +126,7 @@ export const hostSurfaceJourney: AcceptanceJourney = {
           actorId: "operator-ada",
           requiredCapabilityId: "fleetos.security.remediation",
           reason: "rotate the weak credential from the host findings board",
-          issuedAt: NOW_MS,
+          issuedAt: ctx.startedAt,
           proposalId: "prop-host-1",
           findingIds: ["finding-host-1"],
           remediationKind: "rotate_credential",
@@ -148,7 +148,7 @@ export const hostSurfaceJourney: AcceptanceJourney = {
           actorId: "operator-ada",
           requiredCapabilityId: "fleetos.predictive.advisory",
           reason: "refresh the vibration advisory",
-          issuedAt: NOW_MS,
+          issuedAt: ctx.startedAt,
         });
         ctx.record("intent.missingInputOk", missing.ok);
         ctx.record("intent.missingInputReason", missing.ok ? "unexpected" : missing.refused);
@@ -161,23 +161,23 @@ export const hostSurfaceJourney: AcceptanceJourney = {
       packages: ["@fleetos/experience-safety-intel"],
       operations: ["buildViewModels"],
       run: (ctx) => {
-        const slice = hostJourneySlice();
+        const slice = hostJourneySlice(ctx.startedAt);
         const cross = SAFETY_INTEL_HOST_SURFACE.buildViewModels(
           { ...slice, findings: [{ ...slice.findings[0]!, tenantId: FOREIGN_TENANT.tenantId }] },
-          HOST_CTX,
+          hostCtx(ctx.startedAt),
         );
         ctx.record("tenant.findingOk", cross.ok);
         ctx.record("tenant.findingRoute", cross.ok ? "unexpected-allow" : cross.refused.route);
         ctx.record("tenant.findingCode", cross.ok ? "unexpected-allow" : cross.refused.code);
 
-        const noTenant = SAFETY_INTEL_HOST_SURFACE.buildViewModels(hostJourneySlice(), { ...HOST_CTX, tenantId: "" });
+        const noTenant = SAFETY_INTEL_HOST_SURFACE.buildViewModels(hostJourneySlice(ctx.startedAt), { ...hostCtx(ctx.startedAt), tenantId: "" });
         ctx.record("tenant.emptyOk", noTenant.ok);
         ctx.record("tenant.emptyRoute", noTenant.ok ? "unexpected-allow" : noTenant.refused.route);
         ctx.record("tenant.emptyCode", noTenant.ok ? "unexpected-allow" : noTenant.refused.code);
 
         const foreignPrediction = SAFETY_INTEL_HOST_SURFACE.buildViewModels(
           { ...slice, predictions: [{ ...slice.predictions[0]!, tenant: { tenantId: FOREIGN_TENANT.tenantId } }] },
-          HOST_CTX,
+          hostCtx(ctx.startedAt),
         );
         ctx.record("tenant.predictionOk", foreignPrediction.ok);
         ctx.record("tenant.predictionRoute", foreignPrediction.ok ? "unexpected-allow" : foreignPrediction.refused.route);

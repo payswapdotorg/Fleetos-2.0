@@ -28,7 +28,7 @@ import {
   modelHonestyRegistryView,
 } from "@fleetos/experience-safety-intel";
 import { assembleContext } from "@fleetos/world-context";
-import { NOW_MS, NOW_ISO, STALENESS_THRESHOLDS, TENANT, pumpTwinState } from "./fixture-world.ts";
+import { STALENESS_THRESHOLDS, TENANT, isoOfEpochMs, pumpTwinState } from "./fixture-world.ts";
 
 const HORIZON = { steps: 3, stepMs: 1_000 } as const;
 
@@ -59,7 +59,7 @@ export const predictiveHonestyJourney: AcceptanceJourney = {
           asset: { assetId: "pump-7" },
           features: { vibration: 40, temperature: 60 },
           horizon: 3,
-          computedAt: NOW_ISO,
+          computedAt: isoOfEpochMs(ctx.startedAt),
         });
         if (!jepa.ok) throw new Error(`jepa prediction rejected: ${jepa.rejected}`);
         const predicted = jepa.prediction.predicted;
@@ -73,7 +73,7 @@ export const predictiveHonestyJourney: AcceptanceJourney = {
           asset: { assetId: "pump-7" },
           features: { vibration: 40, temperature: 60 },
           horizon: 3,
-          computedAt: NOW_ISO,
+          computedAt: isoOfEpochMs(ctx.startedAt),
         });
         if (!jepaAgain.ok) throw new Error("jepa re-prediction rejected");
         ctx.record("jepa.deterministic", jepaAgain.prediction.predicted.provenance.inputsDigest === predicted.provenance.inputsDigest);
@@ -132,17 +132,17 @@ export const predictiveHonestyJourney: AcceptanceJourney = {
                 tenantId: TENANT.tenantId,
                 fields: { temperature: 41 },
                 lastObservationRef: "obs-pump-7-3",
-                lastObservedAtMs: NOW_MS - 5_000,
+                lastObservedAtMs: ctx.startedAt - 5_000,
               },
             ],
             purpose: "operational-monitoring",
           },
-          computedAt: NOW_ISO,
+          computedAt: isoOfEpochMs(ctx.startedAt),
         });
         if (!context.ok) throw new Error(`assembly refused: ${context.rejected}`);
         const route = buildAdvisoryBoardRouteView({
           tenantId: TENANT.tenantId,
-          nowMs: NOW_MS,
+          nowMs: ctx.startedAt,
           thresholds: STALENESS_THRESHOLDS,
           predictions: [twin.prediction],
           worldContexts: [context.context],
@@ -167,7 +167,7 @@ export const predictiveHonestyJourney: AcceptanceJourney = {
         // NEGATIVE: a marker-stripped prediction refuses at the card boundary.
         const stripped = buildAdvisoryBoardRouteView({
           tenantId: TENANT.tenantId,
-          nowMs: NOW_MS,
+          nowMs: ctx.startedAt,
           thresholds: STALENESS_THRESHOLDS,
           predictions: [{ ...twin.prediction, advisory: false } as unknown as typeof twin.prediction],
           worldContexts: [],
@@ -183,7 +183,7 @@ export const predictiveHonestyJourney: AcceptanceJourney = {
         };
         const unknownRoute = buildAdvisoryBoardRouteView({
           tenantId: TENANT.tenantId,
-          nowMs: NOW_MS,
+          nowMs: ctx.startedAt,
           thresholds: STALENESS_THRESHOLDS,
           predictions: [unknownModel],
           worldContexts: [],

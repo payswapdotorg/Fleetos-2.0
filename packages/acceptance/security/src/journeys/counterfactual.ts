@@ -19,7 +19,7 @@
 import type { AcceptanceJourney } from "../journey-contracts.ts";
 import { makeReferenceModelPort, isAdvisoryPrediction } from "@fleetos/predictive";
 import { buildPredictionAdvisoryCard } from "@fleetos/experience-safety-intel";
-import { NOW_MS, STALENESS_THRESHOLDS, pumpTwinState } from "./fixture-world.ts";
+import { STALENESS_THRESHOLDS, pumpTwinState } from "./fixture-world.ts";
 
 const HORIZON = { steps: 3, stepMs: 1_000 } as const;
 const PREMISE = "what-if vibration offset +15 during maintenance window";
@@ -89,7 +89,7 @@ export const counterfactualJourney: AcceptanceJourney = {
         if (!baselineRun.ok) throw new Error("baseline projection rejected");
         const card = buildPredictionAdvisoryCard({
           prediction: baselineRun.prediction,
-          nowMs: NOW_MS,
+          nowMs: ctx.startedAt,
           thresholds: STALENESS_THRESHOLDS,
         });
         if (!card.ok) throw new Error(`card refused: ${card.refused}`);

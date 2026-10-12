@@ -21,7 +21,7 @@ import {
   buildWorldContextAdvisoryCard,
 } from "@fleetos/experience-safety-intel";
 import { assembleContext } from "@fleetos/world-context";
-import { NOW_MS, NOW_ISO, STALENESS_THRESHOLDS, TENANT, pumpTwinState } from "./fixture-world.ts";
+import { STALENESS_THRESHOLDS, TENANT, isoOfEpochMs, pumpTwinState } from "./fixture-world.ts";
 
 const HORIZON = { steps: 3, stepMs: 1_000 } as const;
 
@@ -61,7 +61,7 @@ export const predictiveAdviceJourney: AcceptanceJourney = {
         const stripped: unknown = { ...prediction, advisory: false };
         ctx.record("prediction.guardRejectsStripped", !isAdvisoryPrediction(stripped));
 
-        const card = buildPredictionAdvisoryCard({ prediction, nowMs: NOW_MS, thresholds: STALENESS_THRESHOLDS });
+        const card = buildPredictionAdvisoryCard({ prediction, nowMs: ctx.startedAt, thresholds: STALENESS_THRESHOLDS });
         if (!card.ok) throw new Error(`card refused: ${card.refused} (${card.detail})`);
         ctx.record("card.advisory", card.card.advisory);
         ctx.record("card.confidenceBps", card.card.confidenceBps);
@@ -71,7 +71,7 @@ export const predictiveAdviceJourney: AcceptanceJourney = {
         ctx.record("card.provenance.modelVersion", card.card.provenance.modelVersion);
         const strippedCard = buildPredictionAdvisoryCard({
           prediction: { ...prediction, advisory: false } as unknown as typeof prediction,
-          nowMs: NOW_MS,
+          nowMs: ctx.startedAt,
           thresholds: STALENESS_THRESHOLDS,
         });
         ctx.record("card.strippedRefused", strippedCard.ok ? "unexpected-accept" : strippedCard.refused);
@@ -94,17 +94,17 @@ export const predictiveAdviceJourney: AcceptanceJourney = {
                 tenantId: TENANT.tenantId,
                 fields: { temperature: 41, location: "bay-7" },
                 lastObservationRef: "obs-pump-7-3",
-                lastObservedAtMs: NOW_MS - 5_000,
+                lastObservedAtMs: ctx.startedAt - 5_000,
               },
             ],
             purpose: "operational-monitoring",
           },
-          computedAt: NOW_ISO,
+          computedAt: isoOfEpochMs(ctx.startedAt),
         });
         if (!context.ok) throw new Error(`assembly refused: ${context.rejected}`);
         const ctxCard = buildWorldContextAdvisoryCard({
           context: context.context,
-          nowMs: NOW_MS,
+          nowMs: ctx.startedAt,
           thresholds: STALENESS_THRESHOLDS,
         });
         if (!ctxCard.ok) throw new Error(`context card refused: ${ctxCard.refused}`);
@@ -117,7 +117,7 @@ export const predictiveAdviceJourney: AcceptanceJourney = {
         const port = makeReferenceModelPort();
         const result = port.project(pumpTwinState(), HORIZON);
         if (!result.ok) throw new Error("projection rejected");
-        const predCard = buildPredictionAdvisoryCard({ prediction: result.prediction, nowMs: NOW_MS, thresholds: STALENESS_THRESHOLDS });
+        const predCard = buildPredictionAdvisoryCard({ prediction: result.prediction, nowMs: ctx.startedAt, thresholds: STALENESS_THRESHOLDS });
         if (!predCard.ok) throw new Error("prediction card refused");
         const board = buildAdvisoryBoard([predCard.card, ctxCard.card]);
         if (!board.ok) throw new Error(`board refused: ${board.refused} (${board.detail})`);

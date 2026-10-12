@@ -26,7 +26,7 @@ import {
 } from "@fleetos/simulation";
 import type { BenchmarkCase, ExpectedOutcomeRef, SafetyEnvelope } from "@fleetos/simulation";
 import type { WorldEvent, WorldJournalEntry } from "@fleetos/world-model";
-import { BASE_MS, NOW_MS, STALENESS_THRESHOLDS, TENANT, buildJournal } from "./fixture-world.ts";
+import { BASE_MS, STALENESS_THRESHOLDS, TENANT, buildJournal } from "./fixture-world.ts";
 
 const HORIZON = { steps: 3, stepMs: 1_000 } as const;
 const INVOCATION = {
@@ -123,7 +123,7 @@ export const benchmarkTrustJourney: AcceptanceJourney = {
           [{ replaySeq: 4, step: 1, atMs: BASE_MS + 4_000, value: 8.2, observationRef: "real-8" }],
           ENVELOPE,
         );
-        const set = assembleBenchmarkSet({ tenant: TENANT, cases: [standard, short], assembledAtMs: NOW_MS });
+        const set = assembleBenchmarkSet({ tenant: TENANT, cases: [standard, short], assembledAtMs: ctx.startedAt });
         if (!set.ok) throw new Error(`set refused: ${set.rejected}`);
         ctx.record("bench.caseCount", set.set.cases.length);
         ctx.record("bench.modelVersions", set.set.modelVersions);
@@ -142,7 +142,7 @@ export const benchmarkTrustJourney: AcceptanceJourney = {
 
         const scoring = scoreBenchmarkSet({
           tenant: TENANT,
-          nowMs: NOW_MS,
+          nowMs: ctx.startedAt,
           thresholds: STALENESS_THRESHOLDS,
           members: members.map((m, i) => ({ benchmarkCase: m.benchmarkCase, replay: replayRuns[i]! })),
         });
@@ -174,7 +174,7 @@ export const benchmarkTrustJourney: AcceptanceJourney = {
         const report = assembleBenchmarkReport({
           runId: "bench-run-j11",
           tenant: TENANT,
-          nowMs: NOW_MS,
+          nowMs: ctx.startedAt,
           computedAt: "2026-10-12T18:50:00.000Z",
           set: set.set,
           replays: replayRuns,

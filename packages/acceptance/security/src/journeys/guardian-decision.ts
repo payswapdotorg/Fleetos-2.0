@@ -27,7 +27,6 @@ import {
   AUTONOMOUS_AGENT_CTX,
   EXECUTE_CAPABILITY,
   IRREVERSIBLE_CAPABILITY,
-  NOW_MS,
   OPERATOR_CTX,
   READ_CAPABILITY,
   TENANT,
@@ -92,7 +91,7 @@ export const guardianDecisionJourney: AcceptanceJourney = {
         ctx.record("ordered.resolution.winningRule", result.evaluation.resolution.winningRuleId);
         const digestLength = result.evaluation.inputsDigest.length;
         ctx.record("ordered.inputsDigestLength", digestLength);
-        const audit = buildDecisionAuditRef(result.evaluation, NOW_MS);
+        const audit = buildDecisionAuditRef(result.evaluation, ctx.startedAt);
         if (!audit.ok) throw new Error("audit ref refused");
         ctx.record("ordered.audit.decisionCount", audit.ref.decisionCount);
         ctx.record("ordered.audit.resolvedVerdict", audit.ref.resolvedVerdict);
@@ -118,7 +117,7 @@ export const guardianDecisionJourney: AcceptanceJourney = {
           capabilityId: READ_CAPABILITY.id,
           granteeActorId: "analyst-kim",
           grantedByActorId: "operator-ada",
-          grantedAt: NOW_MS - 10_000,
+          grantedAt: ctx.startedAt - 10_000,
           expiresAt: null,
         });
         if (!root.ok) throw new Error(`root grant refused: ${root.reason}`);
@@ -128,7 +127,7 @@ export const guardianDecisionJourney: AcceptanceJourney = {
           capabilities: [READ_CAPABILITY, EXECUTE_CAPABILITY, IRREVERSIBLE_CAPABILITY],
           grants,
           actorAuthority: ["tenant.operator", "human.approval", "asset.owner"],
-          nowMs: NOW_MS,
+          nowMs: ctx.startedAt,
         });
         if (!board.ok) throw new Error(`ceiling board refused: ${board.refused} (${board.detail})`);
         const readEntry = board.view.entries.find((e) => e.capabilityId === READ_CAPABILITY.id);

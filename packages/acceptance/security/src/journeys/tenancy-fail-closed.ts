@@ -27,7 +27,6 @@ import {
   BASE_MS,
   EXECUTE_CAPABILITY,
   FOREIGN_TENANT,
-  NOW_MS,
   OPERATOR_CTX,
   TENANT,
   isoOfEpochMs,
@@ -128,7 +127,7 @@ export const tenancyFailClosedJourney: AcceptanceJourney = {
           idempotencyKey: "key-foreign-1",
           capabilityId: EXECUTE_CAPABILITY.id,
           payloadInputs: {},
-          at: NOW_MS,
+          at: ctx.startedAt,
           tenantId: FOREIGN_TENANT.tenantId,
         });
         ctx.record("queue.crossOk", foreignSubmit.ok);
@@ -138,14 +137,14 @@ export const tenancyFailClosedJourney: AcceptanceJourney = {
           tenantId: TENANT.tenantId,
           idempotencyKey: "key-1",
           kind: "submitted",
-          at: NOW_MS,
+          at: ctx.startedAt,
         });
         if (!ledger.ok) throw new Error("first append refused");
         const foreignAppend = appendExecutionLedger(ledger.ledger, {
           tenantId: FOREIGN_TENANT.tenantId,
           idempotencyKey: "key-2",
           kind: "submitted",
-          at: NOW_MS + 1_000,
+          at: ctx.startedAt + 1_000,
         });
         ctx.record("ledger.crossOk", foreignAppend.ok);
         ctx.record("ledger.crossRefused", foreignAppend.ok ? "unexpected-allow" : foreignAppend.reason);
@@ -157,11 +156,11 @@ export const tenancyFailClosedJourney: AcceptanceJourney = {
           capability: EXECUTE_CAPABILITY,
           idempotencyKey: { tenantId: TENANT.tenantId, capabilityId: EXECUTE_CAPABILITY.id, nonce: "t" },
           inputs: {},
-          proposedAt: isoOfEpochMs(NOW_MS),
+          proposedAt: isoOfEpochMs(ctx.startedAt),
           proposedBy: "engineer-raj",
         });
         const foreignAdvance = advanceActionState(record, "authorized", {
-          at: isoOfEpochMs(NOW_MS),
+          at: isoOfEpochMs(ctx.startedAt),
           authorization: decision,
           tenantId: FOREIGN_TENANT.tenantId,
         });
@@ -180,12 +179,12 @@ export const tenancyFailClosedJourney: AcceptanceJourney = {
           evaluation: learningEval,
           proposedBy: "ml-engineer-sam",
           rationale: "",
-          proposedAt: isoOfEpochMs(NOW_MS),
+          proposedAt: isoOfEpochMs(ctx.startedAt),
         });
         const foreignLifecycle = openAdoptionLifecycle({
           tenant: { tenantId: FOREIGN_TENANT.tenantId },
           proposal: foreignProposal,
-          openedAtMs: NOW_MS,
+          openedAtMs: ctx.startedAt,
         });
         ctx.record("adoption.crossOk", foreignLifecycle.ok);
         ctx.record("adoption.crossCode", foreignLifecycle.ok ? "unexpected-allow" : foreignLifecycle.code);
@@ -201,7 +200,7 @@ export const tenancyFailClosedJourney: AcceptanceJourney = {
               description: "acme case",
               tags: [],
               source: "journey-f270b",
-              submittedAtMs: NOW_MS,
+              submittedAtMs: ctx.startedAt,
             },
           ],
           TENANT,
@@ -210,7 +209,7 @@ export const tenancyFailClosedJourney: AcceptanceJourney = {
         const foreignCaseSet = assembleCaseSet(arenaIntake.cases, {
           tenant: FOREIGN_TENANT,
           capability: { capabilityId: EXECUTE_CAPABILITY.id, version: "1.2.0" },
-          assembledAtMs: NOW_MS,
+          assembledAtMs: ctx.startedAt,
         });
         ctx.record("caseset.crossOk", foreignCaseSet.ok);
         ctx.record("caseset.crossCode", foreignCaseSet.ok ? "unexpected-allow" : foreignCaseSet.code);
@@ -220,7 +219,7 @@ export const tenancyFailClosedJourney: AcceptanceJourney = {
           tenantId: TENANT.tenantId,
           findingIds: ["finding-1"],
           remediationKind: "patch",
-          at: NOW_MS,
+          at: ctx.startedAt,
         });
         if (!remediation.ok) throw new Error("remediation proposal refused");
         ctx.record("remediation.ownOk", remediation.ok);
