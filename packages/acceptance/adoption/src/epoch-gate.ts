@@ -69,15 +69,15 @@ import { FIRM_EPOCH_SCHEDULES } from "./firms.js";
 
 /**
  * D7 (F330 §2): the counting gate's activation switch. false at the F332
- * phase-1 boundary — the Wave-12 state persists byte-identically (epoch 1
- * counted; epochs >= 2 asserted byte-identical re-runs, never counted).
- * PHASE 2 flips this to true as its own commit; per-epoch distinct
- * journeys then count iff the D10 proof form passes and the D13 refusals
- * hold. Tests exercise the ACTIVE counting mechanics through the pure
+ * phase-1 boundary (the Wave-12 state persisted byte-identically: epoch 1
+ * counted; epochs >= 2 asserted byte-identical re-runs, never counted);
+ * PHASE 2 flips it to true AS ITS OWN COMMIT. Now ACTIVE: per-epoch
+ * distinct journeys count iff the D10 proof form passes and the D13
+ * refusals hold. Tests exercise the counting mechanics through the pure
  * decision functions below (test-only switch injection) — NEVER by editing
  * this constant.
  */
-export const EPOCH_COUNTING_ACTIVE = false;
+export const EPOCH_COUNTING_ACTIVE = true;
 
 // ---------------------------------------------------------------------------
 // D9 — the frozen anchors (composition-site refusal law)
