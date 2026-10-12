@@ -1,14 +1,16 @@
 /**
  * @fleetos/acceptance-field — the device/field journey corpus
  * (Wave 7 lane A + F300A host-integration extension, Wave 10 lane A +
- * F321A edge/asset governance extension, Wave 12 lane A).
+ * F321A edge/asset governance extension, Wave 12 lane A; F331A Wave 13
+ * lane A — the edge firmware/OTA campaign journey + the D8 census-certified
+ * epoch parameterizations, see epoch-schedule.ts).
  *
- * 30 journeys across the fixed 7-persona vocabulary, one per acceptance
+ * 31 journeys across the fixed 7-persona vocabulary, one per acceptance
  * capability of the device/field lane (14 original + 6 genuinely distinct
  * host-integration journeys added by F300A + 10 genuinely distinct F321A
- * journeys). Journeys are pure DATA (typed operations + declarative
- * assertions); the runner executes them against the REAL public APIs of
- * this lane's packages.
+ * journeys + 1 F331A edge firmware/OTA campaign journey). Journeys are
+ * pure DATA (typed operations + declarative assertions); the runner
+ * executes them against the REAL public APIs of this lane's packages.
  *
  * ORDER MATTERS: `handoff-field-to-operator-consume` declares
  * `consumesHandoff` — the corpus runner threads the publishing journey's
@@ -52,6 +54,7 @@ import {
   identitySessionLifecycleJourney,
   tenantLifecycleGatingJourney,
 } from "./f321a-governance.js";
+import { edgeFirmwareOtaCampaignJourney } from "./f331a-ota.js";
 
 export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   enrollNewAssetJourney,
@@ -85,6 +88,10 @@ export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   assetLineageMaterialLotsJourney,
   identitySessionLifecycleJourney,
   tenantLifecycleGatingJourney,
+  // F331A (Wave 13 lane A) — the edge firmware/OTA campaign journey
+  // (work-item row 39; the REAL @fleetos/maintenance firmware-campaign
+  // module). No epochs declared (the F330 census's D8 set is closed).
+  edgeFirmwareOtaCampaignJourney,
 ];
 
 export {
@@ -118,4 +125,5 @@ export {
   assetLineageMaterialLotsJourney,
   identitySessionLifecycleJourney,
   tenantLifecycleGatingJourney,
+  edgeFirmwareOtaCampaignJourney,
 };

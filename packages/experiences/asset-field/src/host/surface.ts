@@ -37,6 +37,7 @@ import { assembleMaintenanceBoard } from "../ops/maintenance-board.js";
 import { assembleRecoveryTimeline } from "../ops/recovery-timeline.js";
 import { assembleFieldView } from "../field-mode.js";
 import { viewDigestOf } from "../digest.js";
+import type { RecencyThresholds } from "../staleness.js";
 import type { HostRouteLimitation } from "./contract.js";
 import { ASSET_FIELD_ROUTES } from "./routes.js";
 
@@ -112,6 +113,13 @@ function hostViewModelsDigestOf(models: Omit<AssetFieldHostViewModels, "digest">
   return viewDigestOf("host-view-models", models);
 }
 
+/** F331A (Wave 13 lane A): optional per-build read-model policy — the
+ * case-staleness thresholds the recovery-timeline route classifies against.
+ * Absent => the lane reference thresholds (backward-compatible). */
+export interface AssetFieldHostBuildOptions {
+  readonly caseStalenessThresholds?: RecencyThresholds;
+}
+
 /** Recompute the bundle digest; false means tampered view models. */
 export function verifyHostViewModelsDigest(models: AssetFieldHostViewModels): boolean {
   const { digest, ...rest } = models;
@@ -122,7 +130,11 @@ export function verifyHostViewModelsDigest(models: AssetFieldHostViewModels): bo
  * Build the whole surface's view models over the REAL read-models.
  * Pure, deterministic, tenant fail-closed at the seam.
  */
-export function buildViewModels(slice: ExperienceStateSlice, ctx: TenantContext): HostViewModelResult {
+export function buildViewModels(
+  slice: ExperienceStateSlice,
+  ctx: TenantContext,
+  options: AssetFieldHostBuildOptions = {},
+): HostViewModelResult {
   const contextFailure = guardHostContext(ctx);
   if (contextFailure) return contextFailure;
   if (ctx.tenantId !== slice.tenantId) {
@@ -151,7 +163,10 @@ export function buildViewModels(slice: ExperienceStateSlice, ctx: TenantContext)
     fleetOverview: assembleFleetOverview(slice, { now }),
     device360,
     healthBoard: assembleHealthBoard(slice, { now }),
-    recoveryTimeline: assembleRecoveryTimeline(slice, { now }),
+    recoveryTimeline: assembleRecoveryTimeline(slice, {
+      now,
+      ...(options.caseStalenessThresholds !== undefined ? { thresholds: options.caseStalenessThresholds } : {}),
+    }),
     maintenanceBoard: assembleMaintenanceBoard(slice, { now }),
     fieldWorkflow: assembleFieldView(slice, { now }),
     routeLimitations,

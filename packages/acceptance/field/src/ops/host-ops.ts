@@ -68,10 +68,13 @@ function executeHostBuild(
     establishedAt: op.now,
   });
   if (!contextResult.ok) return opRefused(contextResult.reason);
-  const first = buildViewModels(slice, contextResult.context);
+  // F331A (Wave 13): the case-staleness policy for this build (absent => the
+  // host surface's own defaults — backward-compatible).
+  const buildOptions = op.caseStalenessThresholds !== undefined ? { caseStalenessThresholds: op.caseStalenessThresholds } : {};
+  const first = buildViewModels(slice, contextResult.context, buildOptions);
   // Purity machine-check: a rebuild over the same slice + context must be
   // byte-identical (the WAVE10-HOST-CONTRACT §2 pure law).
-  const second = buildViewModels(slice, contextResult.context);
+  const second = buildViewModels(slice, contextResult.context, buildOptions);
   const pure = JSON.stringify(first) === JSON.stringify(second);
   if (!first.ok) {
     return opOk({ "host.ok": false, "host.rejected": first.rejected, "host.pure": pure });
@@ -122,9 +125,13 @@ function executeHostBuild(
     "host.healthBoard.row0.worstFindingCode": health?.rows[0]?.worstFinding?.code ?? null,
     "host.recoveryTimeline.ok": m.recoveryTimeline.ok,
     "host.recoveryTimeline.open": m.recoveryTimeline.ok ? m.recoveryTimeline.view.open : 0,
+    "host.recoveryTimeline.case0.caseId": timelineCase0?.caseId ?? null,
     "host.recoveryTimeline.case0.state": timelineCase0?.state ?? null,
     "host.recoveryTimeline.case0.stepCommands": timelineCase0?.steps.map((s) => s.command) ?? [],
     "host.recoveryTimeline.case0.ageMs": timelineCase0?.ageMs ?? null,
+    // F331A (Wave 13): the case's staleness class against the build's as-of
+    // + case-staleness policy (D2(b) staleness family, host route verified).
+    "host.recoveryTimeline.case0.staleness": timelineCase0?.staleness ?? null,
     "host.maintenanceBoard.ok": m.maintenanceBoard.ok,
     "host.maintenanceBoard.scheduled": board?.scheduled.length ?? 0,
     "host.maintenanceBoard.inProgress": board?.inProgress.length ?? 0,

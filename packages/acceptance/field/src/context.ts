@@ -57,6 +57,8 @@ import {
 } from "@fleetos/assets";
 import type { MembershipRecord, Role, Actor, SessionRecord } from "@fleetos/identity";
 import { TenantRegistry, InMemoryTenantRegistry } from "@fleetos/tenancy";
+// F331A (Wave 13 lane A) — the REAL firmware-campaign records (row 39).
+import type { FirmwareCampaign } from "@fleetos/maintenance";
 
 /** A JSON-shaped reading value (assertions compare these canonically). */
 export type ReadingValue = string | number | boolean | null | ReadonlyArray<unknown> | { readonly [k: string]: unknown };
@@ -165,6 +167,9 @@ export interface JourneyContext {
   };
   /** REAL tenant registry (tenancy kernel over the in-memory port). */
   tenants: TenantRegistry;
+  /** F331A (Wave 13 lane A) — REAL firmware/OTA campaign records by id
+   * (every record is a REAL @fleetos/maintenance public-API output). */
+  firmwareCampaigns: Map<string, FirmwareCampaign>;
 }
 
 export function createJourneyContext(tenantId: string, startedAt: number): JourneyContext {
@@ -220,6 +225,7 @@ export function createJourneyContext(tenantId: string, startedAt: number): Journ
       ],
     },
     tenants: new TenantRegistry(new InMemoryTenantRegistry()),
+    firmwareCampaigns: new Map(),
   };
 }
 

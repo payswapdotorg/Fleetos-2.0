@@ -5,8 +5,27 @@
  * HostSurface adapter over REAL composed domain state.
  */
 
-import type { AcceptanceJourney } from "../journey-contracts.js";
+import type { AcceptanceJourney, EpochExpectation } from "../journey-contracts.js";
+import { EPOCH_ANCHOR_0, EPOCH_ANCHOR_1, EPOCH_ANCHOR_2, EPOCH_30D_MS } from "../epoch-schedule.js";
 import { AST_TRAILER, AST_TRUCK, DEV_GATEWAY, DEV_TELEMETRY, T0 } from "../fixtures.js";
+
+/** D9 frozen anchors (TL-owned values — never lane-chosen). */
+const ANCHORS = [EPOCH_ANCHOR_0, EPOCH_ANCHOR_1, EPOCH_ANCHOR_2] as const;
+
+/** D10(1) per-epoch table helper — anchor-ordered. */
+function epochTable(at0: unknown, at1: unknown, at2: unknown): readonly EpochExpectation[] {
+  return [
+    { at: EPOCH_ANCHOR_0, expected: at0 },
+    { at: EPOCH_ANCHOR_1, expected: at1 },
+    { at: EPOCH_ANCHOR_2, expected: at2 },
+  ];
+}
+
+/** The late-quarter review moment: T0+60d, the midpoint of the +30d/+90d
+ * epoch anchors (a fixed calendar fact). */
+const LATE_REVIEW_AT = T0 + 2 * EPOCH_30D_MS;
+/** The case-SLA policy for the late host review: fresh ≤15d, stale ≤45d. */
+const CASE_SLA_THRESHOLDS = { freshWithinMs: EPOCH_30D_MS / 2, staleWithinMs: (3 * EPOCH_30D_MS) / 2 } as const;
 
 export const hostDiscoveryDevice360Journey: AcceptanceJourney = {
   id: "host-discovery-device-360",
@@ -48,11 +67,36 @@ export const hostDiscoveryDevice360Journey: AcceptanceJourney = {
   ],
 };
 
+/**
+ * F331A (Wave 13 lane A) — the D8 echo-class REWRITE of
+ * `host-health-evidence-timeline` (census: "echo (strict T0 pin) | ALL Δ
+ * incl. ±1s | absolute timestamp pin"; F330 §1.1). The absolute-timestamp
+ * pin (the old e9 `ageMs == 20_000` arithmetic echo) is REPLACED by
+ * genuine D2(b)-family transition expectations asserted through the SAME
+ * domain API surface (the host surface's health-timeline route over the
+ * REAL recovery timeline read-model):
+ *
+ *   - window boundary open/close — the host timeline is AS-OF its build
+ *     moment: at the fixed T0+20s/30s build moments the epoch's case
+ *     appears only once its existence window has opened;
+ *   - staleness-class transition — the late-quarter host review (T0+60d,
+ *     case-SLA policy thresholds — a REAL host build option) classifies the
+ *     still-open tracking case unknown/stale/not-yet-open across the
+ *     frozen schedule.
+ *
+ * All non-time assertions (e1–e8, e10–e16) are intact; e6/e7/e8 gained
+ * per-epoch tables because the as-of window responds. No table entry is a
+ * timestamp-equality pin.
+ */
 export const hostHealthEvidenceTimelineJourney: AcceptanceJourney = {
   id: "host-health-evidence-timeline",
   persona: "recovery-coordinator",
   capability: "host-integration",
-  goal: "Read health and evidence through the host's health-timeline route: warnings triage onto the board, the recovery case renders its command history as an evidence timeline, and resolution leaves the open board.",
+  goal: "Read health and evidence through the host's health-timeline route: warnings triage onto the board, the recovery case renders its command history as an evidence timeline, resolution leaves the open board, and the late-quarter host review classifies the still-open tracking case honestly.",
+  epochs: {
+    censusCitation: "F330 §1.1: host-health-evidence-timeline | echo (strict T0 pin) | ALL Δ incl. ±1s | absolute timestamp pin — REWRITTEN per the D8 rule (as-of window boundary + case staleness class through the host route)",
+    anchors: ANCHORS,
+  },
   steps: [
     { id: "t1", summary: "admit the asset", op: { kind: "asset.admit", assetId: AST_TRUCK, assetKind: "vehicle", displayName: "Truck Alpha 01" } },
     { id: "t2", summary: "enroll the device", op: { kind: "device.enroll", deviceId: DEV_TELEMETRY, assetId: AST_TRUCK, serial: "SN-1001" } },
@@ -64,6 +108,13 @@ export const hostHealthEvidenceTimelineJourney: AcceptanceJourney = {
     { id: "t8", summary: "propose the replacement", op: { kind: "recovery.command", caseId: "rc_host-tl-0001", command: "propose", reason: "replace battery pack" } },
     { id: "t9", summary: "resolve WITH evidence from the triage findings", op: { kind: "recovery.command", caseId: "rc_host-tl-0001", command: "resolve", reason: "battery replaced and verified", withEvidence: true } },
     { id: "t10", summary: "rebuild the host view models (verification of the outcome)", op: { kind: "host.build-view-models", now: T0 + 30_000 } },
+    { id: "t11", summary: "the battery drain recurs — open a tracking case through the same host-driven command path", op: { kind: "recovery.open", caseId: "rc_host-tl-0002", deviceId: DEV_TELEMETRY } },
+    { id: "t12", summary: "start investigating the tracking case (it stays open at journey end)", op: { kind: "recovery.command", caseId: "rc_host-tl-0002", command: "investigate", reason: "second battery drain report within the quarter" } },
+    {
+      id: "t13",
+      summary: "late-quarter host review (T0+60d, the midpoint of the +30d/+90d epoch anchors) under the case-SLA policy: fresh ≤15d open, stale ≤45d",
+      op: { kind: "host.build-view-models", now: LATE_REVIEW_AT, caseStalenessThresholds: CASE_SLA_THRESHOLDS },
+    },
   ],
   assertions: [
     { id: "e1", description: "triage produced one warning finding from the fault stream", reading: "t4.triage.count", op: "deep-equals", expected: 1 },
@@ -71,10 +122,38 @@ export const hostHealthEvidenceTimelineJourney: AcceptanceJourney = {
     { id: "e3", description: "the health board assembled (health timeline route)", reading: "t7.host.healthBoard.ok", op: "deep-equals", expected: true },
     { id: "e4", description: "the fleet warning count matches the real finding", reading: "t7.host.healthBoard.fleetWarning", op: "deep-equals", expected: 1 },
     { id: "e5", description: "the worst finding on the board is the health.warn code", reading: "t7.host.healthBoard.row0.worstFindingCode", op: "deep-equals", expected: "health.warn" },
-    { id: "e6", description: "the evidence timeline shows the one open case", reading: "t7.host.recoveryTimeline.open", op: "deep-equals", expected: 1 },
-    { id: "e7", description: "the timeline case is in the investigating state", reading: "t7.host.recoveryTimeline.case0.state", op: "deep-equals", expected: "investigating" },
-    { id: "e8", description: "the timeline renders the case's real command history", reading: "t7.host.recoveryTimeline.case0.stepCommands", op: "deep-equals", expected: ["investigate"] },
-    { id: "e9", description: "the case age is accounted against the host asOf", reading: "t7.host.recoveryTimeline.case0.ageMs", op: "deep-equals", expected: 20_000 },
+    {
+      id: "e6",
+      description: "the evidence timeline shows the one open case (as-of the fixed build moment — the epoch's case appears only once its existence window has opened)",
+      reading: "t7.host.recoveryTimeline.open",
+      op: "deep-equals",
+      expected: 1,
+      perEpoch: epochTable(1, 0, 0),
+    },
+    {
+      id: "e7",
+      description: "the timeline case is in the investigating state (as-of window)",
+      reading: "t7.host.recoveryTimeline.case0.state",
+      op: "deep-equals",
+      expected: "investigating",
+      perEpoch: epochTable("investigating", null, null),
+    },
+    {
+      id: "e8",
+      description: "the timeline renders the case's real command history (as-of window)",
+      reading: "t7.host.recoveryTimeline.case0.stepCommands",
+      op: "deep-equals",
+      expected: ["investigate"],
+      perEpoch: epochTable(["investigate"], [], []),
+    },
+    {
+      id: "e9",
+      description: "the case's staleness class is accounted against the build's as-of (D2(b) staleness family — replaces the former absolute age pin)",
+      reading: "t7.host.recoveryTimeline.case0.staleness",
+      op: "deep-equals",
+      expected: "fresh",
+      perEpoch: epochTable("fresh", null, null),
+    },
     { id: "e10", description: "the first build is byte-identical on rebuild", reading: "t7.host.pure", op: "deep-equals", expected: true },
     { id: "e11", description: "resolution attached the finding evidence", reading: "t9.case.evidenceCount", op: "deep-equals", expected: 1 },
     { id: "e12", description: "the resolution carries the root cause", reading: "t9.case.resolutionRootCause", op: "deep-equals", expected: "battery replaced and verified" },
@@ -82,5 +161,33 @@ export const hostHealthEvidenceTimelineJourney: AcceptanceJourney = {
     { id: "e14", description: "the board still records the finding history after resolution", reading: "t10.host.healthBoard.fleetWarning", op: "deep-equals", expected: 1 },
     { id: "e15", description: "the verification rebuild is still byte-identical", reading: "t10.host.pure", op: "deep-equals", expected: true },
     { id: "e16", description: "the verification rebuild's digest verifies", reading: "t10.host.digestVerified", op: "deep-equals", expected: true },
+    { id: "e16b", description: "the tracking case opened in state open", reading: "t11.case.state", op: "deep-equals", expected: "open" },
+    { id: "e16c", description: "the tracking case is under investigation at journey end", reading: "t12.case.state", op: "deep-equals", expected: "investigating" },
+    {
+      id: "e17",
+      description: "late-quarter host review: the still-open tracking case is on the as-of board at T0 and +30d; at +90d its window has not opened (window boundary)",
+      reading: "t13.host.recoveryTimeline.open",
+      op: "deep-equals",
+      expected: 1,
+      perEpoch: epochTable(1, 1, 0),
+    },
+    {
+      id: "e18",
+      description: "late-quarter host review: the case's staleness class under the case-SLA policy — 60d-old (unknown) at T0, 30d-old (stale) at +30d, not-yet-open at +90d (three distinct D2(b) classes)",
+      reading: "t13.host.recoveryTimeline.case0.staleness",
+      op: "deep-equals",
+      expected: "unknown",
+      perEpoch: epochTable("unknown", "stale", null),
+    },
+    {
+      id: "e19",
+      description: "late-quarter host review: the board's case is the tracking case (the resolved pair is terminal and excluded)",
+      reading: "t13.host.recoveryTimeline.case0.caseId",
+      op: "deep-equals",
+      expected: "rc_host-tl-0002",
+      perEpoch: epochTable("rc_host-tl-0002", "rc_host-tl-0002", null),
+    },
+    { id: "e20", description: "the late-quarter host rebuild is byte-identical (pure law held)", reading: "t13.host.pure", op: "deep-equals", expected: true },
+    { id: "e21", description: "the late-quarter host rebuild's digest verifies", reading: "t13.host.digestVerified", op: "deep-equals", expected: true },
   ],
 };

@@ -8,12 +8,18 @@
  * ordered longest-open-first (openedAt asc, then caseId); steps are
  * ordered by `at` asc, then command, then from-state — a total
  * deterministic order. Resolved/closed cases are terminal and excluded.
+ *
+ * F331A (Wave 13 lane A, D8 echo-rewrite law): the board is AS-OF `now` —
+ * a case whose `openedAt` lies in the future of `now` is NOT on the board
+ * (window boundary), and every on-board case carries its staleness class
+ * against the view's thresholds (the established fresh/stale/unknown
+ * vocabulary — a staleness-class transition, never a guessed freshness).
  */
 
 import { viewDigestOf } from "../digest.js";
 import { buildStateIndexes } from "../indexes.js";
 import type { ExperienceStateSlice } from "../state.js";
-import { defaultRecencyThresholds, type RecencyThresholds } from "../staleness.js";
+import { classifyRecency, defaultRecencyThresholds, type RecencyThresholds, type StalenessClass } from "../staleness.js";
 import { guardView, SCHEMA_VERSION, type ViewResult } from "../view-support.js";
 import type { RecoveryState } from "@fleetos/recovery";
 
@@ -37,6 +43,9 @@ export interface CaseTimeline {
   readonly state: RecoveryState;
   readonly openedAt: number;
   readonly ageMs: number;
+  /** F331A: the case's staleness class against the view's now + thresholds
+   * (the established vocabulary; negative ages clamp to fresh). */
+  readonly staleness: StalenessClass;
   readonly steps: readonly RecoveryStep[];
 }
 
@@ -72,13 +81,18 @@ export function assembleRecoveryTimeline(
 ): ViewResult<RecoveryTimeline> {
   const refused = guardView(state, options.now, options.thresholds ?? defaultRecencyThresholds());
   if (refused) return refused;
+  const thresholds = options.thresholds ?? defaultRecencyThresholds();
   const indexes = buildStateIndexes(state);
 
   const cases: CaseTimeline[] = [];
   for (const recoveryCase of state.recoveryCases) {
     if (!OPEN_STATES.has(recoveryCase.state)) continue;
+    // F331A as-of law: a case opened after `now` is not on the as-of board
+    // (the case's existence window has not opened at this review moment).
+    if (recoveryCase.openedAt > options.now) continue;
     const device = indexes.deviceById.get(recoveryCase.deviceId);
     if (!device) continue; // guarded; kept for total determinism
+    const classified = classifyRecency(recoveryCase.openedAt, options.now, thresholds);
     const steps: RecoveryStep[] = recoveryCase.history.map((entry) => ({
       at: entry.at,
       from: entry.from,
@@ -98,6 +112,7 @@ export function assembleRecoveryTimeline(
       state: recoveryCase.state,
       openedAt: recoveryCase.openedAt,
       ageMs: options.now - recoveryCase.openedAt,
+      staleness: classified.ok ? classified.reading.staleness : "unknown",
       steps,
     });
   }

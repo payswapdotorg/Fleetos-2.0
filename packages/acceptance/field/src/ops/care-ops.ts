@@ -141,7 +141,7 @@ export function executeCareOperation(op: JourneyOperation, ctx: JourneyContext):
         tenantId: ctx.tenantId,
         records: ctx.connectivity.listStatuses(ctx.tenantId),
         registry: ctx.intentRegistry,
-        ttl: { staleMs: 30_000, deadMs: 120_000 },
+        ttl: op.ttl ?? { staleMs: 30_000, deadMs: 120_000 },
         now: ctx.clock,
       });
       const first = ctx.devices.size > 0 ? [...ctx.devices.keys()].sort()[0] : null;

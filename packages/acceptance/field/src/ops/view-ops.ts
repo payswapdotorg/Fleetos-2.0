@@ -141,7 +141,10 @@ export function executeViewOperation(op: JourneyOperation, ctx: JourneyContext):
       });
     }
     case "view.recovery-timeline": {
-      const r = assembleRecoveryTimeline(slice, { now: op.now });
+      const r = assembleRecoveryTimeline(slice, {
+        now: op.now,
+        ...(op.thresholds !== undefined ? { thresholds: op.thresholds } : {}),
+      });
       if (!r.ok) return opOk({ "timeline.ok": false, "timeline.rejected": r.rejected });
       const c0 = r.view.cases[0] ?? null;
       return opOk({
@@ -153,6 +156,9 @@ export function executeViewOperation(op: JourneyOperation, ctx: JourneyContext):
         "timeline.case0.steps": c0?.steps.length ?? 0,
         "timeline.case0.stepCommands": c0?.steps.map((s) => s.command) ?? [],
         "timeline.case0.ageMs": c0?.ageMs ?? null,
+        // F331A (Wave 13): the case's staleness class against the view's now
+        // + thresholds (the established vocabulary — D2(b) staleness family).
+        "timeline.case0.staleness": c0?.staleness ?? null,
         "timeline.caseIds": r.view.cases.map((c) => c.caseId),
       });
     }
