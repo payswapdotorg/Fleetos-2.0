@@ -42,10 +42,10 @@ function expectJourneyPasses(journeyId: string): JourneyOutcome {
 }
 
 describe("F270A device/field acceptance journeys", () => {
-  it("corpus shape: 30 journeys, fixed ids, no duplicates (14 + 6 F300A host-integration + 10 F321A)", () => {
-    expect(FIELD_JOURNEYS.length).toBe(30);
+  it("corpus shape: 31 journeys, fixed ids, no duplicates (14 + 6 F300A host-integration + 10 F321A + 1 F331A)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(31);
     const ids = FIELD_JOURNEYS.map((j) => j.id);
-    expect(new Set(ids).size).toBe(30);
+    expect(new Set(ids).size).toBe(31);
     expect([...OUTCOMES.keys()].sort()).toEqual([...ids].sort());
   });
 
@@ -74,6 +74,13 @@ describe("F270A device/field acceptance journeys", () => {
     expectJourneyPasses("recover-lost-device");
     expect(actualOf("recover-lost-device", "r15")).toBe(0);
     expect(actualOf("recover-lost-device", "r18")).toBe("closed");
+    // F331A rewrite anchors (D2(b) families at T0): the as-of window and
+    // the late-quarter staleness classification replace the former age pin.
+    expect(actualOf("recover-lost-device", "r3")).toBe(1);
+    expect(actualOf("recover-lost-device", "r10")).toBe("fresh");
+    expect(actualOf("recover-lost-device", "r19")).toBe(1);
+    expect(actualOf("recover-lost-device", "r21")).toBe("unknown");
+    expect(actualOf("recover-lost-device", "r20")).toBe("rc_recover-0002");
   });
 
   it("maintenance — the order crosses every board column to completion", () => {
@@ -148,6 +155,11 @@ describe("F270A device/field acceptance journeys", () => {
     expect(actualOf("host-health-evidence-timeline", "e7")).toBe("investigating");
     expect(actualOf("host-health-evidence-timeline", "e8")).toEqual(["investigate"]);
     expect(actualOf("host-health-evidence-timeline", "e13")).toBe(0);
+    // F331A rewrite anchors (D2(b) families at T0).
+    expect(actualOf("host-health-evidence-timeline", "e9")).toBe("fresh");
+    expect(actualOf("host-health-evidence-timeline", "e17")).toBe(1);
+    expect(actualOf("host-health-evidence-timeline", "e18")).toBe("unknown");
+    expect(actualOf("host-health-evidence-timeline", "e19")).toBe("rc_host-tl-0002");
   });
 
   it("host integration — Device 360 recovery intent executes and verifies through the real command path", () => {
@@ -288,6 +300,22 @@ describe("F270A device/field acceptance journeys", () => {
     expect(actualOf("tenant-lifecycle-gating", "e22")).toBe("tenant-closed-no-operations");
     expect(actualOf("tenant-lifecycle-gating", "e24")).toBe("illegal-transition");
     expect(actualOf("tenant-lifecycle-gating", "e25")).toBe("unknown-tenant");
+  });
+
+  it("F331A edge firmware/OTA campaign — staged waves, halt, resume, mid-wave halt, rollback over applied devices; every illegal move refused", () => {
+    expectJourneyPasses("edge-firmware-ota-campaign");
+    expect(actualOf("edge-firmware-ota-campaign", "f4")).toBe("version-regression");
+    expect(actualOf("edge-firmware-ota-campaign", "f7")).toBe("wave-out-of-order");
+    expect(actualOf("edge-firmware-ota-campaign", "f11")).toBe("halt-reason-required");
+    expect(actualOf("edge-firmware-ota-campaign", "f13")).toBe("canary battery regression reported");
+    expect(actualOf("edge-firmware-ota-campaign", "f14")).toBe("campaign-halted");
+    expect(actualOf("edge-firmware-ota-campaign", "f15")).toBe("no-applied-devices");
+    expect(actualOf("edge-firmware-ota-campaign", "f19")).toEqual(["verified", "pending"]);
+    expect(actualOf("edge-firmware-ota-campaign", "f29")).toBe("unknown-device-ref");
+    expect(actualOf("edge-firmware-ota-campaign", "f34")).toBe("rolled-back");
+    expect(actualOf("edge-firmware-ota-campaign", "f37")).toBe(2);
+    expect(actualOf("edge-firmware-ota-campaign", "f39")).toEqual(["verified", "deploying"]);
+    expect(actualOf("edge-firmware-ota-campaign", "f42")).toBe(true);
   });
 
   it("every journey's assertions cover its full chain (>= 10 assertions each)", () => {

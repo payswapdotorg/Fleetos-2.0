@@ -3,8 +3,34 @@
  * connectivity postures + edge commands.
  */
 
-import type { AcceptanceJourney } from "../journey-contracts.js";
+import type { AcceptanceJourney, EpochExpectation } from "../journey-contracts.js";
+import { EPOCH_ANCHOR_0, EPOCH_ANCHOR_1, EPOCH_ANCHOR_2, EPOCH_30D_MS, EPOCH_90D_MS } from "../epoch-schedule.js";
 import { AST_TRAILER, AST_TRUCK, DEV_GATEWAY, DEV_TELEMETRY, T0 } from "../fixtures.js";
+
+/** D9 frozen anchors (TL-owned values — never lane-chosen). */
+const ANCHORS = [EPOCH_ANCHOR_0, EPOCH_ANCHOR_1, EPOCH_ANCHOR_2] as const;
+
+/** D10(1) per-epoch table helper — anchor-ordered. */
+function epochTable(at0: unknown, at1: unknown, at2: unknown): readonly EpochExpectation[] {
+  return [
+    { at: EPOCH_ANCHOR_0, expected: at0 },
+    { at: EPOCH_ANCHOR_1, expected: at1 },
+    { at: EPOCH_ANCHOR_2, expected: at2 },
+  ];
+}
+
+/** F331A: the authorization grants' validity window — an auxiliary domain
+ * fact sized to span the whole frozen schedule (the census-certified
+ * responding family here is the POSTURE WINDOWS, not the grant lifecycle;
+ * the grants must simply remain valid at every anchor so the journey
+ * executes green at each epoch). */
+const GRANT_VALID_UNTIL = EPOCH_ANCHOR_2 + 3_600_000;
+
+/** F331A: the relaxed quarterly-audit posture policy (a REAL
+ * @fleetos/connectivity TTL parameter) — stale after 45d, dead after 120d.
+ * The default 30s/120s policy saturates at the 30d/90d anchors (both
+ * "degraded"); this policy lands the frozen epochs in distinct classes. */
+const QUARTERLY_AUDIT_TTL = { staleMs: (3 * EPOCH_30D_MS) / 2, deadMs: EPOCH_90D_MS + EPOCH_30D_MS } as const;
 
 export const fieldModeOfflineJourney: AcceptanceJourney = {
   id: "field-mode-offline-tolerance",
@@ -43,11 +69,26 @@ export const fieldModeOfflineJourney: AcceptanceJourney = {
   ],
 };
 
+/**
+ * F331A (Wave 13 lane A) — D8 count-eligible parameterization (census:
+ * "transition (bidirectional) | ±1h and beyond | posture window
+ * transitions"; F330 §1.1). The responding assertions are the honest-posture
+ * rollups: at each epoch the SAME absolute heartbeat calendar (T0+1s/2s/6s)
+ * is classified against the epoch clock. Under the lane default TTL
+ * (30s/120s) the heartbeats are future-fresh at T0 and long-dead (degraded)
+ * at +30d/+90d; under the quarterly-audit TTL (45d/120d) the +30d epoch is
+ * still fresh while the +90d epoch has crossed the stale boundary — three
+ * genuinely distinct staleness-class states across the frozen schedule.
+ */
 export const connectivityPostureJourney: AcceptanceJourney = {
   id: "connectivity-postures",
   persona: "edge-operator",
   capability: "connectivity",
   goal: "Drive connectivity intents through the real lifecycle and read honest posture rollups: aligned, divergent and unknown — never guessed.",
+  epochs: {
+    censusCitation: "F330 §1.1: connectivity-postures | transition (bidirectional) | ±1h and beyond | posture window transitions",
+    anchors: ANCHORS,
+  },
   steps: [
     { id: "t1", summary: "admit the asset", op: { kind: "asset.admit", assetId: AST_TRUCK, assetKind: "vehicle", displayName: "Truck Alpha 01" } },
     { id: "t2", summary: "enroll the telemetry device", op: { kind: "device.enroll", deviceId: DEV_TELEMETRY, assetId: AST_TRUCK, serial: "SN-1001" } },
@@ -80,7 +121,7 @@ export const connectivityPostureJourney: AcceptanceJourney = {
         kind: "connectivity.transition-intent",
         idempotencyKey: "conn-telemetry-online-01",
         eventKind: "authorize",
-        grant: { grantedBy: "guardian", authorizationDigest: "sha256:grant-01", grantedAt: T0, expiresAt: T0 + 3_600_000 },
+        grant: { grantedBy: "guardian", authorizationDigest: "sha256:grant-01", grantedAt: T0, expiresAt: GRANT_VALID_UNTIL },
         ceiling: { effect: "allow", reason: "operator policy allows" },
       },
     },
@@ -94,13 +135,18 @@ export const connectivityPostureJourney: AcceptanceJourney = {
         kind: "connectivity.transition-intent",
         idempotencyKey: "conn-gateway-online-02",
         eventKind: "authorize",
-        grant: { grantedBy: "guardian", authorizationDigest: "sha256:grant-02", grantedAt: T0, expiresAt: T0 + 3_600_000 },
+        grant: { grantedBy: "guardian", authorizationDigest: "sha256:grant-02", grantedAt: T0, expiresAt: GRANT_VALID_UNTIL },
         ceiling: { effect: "allow", reason: "operator policy allows" },
       },
     },
     { id: "t14", summary: "activate the gateway intent", op: { kind: "connectivity.transition-intent", idempotencyKey: "conn-gateway-online-02", eventKind: "activate" } },
     { id: "t15", summary: "the gateway goes OFFLINE against its desired-online intent", op: { kind: "connectivity.record", deviceId: DEV_GATEWAY, state: "offline", observedAt: T0 + 6_000 } },
     { id: "t16", summary: "rollup: one aligned, one divergent", op: { kind: "connectivity.rollup-posture" } },
+    {
+      id: "t17",
+      summary: "quarterly-audit rollup under the relaxed TTL policy (stale after 45d, dead after 120d) — the same heartbeat calendar classified per epoch",
+      op: { kind: "connectivity.rollup-posture", ttl: QUARTERLY_AUDIT_TTL },
+    },
   ],
   assertions: [
     { id: "c1", description: "both heartbeats were recorded", reading: "t5.conn.state", op: "deep-equals", expected: "online" },
@@ -113,7 +159,22 @@ export const connectivityPostureJourney: AcceptanceJourney = {
     { id: "c8", description: "the gateway has no intent yet: unknown, never guessed", reading: "t11.rollup.unknown", op: "deep-equals", expected: 1 },
     { id: "c9", description: "no divergence before the gateway intent exists", reading: "t11.rollup.divergent", op: "deep-equals", expected: 0 },
     { id: "c10", description: "the rollup digest verifies (tamper-evident)", reading: "t11.rollup.digestVerified", op: "deep-equals", expected: true },
-    { id: "c11", description: "both observed heartbeats are online", reading: "t11.rollup.observedOnline", op: "deep-equals", expected: 2 },
+    {
+      id: "c11",
+      description: "both observed heartbeats classify online at T0; at the later anchors they are long-dead (honest downgrade)",
+      reading: "t11.rollup.observedOnline",
+      op: "deep-equals",
+      expected: 2,
+      perEpoch: epochTable(2, 0, 0),
+    },
+    {
+      id: "c11b",
+      description: "the dead heartbeats degrade honestly (never coerced back online)",
+      reading: "t11.rollup.observedDegraded",
+      op: "deep-equals",
+      expected: 0,
+      perEpoch: epochTable(0, 2, 2),
+    },
     { id: "c12", description: "the gateway intent is active", reading: "t14.intent.state", op: "deep-equals", expected: "active" },
     { id: "c13", description: "after going offline: exactly one divergent posture", reading: "t16.rollup.divergent", op: "deep-equals", expected: 1 },
     { id: "c14", description: "the telemetry posture stays aligned", reading: "t16.rollup.aligned", op: "deep-equals", expected: 1 },
@@ -121,14 +182,50 @@ export const connectivityPostureJourney: AcceptanceJourney = {
     { id: "c16", description: "the gateway (first device) shows observed offline", reading: "t16.rollup.firstObserved", op: "deep-equals", expected: "offline" },
     { id: "c17", description: "the gateway alignment is honestly divergent", reading: "t16.rollup.firstAlignment", op: "deep-equals", expected: "divergent" },
     { id: "c18", description: "the first device's active intent state surfaces", reading: "t16.rollup.firstIntentState", op: "deep-equals", expected: "active" },
+    {
+      id: "c19",
+      description: "quarterly-audit policy: the telemetry heartbeat is still fresh-online at T0 and +30d; at +90d it has crossed the 45d stale boundary (staleness-class transition)",
+      reading: "t17.rollup.observedOnline",
+      op: "deep-equals",
+      expected: 1,
+      perEpoch: epochTable(1, 1, 0),
+    },
+    {
+      id: "c20",
+      description: "quarterly-audit policy: the stale crossing degrades the online heartbeat honestly at +90d",
+      reading: "t17.rollup.observedDegraded",
+      op: "deep-equals",
+      expected: 0,
+      perEpoch: epochTable(0, 0, 1),
+    },
+    { id: "c21", description: "the offline heartbeat is honestly offline under both policies at every epoch (never coerced)", reading: "t17.rollup.observedOffline", op: "deep-equals", expected: 1 },
+    { id: "c22", description: "the quarterly-audit rollup digest verifies", reading: "t17.rollup.digestVerified", op: "deep-equals", expected: true },
   ],
 };
 
+/**
+ * F331A (Wave 13 lane A) — D8 count-eligible parameterization (census:
+ * "transition (bidirectional) | ±1h and beyond | command lifecycle";
+ * F330 §1.1). The responding assertions are the adapter-health evidence
+ * windows: the command outcomes are stamped at the epoch anchor while the
+ * audit rollups read at fixed calendar moments, so each epoch's evidence is
+ * at a genuinely different staleness position. The T0 audit (T0+60s) sees
+ * the epoch-1 outcome fresh; the month-later audit (T0+30d+60s) sees the
+ * +30d outcome fresh and every other epoch empty — three distinct
+ * staleness-class states. The reboot's ack deadline and the expiry sweep
+ * are absolute calendar facts sized to span the schedule (invariant
+ * readings), and the late audit (T0+20_001s) is beyond every epoch's
+ * evidence window (invariantly degraded + no-observations).
+ */
 export const edgeCommandJourney: AcceptanceJourney = {
   id: "edge-command-lifecycle",
   persona: "edge-operator",
   capability: "edge-command",
   goal: "Issue an ADCOS command through the REAL lifecycle (issue -> dispatch -> ack -> result -> reconcile), verify its journal, and see the health rollup reflect the outcomes honestly.",
+  epochs: {
+    censusCitation: "F330 §1.1: edge-command-lifecycle | transition (bidirectional) | ±1h and beyond | command lifecycle",
+    anchors: ANCHORS,
+  },
   steps: [
     { id: "t1", summary: "admit the asset", op: { kind: "asset.admit", assetId: AST_TRUCK, assetKind: "vehicle", displayName: "Truck Alpha 01" } },
     { id: "t2", summary: "enroll the device", op: { kind: "device.enroll", deviceId: DEV_TELEMETRY, assetId: AST_TRUCK, serial: "SN-1001" } },
@@ -141,8 +238,8 @@ export const edgeCommandJourney: AcceptanceJourney = {
     { id: "t9", summary: "adapter health rollup over the fresh outcome window", op: { kind: "adcos.health-rollup", now: T0 + 60_000 } },
     {
       id: "t10",
-      summary: "issue a reboot with an ack deadline",
-      op: { kind: "adcos.issue", deviceId: DEV_TELEMETRY, commandKind: "reboot", idempotencyKey: "edge-reboot-02", expiresAt: T0 + 10_000_000 },
+      summary: "issue a reboot with an ack deadline that spans the whole frozen schedule",
+      op: { kind: "adcos.issue", deviceId: DEV_TELEMETRY, commandKind: "reboot", idempotencyKey: "edge-reboot-02", expiresAt: EPOCH_ANCHOR_2 + 10_000_000 },
     },
     { id: "t11", summary: "dispatch the reboot to the edge", op: { kind: "adcos.dispatch", idempotencyKey: "edge-reboot-02" } },
     {
@@ -150,8 +247,13 @@ export const edgeCommandJourney: AcceptanceJourney = {
       summary: "a transient dispatch failure climbs the backoff ladder",
       op: { kind: "adcos.dispatch-failure", idempotencyKey: "edge-reboot-02", code: "provider-unavailable" },
     },
-    { id: "t13", summary: "the deadline passes: the expired sweep terminates the command", op: { kind: "adcos.expire", now: T0 + 20_000_000 } },
+    { id: "t13", summary: "the deadline sweep (past every anchor) terminates the overdue reboot", op: { kind: "adcos.expire", now: EPOCH_ANCHOR_2 + 20_000_000 } },
     { id: "t14", summary: "health rollup long after the evidence window (honest degradation)", op: { kind: "adcos.health-rollup", now: T0 + 20_001_000 } },
+    {
+      id: "t15",
+      summary: "month-later audit window (T0+30d+60s): only the +30d epoch's outcome is fresh evidence here",
+      op: { kind: "adcos.health-rollup", now: EPOCH_ANCHOR_1 + 60_000 },
+    },
   ],
   assertions: [
     { id: "a1", description: "the ping command was issued", reading: "t3.cmd.duplicate", op: "deep-equals", expected: false },
@@ -164,9 +266,23 @@ export const edgeCommandJourney: AcceptanceJourney = {
     { id: "a8", description: "the result is a success", reading: "t7.cmd.resultOk", op: "deep-equals", expected: true },
     { id: "a9", description: "reconcile completed the lifecycle (terminal phase)", reading: "t8.cmd.phase", op: "deep-equals", expected: "reconciled" },
     { id: "a10", description: "the command journal verifies (seq + audit chain)", reading: "t9.adcos.journalVerified", op: "deep-equals", expected: true },
-    { id: "a11", description: "the fresh-window health rollup sees the outcome", reading: "t9.adcos.health.total", op: "deep-equals", expected: 1 },
+    {
+      id: "a11",
+      description: "the T0 audit window sees the epoch's outcome as fresh evidence only at T0 (staleness-class transition)",
+      reading: "t9.adcos.health.total",
+      op: "deep-equals",
+      expected: 1,
+      perEpoch: epochTable(1, 0, 0),
+    },
     { id: "a12", description: "no failures in the fresh window", reading: "t9.adcos.health.failures", op: "deep-equals", expected: 0 },
-    { id: "a13", description: "the adapter reports healthy with real evidence", reading: "t9.adcos.health.status", op: "deep-equals", expected: "healthy" },
+    {
+      id: "a13",
+      description: "the adapter reports healthy with real evidence at T0; honestly degraded with none at the later anchors",
+      reading: "t9.adcos.health.status",
+      op: "deep-equals",
+      expected: "healthy",
+      perEpoch: epochTable("healthy", "degraded", "degraded"),
+    },
     { id: "a14", description: "the circuit is closed after the success", reading: "t9.adcos.health.circuit", op: "deep-equals", expected: "closed" },
     { id: "a15", description: "the reboot dispatched on its first attempt", reading: "t11.cmd.attempts", op: "deep-equals", expected: 1 },
     { id: "a16", description: "the transient failure returned to issued with the base backoff", reading: "t12.cmd.backoffMs", op: "deep-equals", expected: 100 },
@@ -176,5 +292,22 @@ export const edgeCommandJourney: AcceptanceJourney = {
     { id: "a20", description: "the journal still verifies after expiry + degradation", reading: "t14.adcos.journalVerified", op: "deep-equals", expected: true },
     { id: "a21", description: "the late health report digest verifies", reading: "t14.adcos.health.digestVerified", op: "deep-equals", expected: true },
     { id: "a22", description: "the dispatch moved the command to the dispatched phase", reading: "t5.cmd.phase", op: "deep-equals", expected: "dispatched" },
+    {
+      id: "a23",
+      description: "month-later audit: only the +30d epoch's outcome is fresh evidence in this window (degraded / healthy / degraded)",
+      reading: "t15.adcos.health.status",
+      op: "deep-equals",
+      expected: "degraded",
+      perEpoch: epochTable("degraded", "healthy", "degraded"),
+    },
+    {
+      id: "a24",
+      description: "month-later audit: the windowed outcome count (0 / 1 / 0)",
+      reading: "t15.adcos.health.total",
+      op: "deep-equals",
+      expected: 0,
+      perEpoch: epochTable(0, 1, 0),
+    },
+    { id: "a25", description: "the month-later audit report digest verifies", reading: "t15.adcos.health.digestVerified", op: "deep-equals", expected: true },
   ],
 };

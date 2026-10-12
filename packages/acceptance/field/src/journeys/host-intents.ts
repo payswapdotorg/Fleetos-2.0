@@ -7,8 +7,21 @@
  * verify the recorded outcome.
  */
 
-import type { AcceptanceJourney } from "../journey-contracts.js";
+import type { AcceptanceJourney, EpochExpectation } from "../journey-contracts.js";
+import { EPOCH_ANCHOR_0, EPOCH_ANCHOR_1, EPOCH_ANCHOR_2 } from "../epoch-schedule.js";
 import { AST_TRAILER, AST_TRUCK, DEV_GATEWAY, DEV_TELEMETRY, T0 } from "../fixtures.js";
+
+/** D9 frozen anchors (TL-owned values — never lane-chosen). */
+const ANCHORS = [EPOCH_ANCHOR_0, EPOCH_ANCHOR_1, EPOCH_ANCHOR_2] as const;
+
+/** D10(1) per-epoch table helper — anchor-ordered. */
+function epochTable(at0: unknown, at1: unknown, at2: unknown): readonly EpochExpectation[] {
+  return [
+    { at: EPOCH_ANCHOR_0, expected: at0 },
+    { at: EPOCH_ANCHOR_1, expected: at1 },
+    { at: EPOCH_ANCHOR_2, expected: at2 },
+  ];
+}
 
 export const hostRecoveryIntentToVerificationJourney: AcceptanceJourney = {
   id: "host-recovery-intent-to-verification",
@@ -51,11 +64,24 @@ export const hostRecoveryIntentToVerificationJourney: AcceptanceJourney = {
   ],
 };
 
+/**
+ * F331A (Wave 13 lane A) — D8 count-eligible parameterization (census:
+ * "transition (forward) | +1d and beyond | scheduled verification";
+ * F330 §1.1). The responding assertion is w5 — the REAL domain
+ * `nextRun(schedule, now)` computation on the intent's plan: the scheduled
+ * service boundary transitions pre-start (T0) to in-cycle (the next daily
+ * boundary at each later anchor). All host-surface readings (board columns,
+ * upcoming plan ids, markers, purity, digests) are invariant.
+ */
 export const hostMaintenanceIntentToVerificationJourney: AcceptanceJourney = {
   id: "host-maintenance-intent-to-verification",
   persona: "maintenance-planner",
   capability: "host-integration",
   goal: "From Device 360's schedule-maintenance UI intent to a VERIFIED completed order: inert draft -> mirrored submit boundary -> real maintenance plan/order command path -> the maintenance board verifies the completed state and upcoming run.",
+  epochs: {
+    censusCitation: "F330 §1.1: host-maintenance-intent-to-verification | transition (forward) | +1d and beyond | scheduled verification",
+    anchors: ANCHORS,
+  },
   steps: [
     { id: "t1", summary: "admit the conveyor asset", op: { kind: "asset.admit", assetId: AST_TRAILER, assetKind: "fixed", displayName: "Conveyor Beta 02" } },
     { id: "t2", summary: "enroll its gateway device", op: { kind: "device.enroll", deviceId: DEV_GATEWAY, assetId: AST_TRAILER, serial: "SN-2002" } },
@@ -72,7 +98,14 @@ export const hostMaintenanceIntentToVerificationJourney: AcceptanceJourney = {
     { id: "w2", description: "the draft carries the capability REQUEST", reading: "t3.intent.capability", op: "deep-equals", expected: "maintenance.schedule" },
     { id: "w3", description: "the draft validates against the mirrored submit boundary", reading: "t4.validate.ok", op: "deep-equals", expected: true },
     { id: "w4", description: "the submit projection carries the intent kind", reading: "t4.submit.kind", op: "deep-equals", expected: "maintenance.schedule" },
-    { id: "w5", description: "the real plan's next run is the domain schedule's start", reading: "t5.plan.nextRunAt", op: "deep-equals", expected: T0 + 86_400_000 },
+    {
+      id: "w5",
+      description: "the real plan's next run is the domain schedule's next boundary (pre-start at T0; the next daily boundary at the later anchors — the census-certified scheduled-verification response)",
+      reading: "t5.plan.nextRunAt",
+      op: "deep-equals",
+      expected: T0 + 86_400_000,
+      perEpoch: epochTable(T0 + 86_400_000, EPOCH_ANCHOR_1 + 86_400_000, EPOCH_ANCHOR_2 + 86_400_000),
+    },
     { id: "w6", description: "the order was created scheduled", reading: "t6.order.state", op: "deep-equals", expected: "scheduled" },
     { id: "w7", description: "start moved the order to in-progress", reading: "t7.order.state", op: "deep-equals", expected: "in-progress" },
     { id: "w8", description: "complete finished the order", reading: "t8.order.state", op: "deep-equals", expected: "completed" },

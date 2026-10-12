@@ -70,6 +70,7 @@ export type {
   HostSurfaceRejection,
   HostViewModelResult,
   AssetFieldHostViewModels,
+  AssetFieldHostBuildOptions,
   Device360Sheet,
   RouteLimitations,
 } from "./surface.js";

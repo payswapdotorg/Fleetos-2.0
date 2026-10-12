@@ -15,9 +15,10 @@ import type { AssetKind } from "@fleetos/assets";
 import type { RecoveryCommandKind } from "@fleetos/recovery";
 import type { Schedule } from "@fleetos/maintenance";
 import type { AdcosCommandKind, AdcosRejectionCode } from "@fleetos/adcos";
-import type { FieldSectionLimits } from "@fleetos/experience-asset-field";
+import type { FieldSectionLimits, RecencyThresholds } from "@fleetos/experience-asset-field";
 import { deepEquals, digestOf } from "./determinism.js";
 import type { F321AOperation } from "./journey-contracts-f321a.js";
+import type { F331AOperation } from "./journey-contracts-f331a.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabulary — personas (7) + capabilities.
@@ -108,7 +109,12 @@ export type JourneyOperation =
       readonly grant?: { readonly grantedBy: string; readonly authorizationDigest: string; readonly grantedAt: number; readonly expiresAt: number } | null;
       readonly ceiling?: { readonly effect: "allow" | "deny"; readonly reason: string } | null;
     }
-  | { readonly kind: "connectivity.rollup-posture" }
+  | { readonly kind: "connectivity.rollup-posture";
+    /** F331A (Wave 13): the honest-posture TTL policy this rollup classifies
+     * against (REAL @fleetos/connectivity parameter; absent => lane default
+     * 30s/120s). Quarter-scale policies are how the census-certified posture
+     * window transitions are exercised across the frozen epoch schedule. */
+    readonly ttl?: { readonly staleMs: number; readonly deadMs: number } }
   // ADCOS edge commands
   | { readonly kind: "adcos.issue"; readonly deviceId: string; readonly commandKind: AdcosCommandKind; readonly idempotencyKey: string; readonly expiresAt?: number }
   | { readonly kind: "adcos.dispatch"; readonly idempotencyKey: string }
@@ -132,10 +138,19 @@ export type JourneyOperation =
   | { readonly kind: "view.asset-detail"; readonly assetId: string; readonly now: number }
   | { readonly kind: "view.field-mode"; readonly now: number; readonly limits?: FieldSectionLimits }
   | { readonly kind: "view.health-board"; readonly now: number }
-  | { readonly kind: "view.recovery-timeline"; readonly now: number }
+  | { readonly kind: "view.recovery-timeline";
+    readonly now: number;
+    /** F331A (Wave 13): the case-staleness thresholds this board classifies
+     * against (REAL @fleetos/experience-asset-field parameter; absent => the
+     * lane reference thresholds 60s/300s). */
+    readonly thresholds?: RecencyThresholds }
   | { readonly kind: "view.maintenance-board"; readonly now: number }
   // host seam (F300A, WAVE10-HOST-CONTRACT §2)
-  | { readonly kind: "host.build-view-models"; readonly now: number }
+  | { readonly kind: "host.build-view-models";
+    readonly now: number;
+    /** F331A (Wave 13): the recovery-timeline route's case-staleness policy
+     * for this build (REAL host-surface build option; absent => defaults). */
+    readonly caseStalenessThresholds?: RecencyThresholds }
   | {
       readonly kind: "host.intent-draft";
       readonly event: string;
@@ -175,7 +190,10 @@ export type JourneyOperation =
   // F321A (Wave 12 lane A) — the typed operations of the ten new journeys,
   // aggregated in journey-contracts-f321a.ts and split per family into
   // journey-contracts-f321a-{edge,care,asset-core}.ts (the ≤400-line file law).
-  | F321AOperation;
+  | F321AOperation
+  // F331A (Wave 13 lane A) — the edge firmware/OTA campaign operations
+  // (row 39; the REAL @fleetos/maintenance firmware-campaign module).
+  | F331AOperation;
 
 export interface JourneyStep {
   readonly id: string;
@@ -211,6 +229,20 @@ export interface JourneyAssertion {
   readonly reading: string;
   readonly op: AssertionOperator;
   readonly expected?: unknown;
+  /** D10(1) (F330, Wave 13): the per-epoch expectation table of a RESPONDING
+   * assertion — one entry per frozen schedule anchor the journey declares.
+   * The runner resolves the entry whose `at` equals the execution anchor
+   * (fail-closed when absent) and evaluates THAT value; non-responding
+   * assertions stay single-valued. The anchor-0 entry must equal the
+   * single-valued `expected` (machine-enforced by the epoch runner). */
+  readonly perEpoch?: readonly EpochExpectation[];
+}
+
+/** One anchor's expected value (D9 frozen anchors only — see epoch-schedule.ts). */
+export interface EpochExpectation {
+  /** The epoch anchor (startedAt) this expectation applies at. */
+  readonly at: number;
+  readonly expected: unknown;
 }
 
 export interface AssertionOutcome {
@@ -237,6 +269,16 @@ export interface AcceptanceJourney {
   /** True when this journey consumes the previous journey's handoff carrier
    * (the runner threads the publishing context forward — the chain). */
   readonly consumesHandoff?: boolean;
+  /** D8/D10 (F330, Wave 13): the census-certified epoch parameterization.
+   * Present ONLY on census-certified responding journeys (see
+   * epoch-schedule.ts FIELD_CENSUS); the 23 invariant journeys and the
+   * past-only exclusion declare NOTHING. `anchors` are the D9 frozen
+   * schedule values the journey's per-epoch tables cover, and
+   * `censusCitation` is the F330 §1.1 row (D10(3)). */
+  readonly epochs?: {
+    readonly censusCitation: string;
+    readonly anchors: readonly number[];
+  };
 }
 
 // ---------------------------------------------------------------------------
