@@ -55,6 +55,11 @@ import {
   tenantLifecycleGatingJourney,
 } from "./f321a-governance.js";
 import { edgeFirmwareOtaCampaignJourney } from "./f331a-ota.js";
+import {
+  observationsBackpressureDisciplineJourney,
+  observationsRetentionProjectionsJourney,
+  simWorldsCheckpointDeterminismJourney,
+} from "./f341a-field-remainder.js";
 
 export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   enrollNewAssetJourney,
@@ -92,6 +97,14 @@ export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   // (work-item row 39; the REAL @fleetos/maintenance firmware-campaign
   // module). No epochs declared (the F330 census's D8 set is closed).
   edgeFirmwareOtaCampaignJourney,
+  // F341A (Wave 14 lane A) — the three field remainder journeys (the F340
+  // §1 census candidates: observations backpressure discipline, retention
+  // + projections, sim-worlds checkpoint determinism). No epochs declared
+  // (queueing/storage/determinism mechanics are single-epoch by D14's
+  // default; the F330 census set is closed).
+  observationsBackpressureDisciplineJourney,
+  observationsRetentionProjectionsJourney,
+  simWorldsCheckpointDeterminismJourney,
 ];
 
 export {
@@ -126,4 +139,7 @@ export {
   identitySessionLifecycleJourney,
   tenantLifecycleGatingJourney,
   edgeFirmwareOtaCampaignJourney,
+  observationsBackpressureDisciplineJourney,
+  observationsRetentionProjectionsJourney,
+  simWorldsCheckpointDeterminismJourney,
 };

@@ -19,6 +19,7 @@ import type { FieldSectionLimits, RecencyThresholds } from "@fleetos/experience-
 import { deepEquals, digestOf } from "./determinism.js";
 import type { F321AOperation } from "./journey-contracts-f321a.js";
 import type { F331AOperation } from "./journey-contracts-f331a.js";
+import type { F341AOperation } from "./journey-contracts-f341a.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabulary — personas (7) + capabilities.
@@ -193,7 +194,11 @@ export type JourneyOperation =
   | F321AOperation
   // F331A (Wave 13 lane A) — the edge firmware/OTA campaign operations
   // (row 39; the REAL @fleetos/maintenance firmware-campaign module).
-  | F331AOperation;
+  | F331AOperation
+  // F341A (Wave 14 lane A) — the three field remainder journeys' operations
+  // (the F340 §1 census candidates A1/A2/A3: observations backpressure,
+  // retention/projections, sim-worlds checkpoint determinism).
+  | F341AOperation;
 
 export interface JourneyStep {
   readonly id: string;

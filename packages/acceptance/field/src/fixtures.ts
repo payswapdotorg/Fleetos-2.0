@@ -105,6 +105,58 @@ export const FIELD_LAB_SCENARIO: FaultScenario = {
 export const WORLDS: ReadonlyArray<FleetWorld> = [FIELD_LAB_WORLD];
 export const SCENARIOS: ReadonlyArray<FaultScenario> = [FIELD_LAB_SCENARIO];
 
+// F341A (Wave 14 lane A) — checkpoint-determinism probe worlds: two VALID
+// worlds engineered to trip the engine's own state-identity refusals when
+// fed to FIELD_LAB_WORLD's advanceWorldSteps (a state from a different
+// world; a state from the same worldId under a foreign tenant). Same
+// fixture discipline as FIELD_LAB_WORLD (id-sorted, bps in [1,10000]).
+
+export const FIELD_LAB_WORLD_FOREIGN: FleetWorld = {
+  worldId: "world_field-lab-foreign-02",
+  tenantId: TENANT,
+  version: 1,
+  description: "Checkpoint probe: a different valid world — its genesis state must be refused by the lab world's engine.",
+  seed: "field-lab-foreign-seed-02",
+  timeUnitMs: 1_000,
+  healthPolicy: { downAfterSteps: 3, recoveryGraceSteps: 2 },
+  assets: [{ assetId: "ast_probe-gamma", assetClass: "pump", failureRateBps: 1 }],
+  devices: [
+    {
+      deviceId: "dev_probe-thermo-g1",
+      assetId: "ast_probe-gamma",
+      dropoutBps: 1,
+      emitEverySteps: 1,
+      streams: [{ kind: "telemetry.temp", unit: "C", baseValue: 38, jitterMinOffset: -1, jitterMaxOffset: 1 }],
+    },
+  ],
+  links: [],
+  maintenancePolicies: [],
+  initialHealthPostures: [{ assetId: "ast_probe-gamma", posture: "healthy" }],
+};
+
+export const FIELD_LAB_WORLD_TENANT_PROBE: FleetWorld = {
+  worldId: FIELD_LAB_WORLD.worldId,
+  tenantId: FOREIGN_TENANT,
+  version: 1,
+  description: "Checkpoint probe: the SAME worldId under a foreign tenant — its genesis state must be refused on tenant identity.",
+  seed: "field-lab-tenant-probe-03",
+  timeUnitMs: 1_000,
+  healthPolicy: { downAfterSteps: 3, recoveryGraceSteps: 2 },
+  assets: [{ assetId: "ast_probe-delta", assetClass: "valve", failureRateBps: 1 }],
+  devices: [
+    {
+      deviceId: "dev_probe-flow-d1",
+      assetId: "ast_probe-delta",
+      dropoutBps: 1,
+      emitEverySteps: 2,
+      streams: [{ kind: "telemetry.flow", unit: "lpm", baseValue: 90, jitterMinOffset: -3, jitterMaxOffset: 3 }],
+    },
+  ],
+  links: [],
+  maintenancePolicies: [],
+  initialHealthPostures: [{ assetId: "ast_probe-delta", posture: "healthy" }],
+};
+
 export function findWorld(worldId: string): FleetWorld | null {
   return WORLDS.find((w) => w.worldId === worldId) ?? null;
 }
