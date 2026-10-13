@@ -7,7 +7,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { buildWorld, TENANTS, type TenantWorld } from "./world.js";
-import { FleetCommandPath, type SubmissionRecord } from "./commandPath.js";
+import { FleetCommandPath } from "./commandPath.js";
+import { InProcessCommandPath, durableModeActive, type FleetCommandPort } from "./port.js";
+import { DurableCommandPath } from "./durable.js";
 import { ROUTES, type RouteId, TowerPage, FieldPage, SafetyPage, CommercePage, LabPage, CommandsPage } from "./pages.js";
 import { STYLES } from "./styles.js";
 
@@ -24,7 +26,7 @@ function App() {
   const [route, setRoute] = useState<RouteId>(currentRoute());
   const [tenantIdx, setTenantIdx] = useState(0);
   const [actorIdx, setActorIdx] = useState(0);
-  const [submissions, setSubmissions] = useState<readonly SubmissionRecord[]>([]);
+  const durableMode = useMemo(() => durableModeActive(), []);
 
   useEffect(() => {
     const onHash = () => setRoute(currentRoute());
@@ -43,14 +45,19 @@ function App() {
   if (pickedActor === undefined) throw new Error(`no actor at index ${actorIdx} for tenant ${tenant.id}`);
   const actor = pickedActor;
   const tw = world.get(tenant.id) as TenantWorld;
+  // The command path: the F301 in-process composition (browser memory) or the
+  // F351A durable composition (the :3106 service) — same port contracts.
   const cmdPath = useMemo(() => new FleetCommandPath(), []);
+  const durablePath = useMemo(() => (durableMode ? new DurableCommandPath() : null), [durableMode]);
+  const port: FleetCommandPort = useMemo(
+    () => (durablePath !== null ? durablePath : new InProcessCommandPath(cmdPath)),
+    [durablePath, cmdPath],
+  );
 
   const nav = (id: RouteId) => {
     window.location.hash = `#/${id}`;
     setRoute(id);
   };
-
-  const refreshSubmissions = () => setSubmissions([...cmdPath.submissionsOf()]);
 
   return (
     <div className="fos-shell">
@@ -106,11 +113,10 @@ function App() {
         {route === "commands" && (
           <CommandsPage
             tw={tw}
-            cmdPath={cmdPath}
+            port={port}
+            durable={durablePath}
             tenantId={tenant.id}
             actorId={actor.id}
-            submissions={submissions}
-            onSubmit={refreshSubmissions}
           />
         )}
       </main>
@@ -118,6 +124,12 @@ function App() {
         <span>
           Demo composition — deterministic logical time T0 ({new Date(T0_FALLBACK).toISOString()}), fixed fixture
           inputs; every view is a REAL output of the FleetOS packages.
+        </span>
+        <span className="fos-mode">
+          operational plane: {durableMode ? "DURABLE — service :3106, disk-backed segments, replay-on-start" : "in-process — browser memory (fixture-composed)"}{" "}
+          <a href={durableMode ? `?${window.location.hash}` : `?mode=durable${window.location.hash}`}>
+            {durableMode ? "switch to in-process" : "switch to durable"}
+          </a>
         </span>
         <span className="fos-commit">
           commit <code>{__FLEETOS_COMMIT__}</code> · built {__FLEETOS_BUILT_AT__}

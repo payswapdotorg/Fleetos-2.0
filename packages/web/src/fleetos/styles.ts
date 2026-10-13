@@ -45,5 +45,6 @@ export const STYLES = `
 .fos-footer { display: flex; justify-content: space-between; gap: 14px; flex-wrap: wrap; padding: 12px 22px; background: #101720; border-top: 1px solid #1d2a38; color: #56697c; font-size: 11px; }
 .fos-commit code { color: #93a4b5; }
 .fos-badge { font-size: 10px; color: #e8a33d; border: 1px solid #4a3c1d; border-radius: 4px; padding: 1px 6px; margin-left: 8px; vertical-align: middle; }
+.fos-mode a { color: #e8a33d; }
 @media (max-width: 720px) { .fos-header { flex-direction: column; align-items: flex-start; } }
 `;
