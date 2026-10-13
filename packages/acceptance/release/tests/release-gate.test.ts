@@ -164,23 +164,20 @@ function blockerOf(verdict: ReleaseGateVerdict, code: string): ReleaseBlocker | 
 // ---------------------------------------------------------------------------
 
 describe("release gate — the REAL-stack verdict path", () => {
-  it("the REAL adoption baseline carries the recorded ka6 failure → NOT-READY with EXACTLY the named adoption blocker (the F342 honest pin)", () => {
+  it("the REAL stack is all-green → READY with zero blockers (the F343 fix — the recorded ka6 adoption blocker clears)", () => {
     const verdict = evaluateReleaseGate(greenInputs());
-    // Machine-measured at the converged tree: the A-lane D17 journey's ka6
-    // tenant pin fails in every adoption workspace (F341B §6-L4), so the REAL
-    // adoption baseline carries allJourneysPassed=false and the gate fails
-    // closed with the NAMED blocker — every other signal (lanes, cost,
-    // field/security/commerce baselines) is green. The fix is a
-    // field-package change OUTSIDE the F342 boundary; when it lands, this
-    // pin trips and the next convergence re-measures (READY again).
-    expect(verdict.verdict).toBe("NOT-READY");
-    expect(verdict.blockers).toEqual([
-      {
-        code: "ACCEPTANCE_FAILED",
-        source: "acceptance.adoption",
-        detail: "allJourneysPassed=false determinismVerified=true journeyExecutions=3027",
-      },
-    ]);
+    // F343 re-pin (machine-measured at the fixed tree, never assumed): the
+    // A-lane D17 journey's ka6 tenant pin is regime-honest in BOTH regimes
+    // (the kern.admit readings expose the run-context tenant; ka6 asserts
+    // reading-equals against it), so the REAL adoption baseline carries
+    // allJourneysPassed=true — every lane healthy, cost within budget,
+    // field/security/commerce baselines green — and the gate's verdict is
+    // READY with zero blockers (the ACCEPTANCE_FAILED/acceptance.adoption
+    // blocker of the F342 record is RESOLVED by the fix, never silently
+    // dropped: the tripwire pin flipped red at this tree and was re-pinned
+    // from this measured run).
+    expect(verdict.verdict).toBe("READY");
+    expect(verdict.blockers).toEqual([]);
     expect(verifyReleaseGateVerdict(verdict)).toBe(true);
   });
 
@@ -192,8 +189,9 @@ describe("release gate — the REAL-stack verdict path", () => {
     expect(securityReport.totalJourneys).toBe(29);
     expect(commerceReport.totals.journeyCount).toBe(36);
     expect(adoptionReport.aggregate.workspaces).toBe(30);
-    // Machine-measured at this tree: false (the ka6 tenant pin, F341B §6-L4).
-    expect(adoptionReport.aggregate.allJourneysPassed).toBe(false);
+    // F343 re-pin (machine-measured at the fixed tree): true — the ka6
+    // tenant pin is regime-honest (zero failing facts; counts unchanged).
+    expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
   });
 
   it("byte-identical re-evaluation (determinism law)", () => {
@@ -309,11 +307,12 @@ describe("release gate — each single lane degradation blocks with the NAMED bl
       requiredLanes: ["audit-ledger"],
     });
     // The lane-presence mechanics stay exact: with only the audit-ledger lane
-    // present and required, NO LANE_MISSING fires; the sole blocker is the
-    // REAL adoption baseline's recorded ka6 failure (machine-measured).
-    expect(verdict.verdict).toBe("NOT-READY");
-    expect(verdict.blockers.map((b) => b.code)).toEqual(["ACCEPTANCE_FAILED"]);
-    expect(verdict.blockers[0]!.source).toBe("acceptance.adoption");
+    // present and required, NO LANE_MISSING fires; the REAL baseline is
+    // all-green at the fixed tree (the F343 re-measure), so the verdict is
+    // READY with zero blockers — no phantom LANE_MISSING, no adoption
+    // blocker either (the F342 ACCEPTANCE_FAILED record is resolved).
+    expect(verdict.verdict).toBe("READY");
+    expect(verdict.blockers).toEqual([]);
   });
 
   it("status refused → STATUS_REFUSED with the REAL refusal reasonCode verbatim", () => {
@@ -382,10 +381,11 @@ describe("release gate — cost blockers", () => {
       }),
     });
     // Machine-measured: warnings are NOT breaches (zero CEILING_BREACHED
-    // blockers — the cost law is unaffected); the gate's only blocker is the
-    // REAL adoption baseline's recorded ka6 failure (F341B §6-L4).
-    expect(verdict.verdict).toBe("NOT-READY");
-    expect(verdict.blockers.map((b) => b.code)).toEqual(["ACCEPTANCE_FAILED"]);
+    // blockers — the cost law is unaffected); the REAL adoption baseline is
+    // all-green at the fixed tree (the F343 re-measure), so the verdict is
+    // READY with zero blockers.
+    expect(verdict.verdict).toBe("READY");
+    expect(verdict.blockers).toEqual([]);
   });
 
   it("cost refused → COST_REFUSED with the REAL refusal reasonCode", () => {
@@ -441,11 +441,11 @@ describe("release gate — acceptance baselines (present, green, count-exact, un
     expect(blockerOf(verdict, "ACCEPTANCE_TAMPERED")!.source).toBe("acceptance.field");
   });
 
-  it("tampered adoption report (forged allJourneysPassed=true) → ACCEPTANCE_TAMPERED", () => {
-    // F342: the REAL report carries allJourneysPassed=false (the recorded
-    // ka6 pin), so the honest tamper direction at this tree FORGES a green
-    // aggregate — the digest seal no longer matches the mutated content.
-    const tampered = { ...adoptionReport, aggregate: { ...adoptionReport.aggregate, allJourneysPassed: true } };
+  it("tampered adoption report (forged allJourneysPassed=false) → ACCEPTANCE_TAMPERED", () => {
+    // F343: the REAL report carries allJourneysPassed=true at the fixed
+    // tree, so the honest tamper direction FORGES a failing aggregate —
+    // the digest seal no longer matches the mutated content.
+    const tampered = { ...adoptionReport, aggregate: { ...adoptionReport.aggregate, allJourneysPassed: false } };
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: fieldReport, security: securityReport, commerce: commerceReport, adoption: tampered } });
     expect(blockerOf(verdict, "ACCEPTANCE_TAMPERED")!.source).toBe("acceptance.adoption");
   });
@@ -521,13 +521,12 @@ describe("release gate — boolean law + tenant fail-closed + tamper", () => {
     });
     expect(verdict.verdict).toBe("NOT-READY");
     const codes = verdict.blockers.map((b) => b.code).sort();
-    // F342 re-pin (machine-measured): the REAL adoption baseline's recorded
-    // ka6 failure adds ACCEPTANCE_FAILED alongside the deliberate
-    // degradations (the adoption report is supplied and count-exact — it
-    // carries allJourneysPassed=false).
+    // F343 re-pin (machine-measured at the fixed tree): the REAL adoption
+    // baseline is all-green (allJourneysPassed=true), so ACCEPTANCE_FAILED
+    // drops out — exactly the 5 deliberate degradation codes remain (the
+    // F342 record carried 6 with the ka6-driven ACCEPTANCE_FAILED).
     expect(codes).toEqual(
       [
-        "ACCEPTANCE_FAILED",
         "LANE_DEGRADED",
         "LANE_MISSING",
         "CEILING_BREACHED",
@@ -564,9 +563,9 @@ describe("release gate — boolean law + tenant fail-closed + tamper", () => {
   it("verifyReleaseGateVerdict detects a tampered verdict", () => {
     const verdict = evaluateReleaseGate(greenInputs());
     expect(verifyReleaseGateVerdict(verdict)).toBe(true);
-    // F342: the base verdict is NOT-READY (the recorded ka6 adoption
-    // blocker), so the honest tamper direction FORGES readiness.
-    const tampered: ReleaseGateVerdict = { ...verdict, verdict: "READY" };
+    // F343: the base verdict is READY at the fixed tree (the ka6 blocker
+    // cleared), so the honest tamper direction FORGES not-readiness.
+    const tampered: ReleaseGateVerdict = { ...verdict, verdict: "NOT-READY" };
     expect(verifyReleaseGateVerdict(tampered)).toBe(false);
   });
 });

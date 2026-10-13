@@ -139,12 +139,12 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
     }
     expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(931);
     expect(SIMULATION.aggregate.determinismVerified).toBe(true);
-    // F342 honest pin (machine-measured): the A-lane D17 journey's ka6
-    // tenant pin fails in the adoption-composition regime (F341B §6-L4 —
-    // every firm threads its REAL tenant; the journey pins the fixture
-    // tenant). 30 failing execution facts, all one journey, recorded for
-    // the TL's adjudication; determinism holds byte-identically regardless.
-    expect(SIMULATION.aggregate.allJourneysPassed).toBe(false);
+    // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
+    // is regime-honest in BOTH regimes (the kern.admit readings now expose
+    // the run-context tenant; ka6 asserts reading-equals against it) —
+    // zero failing execution facts, allJourneysPassed=true; determinism
+    // holds byte-identically regardless; every count UNCHANGED.
+    expect(SIMULATION.aggregate.allJourneysPassed).toBe(true);
   });
 
   it("the ACTIVE determinism laws hold on every firm (D10 proofs + D13 evidence)", () => {

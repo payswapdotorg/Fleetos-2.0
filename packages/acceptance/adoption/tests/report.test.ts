@@ -28,16 +28,16 @@ describe("adoption report (2-industry simulation)", () => {
   it("carries per-industry verdicts with their exact inputs", () => {
     expect(REPORT.industryVerdicts.length).toBe(2);
     const manufacturing = REPORT.industryVerdicts.find((v) => v.industryId === "manufacturing");
-    // F342 re-pin (machine-measured): manufacturing's one failing journey —
-    // the ka6 tenant pin (F341B §6-L4) — drops coverage to 99/100, so the
-    // verdict is MAIN-INTERFACE (ratio < 1.0; all capabilities still
-    // replaced — the failing journey sits in no incumbent family).
-    expect(manufacturing?.verdict).toBe("MAIN-INTERFACE");
+    // F343 re-pin (machine-measured at the fixed tree): manufacturing's
+    // zero failing journeys restore coverage to 100/100 — the verdict is
+    // SWITCH-ONLY (ratio 1.0, every capability replaced; the F342 0.99
+    // MAIN-INTERFACE record is resolved by the fix, never silently
+    // flipped).
+    expect(manufacturing?.verdict).toBe("SWITCH-ONLY");
     expect(manufacturing?.coverageTotal).toBe(100);
-    expect(manufacturing?.coveragePassed).toBe(99);
-    expect(manufacturing?.coverageRatio).toBe(0.99);
-    expect(manufacturing?.failingJourneys).toHaveLength(1);
-    expect(manufacturing?.failingJourneys[0]?.journeyId).toBe("observations-kernel-immutability-audit");
+    expect(manufacturing?.coveragePassed).toBe(100);
+    expect(manufacturing?.coverageRatio).toBe(1);
+    expect(manufacturing?.failingJourneys).toHaveLength(0);
     expect(manufacturing?.unmappedCapabilities).toHaveLength(0);
     const agriculture = REPORT.industryVerdicts.find((v) => v.industryId === "agriculture");
     expect(agriculture?.verdict).toBe("COMPLEMENT");
@@ -106,8 +106,9 @@ describe("adoption report (2-industry simulation)", () => {
     expect(REPORT.aggregate.industries).toBe(2);
     expect(REPORT.aggregate.journeyExecutions).toBe(SIM.aggregate.journeyExecutions);
     expect(REPORT.aggregate.determinismVerified).toBe(true);
-    // Machine-measured: the ka6 tenant pin fails once per firm (F341B §6-L4).
-    expect(REPORT.aggregate.allJourneysPassed).toBe(false);
+    // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
+    // is regime-honest — zero failing facts, allJourneysPassed=true.
+    expect(REPORT.aggregate.allJourneysPassed).toBe(true);
     expect(REPORT.schemaVersion).toBe(1);
     expect(REPORT.generatedAt).toBe(SIM.startedAt);
   });

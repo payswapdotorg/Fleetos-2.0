@@ -24,23 +24,19 @@ describe("adoption driver (per-firm)", () => {
     expect(run.executionFacts.length).toBe(run.executionCounts.total);
   }, 60_000);
 
-  it("every counted execution PASSED except the recorded ka6 tenant pin (the F341B §6-L4 defect — pinned for the TL's adjudication)", async () => {
+  it("every counted execution PASSED (the F343 fix — the ka6 tenant pin is regime-honest in the adoption-composition regime too)", async () => {
     const run = await runFirm(firmById("firm-healthcare-facilities-medium")!);
     expect(run.executionFacts.length).toBeGreaterThan(0);
-    // Machine-measured at this tree: exactly ONE failing fact — the A-lane
-    // D17 journey's ka6 assertion pins the fixture tenant while this driver
-    // threads the firm's REAL tenant (tnt_healthcare-facilities-medium).
-    // The field suite is green (102/102) — the pin fails only in the
-    // adoption-composition regime. Honest, visible, never hidden.
+    // F343 re-pin (machine-measured at the fixed tree): zero failing
+    // facts — the A-lane D17 journey's ka6 assertion now compares the
+    // audit ref tenant against the run-context tenant reading
+    // (`k4.kern.ctxTenant`), so it passes with this driver's REAL tenant
+    // (tnt_healthcare-facilities-medium) exactly as it passes in the
+    // field fixture regime (102/102).
     const failing = run.executionFacts.filter((f) => !f.passed);
-    expect(failing).toHaveLength(1);
-    expect(failing[0]!.corpus).toBe("field");
-    expect(failing[0]!.journeyId).toBe("observations-kernel-immutability-audit");
-    expect(failing[0]!.failureNote).toBe(
-      'assertion ka6 failed: expected "tnt_field-accept-01", actual "tnt_healthcare-facilities-medium"',
-    );
+    expect(failing).toHaveLength(0);
     for (const fact of run.executionFacts) {
-      if (fact.passed) expect(fact.failureNote).toBeNull();
+      expect(fact.failureNote).toBeNull();
     }
   }, 60_000);
 
@@ -166,8 +162,9 @@ describe("adoption driver (per-firm)", () => {
     expect(aggregate.fieldEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.commerceEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.determinismVerified).toBe(true);
-    // Machine-measured: the ka6 tenant pin fails once per firm (F341B §6-L4).
-    expect(aggregate.allJourneysPassed).toBe(false);
+    // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
+    // is regime-honest — zero failing facts, allJourneysPassed=true.
+    expect(aggregate.allJourneysPassed).toBe(true);
     expect(aggregate.uniqueApplicableJourneys).toBe(195); // journey-level (epochs add executions, not journeys)
   }, 120_000);
 
@@ -181,10 +178,9 @@ describe("adoption driver (per-firm)", () => {
     expect(counted).toEqual([95, 95 + 8, 95 + 16]);
     for (const run of runs) {
       expect(run.executionFacts.filter((f) => f.epoch === 0).length).toBe(95);
-      // Machine-measured: exactly the one ka6 failing fact per firm.
-      const failing = run.executionFacts.filter((f) => !f.passed);
-      expect(failing).toHaveLength(1);
-      expect(failing[0]!.journeyId).toBe("observations-kernel-immutability-audit");
+      // F343 re-pin (machine-measured at the fixed tree): zero failing
+      // facts per firm (the ka6 tenant pin resolved by the fix).
+      expect(run.executionFacts.filter((f) => !f.passed)).toHaveLength(0);
     }
   }, 120_000);
 });
