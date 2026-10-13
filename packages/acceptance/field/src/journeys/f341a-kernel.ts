@@ -32,7 +32,7 @@
  */
 
 import type { AcceptanceJourney } from "../journey-contracts.js";
-import { AST_TRUCK, DEV_TELEMETRY, FOREIGN_TENANT, T0, TENANT } from "../fixtures.js";
+import { AST_TRUCK, DEV_TELEMETRY, FOREIGN_TENANT, T0 } from "../fixtures.js";
 
 export const observationsKernelImmutabilityAuditJourney: AcceptanceJourney = {
   id: "observations-kernel-immutability-audit",
@@ -82,7 +82,7 @@ export const observationsKernelImmutabilityAuditJourney: AcceptanceJourney = {
     { id: "ka3", description: "the first admission is NOT a duplicate", reading: "k4.kern.ackDuplicate", op: "deep-equals", expected: false },
     { id: "ka4", description: "the admission carries the REAL audit intent", reading: "k4.kern.auditIntent", op: "deep-equals", expected: "observation:admit" },
     { id: "ka5", description: "the audit ref names the device as its actor", reading: "k4.kern.auditActor", op: "deep-equals", expected: DEV_TELEMETRY },
-    { id: "ka6", description: "the audit ref carries the admitting tenant", reading: "k4.kern.auditTenant", op: "deep-equals", expected: TENANT },
+    { id: "ka6", description: "the audit ref carries the admitting tenant", reading: "k4.kern.auditTenant", op: "reading-equals", expected: "k4.kern.ctxTenant" },
     { id: "ka7", description: "the audit ref is digest-backed", reading: "k4.kern.auditDigest", op: "not-null" },
     { id: "ka8", description: "the log holds exactly the three admitted observations", reading: "k6.kern.logSize", op: "deep-equals", expected: 3 },
     { id: "ka9", description: "the device's high-water seq in the log is 3", reading: "k6.kern.lastSeq", op: "deep-equals", expected: 3 },

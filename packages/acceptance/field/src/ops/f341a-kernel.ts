@@ -74,6 +74,7 @@ export function executeF341AKernelOperation(op: JourneyOperation, ctx: JourneyCo
         "kern.auditIntent": r.audit.intent,
         "kern.auditActor": r.audit.actor,
         "kern.auditTenant": r.audit.tenant,
+        "kern.ctxTenant": ctx.tenantId,
         "kern.auditDigest": r.audit.digest,
       });
     }
