@@ -452,6 +452,7 @@ Owner: TL. DONE at dispatch time — `docs/evidence/F340/report.md` (machine cen
 
 ### F341A — worker A: the three field remainder journeys
 Owner: A. Per F340 §4: A1 backpressure discipline, A2 retention projections, A3 checkpoint determinism. Acceptance: census citations, corpus laws, field suite green grow-only, exact SHA + owned-path diff + gate evidence. Optional D17 sixth-slot proposal with census evidence.
+DONE on `work/f341a` (base `81be8e7`; the branch tip + the push-channel limitation are honestly recorded in the lane report): the three remainder journeys delivered per the F340 census — field suite 97→101 green, corpus 31/390/607 → 34/429/680 grow-only, boundary clean (acceptance/field + evidence + this line); D17 sixth slot PROPOSED not delivered (kernel immutability-audit, census-evidenced, TL-gated per D17); evidence at `docs/evidence/F341A/report.md`.
 
 ### F341B — worker B: the two security remainder journeys
 Owner: B. Per F340 §4: B1 artifact-store completeness, B2 world-context windowing. Acceptance: same laws; security suite green grow-only. Optional D17 sixth-slot proposal with census evidence.

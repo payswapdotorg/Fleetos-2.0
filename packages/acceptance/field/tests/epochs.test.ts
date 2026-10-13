@@ -37,11 +37,21 @@ function witnessIds(journeyId: string, anchorA: number, anchorB: number): readon
 }
 
 describe("F331A epoch declarations (D8's closed set)", () => {
+  // Post-census additions (journeys delivered AFTER the F330 census froze
+  // its 30-row table): the F331A OTA journey + the three F341A remainder
+  // journeys. They declare NO epochs (D14's single-epoch default; the
+  // census set is closed) and carry their own F340 §1 census citations.
+  const POST_CENSUS_ADDITIONS = new Set([
+    "edge-firmware-ota-campaign", // F331A (row 39)
+    "observations-backpressure-discipline", // F341A (candidate A1)
+    "observations-retention-projections", // F341A (candidate A2)
+    "sim-worlds-checkpoint-determinism", // F341A (candidate A3)
+  ]);
   it("the census table covers the 30 census-era journeys with the frozen class law", () => {
     expect(FIELD_CENSUS.length).toBe(30);
     const censusIds = new Set(FIELD_CENSUS.map((e) => e.journeyId));
     for (const journey of FIELD_JOURNEYS) {
-      if (journey.id === "edge-firmware-ota-campaign") continue; // post-census F331A addition
+      if (POST_CENSUS_ADDITIONS.has(journey.id)) continue;
       expect(censusIds.has(journey.id), `${journey.id} must have a census row`).toBe(true);
     }
     const counts = {
@@ -179,6 +189,15 @@ describe("F331A D13 never-count laws (machine checks)", () => {
       epochs: { censusCitation: "forged", anchors: [...FROZEN_EPOCH_SCHEDULE] },
     };
     expect(() => runJourneyEpochs([rogue], { schedule: FROZEN_EPOCH_SCHEDULE })).toThrow(/census does not certify/);
+  });
+
+  it("the F341A remainder journeys declare NO epochs (single-epoch mechanics, D14 default)", () => {
+    for (const journeyId of ["observations-backpressure-discipline", "observations-retention-projections", "sim-worlds-checkpoint-determinism"]) {
+      const journey = FIELD_JOURNEYS.find((j) => j.id === journeyId)!;
+      expect(journey.epochs, `${journeyId} must not declare epochs (post-census, D14 single-epoch)`).toBeUndefined();
+      const digests = FROZEN_EPOCH_SCHEDULE.map((anchor) => executeJourney(journey, { startedAt: anchor }).outcome.digest);
+      expect(new Set(digests).size, `${journeyId} must be epoch-invariant (queueing/storage/determinism mechanics)`).toBe(1);
+    }
   });
 
   it("the past-only exclusion is honest: evidence-gated-recovery is byte-identical across the frozen FORWARD schedule", () => {

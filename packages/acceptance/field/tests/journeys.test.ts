@@ -42,10 +42,10 @@ function expectJourneyPasses(journeyId: string): JourneyOutcome {
 }
 
 describe("F270A device/field acceptance journeys", () => {
-  it("corpus shape: 31 journeys, fixed ids, no duplicates (14 + 6 F300A host-integration + 10 F321A + 1 F331A)", () => {
-    expect(FIELD_JOURNEYS.length).toBe(31);
+  it("corpus shape: 34 journeys, fixed ids, no duplicates (14 + 6 F300A host-integration + 10 F321A + 1 F331A + 3 F341A)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(34);
     const ids = FIELD_JOURNEYS.map((j) => j.id);
-    expect(new Set(ids).size).toBe(31);
+    expect(new Set(ids).size).toBe(34);
     expect([...OUTCOMES.keys()].sort()).toEqual([...ids].sort());
   });
 
@@ -316,6 +316,57 @@ describe("F270A device/field acceptance journeys", () => {
     expect(actualOf("edge-firmware-ota-campaign", "f37")).toBe(2);
     expect(actualOf("edge-firmware-ota-campaign", "f39")).toEqual(["verified", "deploying"]);
     expect(actualOf("edge-firmware-ota-campaign", "f42")).toBe(true);
+  });
+
+  it("F341A observations backpressure — real level thresholds, refuse-and-retry that never silently drops, shed-oldest divergence, bounded recovery", () => {
+    expectJourneyPasses("observations-backpressure-discipline");
+    expect(actualOf("observations-backpressure-discipline", "q4")).toEqual(["ok", "ok", "warn", "warn", "critical", "critical"]);
+    expect(actualOf("observations-backpressure-discipline", "q6")).toEqual(["ok", "ok", "warn"]);
+    expect(actualOf("observations-backpressure-discipline", "q8")).toEqual(["warn", "warn", "critical"]);
+    expect(actualOf("observations-backpressure-discipline", "q9")).toBe("overflow-refused");
+    expect(actualOf("observations-backpressure-discipline", "q10")).toBe(8);
+    expect(actualOf("observations-backpressure-discipline", "q12")).toBe(2);
+    expect(actualOf("observations-backpressure-discipline", "q17")).toBe("ok");
+    expect(actualOf("observations-backpressure-discipline", "q20")).toBe(2);
+    expect(actualOf("observations-backpressure-discipline", "q21")).toBe(2);
+    expect(actualOf("observations-backpressure-discipline", "q24")).toBe("refuse");
+  });
+
+  it("F341A observations retention/projections — immutable store, honest absence, rebuildable device-summary, the real TTL boundary", () => {
+    expectJourneyPasses("observations-retention-projections");
+    expect(actualOf("observations-retention-projections", "v2")).toBe(4);
+    expect(actualOf("observations-retention-projections", "v7")).toBe(0);
+    expect(actualOf("observations-retention-projections", "v9")).toBe("tenant-fail-closed");
+    expect(actualOf("observations-retention-projections", "v11")).toBe("unknown-observation-key");
+    expect(actualOf("observations-retention-projections", "v12")).toBe(true);
+    expect(actualOf("observations-retention-projections", "v18")).toEqual(["telemetry.flow", "telemetry.temp"]);
+    expect(actualOf("observations-retention-projections", "v23")).toEqual([false, false, true]);
+    expect(actualOf("observations-retention-projections", "v25")).toBe(true);
+    expect(actualOf("observations-retention-projections", "v26")).toBe(true);
+    expect(actualOf("observations-retention-projections", "v27")).toBe(true);
+  });
+
+  it("F341A sim-worlds checkpoint determinism — resumed run byte-identical to the uninterrupted run, counters carried, identity refusals honest", () => {
+    expectJourneyPasses("sim-worlds-checkpoint-determinism");
+    expect(actualOf("sim-worlds-checkpoint-determinism", "w1")).toBe(true);
+    expect(actualOf("sim-worlds-checkpoint-determinism", "w6")).toBe(9);
+    expect(actualOf("sim-worlds-checkpoint-determinism", "w8")).toBe(true);
+    // The resumed, fold-resumed and fold-rebuilt runs all carry the SAME
+    // REAL chained digest (re-checked across the recorded actuals).
+    const resumedDigest = actualOf("sim-worlds-checkpoint-determinism", "w9");
+    expect(resumedDigest).toBe(actualOf("sim-worlds-checkpoint-determinism", "w13"));
+    expect(resumedDigest).toBe(actualOf("sim-worlds-checkpoint-determinism", "w16"));
+    expect(resumedDigest).toMatch(/^[0-9a-f]{8}$/);
+    // The hidden per-device observation counters were carried (> 0), not reset.
+    const carriedSeqs = actualOf("sim-worlds-checkpoint-determinism", "w11") as number[];
+    expect(carriedSeqs.length).toBe(2);
+    for (const seq of carriedSeqs) expect(seq).toBeGreaterThanOrEqual(1);
+    expect(actualOf("sim-worlds-checkpoint-determinism", "w12")).toBe(true);
+    expect(actualOf("sim-worlds-checkpoint-determinism", "w14")).toBe(true);
+    expect(actualOf("sim-worlds-checkpoint-determinism", "w15")).toBe(true);
+    expect(actualOf("sim-worlds-checkpoint-determinism", "w18")).toBe("invalid-step-count");
+    expect(actualOf("sim-worlds-checkpoint-determinism", "w19")).toBe("state-world-mismatch");
+    expect(actualOf("sim-worlds-checkpoint-determinism", "w20")).toBe("state-tenant-mismatch");
   });
 
   it("every journey's assertions cover its full chain (>= 10 assertions each)", () => {

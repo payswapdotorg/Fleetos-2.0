@@ -59,6 +59,12 @@ import type { MembershipRecord, Role, Actor, SessionRecord } from "@fleetos/iden
 import { TenantRegistry, InMemoryTenantRegistry } from "@fleetos/tenancy";
 // F331A (Wave 13 lane A) — the REAL firmware-campaign records (row 39).
 import type { FirmwareCampaign } from "@fleetos/maintenance";
+// F341A (Wave 14 lane A) — REAL state structures for the three remainder
+// journeys: the observations backpressure queue + immutable store (public
+// types of @fleetos/observations) and the sim-worlds engine run records
+// (public types of @fleetos/sim-worlds). The context owns no domain logic.
+import type { BackpressurePolicy, InMemoryImmutableStore, QueueState } from "@fleetos/observations";
+import type { FaultScenario, FleetWorld, WorldEngineState, WorldEvent, WorldRunCheckpoint } from "@fleetos/sim-worlds";
 
 /** A JSON-shaped reading value (assertions compare these canonically). */
 export type ReadingValue = string | number | boolean | null | ReadonlyArray<unknown> | { readonly [k: string]: unknown };
@@ -170,6 +176,35 @@ export interface JourneyContext {
   /** F331A (Wave 13 lane A) — REAL firmware/OTA campaign records by id
    * (every record is a REAL @fleetos/maintenance public-API output). */
   firmwareCampaigns: Map<string, FirmwareCampaign>;
+  // -------------------------------------------------------------------------
+  // F341A (Wave 14 lane A) — caller-threaded state for the three remainder
+  // journeys. Every field is a REAL public structure of this lane's
+  // packages; the context owns no domain logic of its own.
+  // -------------------------------------------------------------------------
+  /** REAL backpressured queue states by queue id (the QueueState every
+   * enqueue/dequeue decision threads, never re-derived). */
+  backpressureQueues: Map<string, { state: QueueState; policy: BackpressurePolicy }>;
+  /** REAL in-memory immutable observation stores by id (append-only). */
+  retentionStores: Map<string, InMemoryImmutableStore>;
+  /** The first REAL device-summary projection per store+device (the
+   * immutability/rebuild probes compare against this recorded output). */
+  firstSummaries: Map<string, { readonly metaId: string; readonly sourceHash: string; readonly count: number; readonly lastSeq: number }>;
+  /** REAL sim-worlds engine run records for the checkpoint determinism
+   * journey (full run, prefix, checkpoint, resumed segment). */
+  worldCheckpointRuns: Map<string, F341AWorldRunRecord>;
+}
+
+/** The caller-threaded sim-worlds run record (REAL engine outputs only). */
+export interface F341AWorldRunRecord {
+  readonly world: FleetWorld;
+  readonly scenario: FaultScenario | undefined;
+  fullState: WorldEngineState;
+  fullEvents: ReadonlyArray<WorldEvent>;
+  prefixState: WorldEngineState | null;
+  prefixEvents: ReadonlyArray<WorldEvent>;
+  checkpoint: WorldRunCheckpoint | null;
+  resumedState: WorldEngineState | null;
+  tailEvents: ReadonlyArray<WorldEvent>;
 }
 
 export function createJourneyContext(tenantId: string, startedAt: number): JourneyContext {
@@ -226,6 +261,11 @@ export function createJourneyContext(tenantId: string, startedAt: number): Journ
     },
     tenants: new TenantRegistry(new InMemoryTenantRegistry()),
     firmwareCampaigns: new Map(),
+    // F341A state — REAL empty structures (filled only by journey ops).
+    backpressureQueues: new Map(),
+    retentionStores: new Map(),
+    firstSummaries: new Map(),
+    worldCheckpointRuns: new Map(),
   };
 }
 
