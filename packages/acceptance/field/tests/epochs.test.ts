@@ -39,13 +39,15 @@ function witnessIds(journeyId: string, anchorA: number, anchorB: number): readon
 describe("F331A epoch declarations (D8's closed set)", () => {
   // Post-census additions (journeys delivered AFTER the F330 census froze
   // its 30-row table): the F331A OTA journey + the three F341A remainder
-  // journeys. They declare NO epochs (D14's single-epoch default; the
-  // census set is closed) and carry their own F340 §1 census citations.
+  // journeys + the TL-adjudicated F341A D17 sixth slot. They declare NO
+  // epochs (D14's single-epoch default; the census set is closed) and carry
+  // their own census citations / census evidence.
   const POST_CENSUS_ADDITIONS = new Set([
     "edge-firmware-ota-campaign", // F331A (row 39)
     "observations-backpressure-discipline", // F341A (candidate A1)
     "observations-retention-projections", // F341A (candidate A2)
     "sim-worlds-checkpoint-determinism", // F341A (candidate A3)
+    "observations-kernel-immutability-audit", // F341A D17 sixth slot (TL-adjudicated)
   ]);
   it("the census table covers the 30 census-era journeys with the frozen class law", () => {
     expect(FIELD_CENSUS.length).toBe(30);
@@ -191,8 +193,8 @@ describe("F331A D13 never-count laws (machine checks)", () => {
     expect(() => runJourneyEpochs([rogue], { schedule: FROZEN_EPOCH_SCHEDULE })).toThrow(/census does not certify/);
   });
 
-  it("the F341A remainder journeys declare NO epochs (single-epoch mechanics, D14 default)", () => {
-    for (const journeyId of ["observations-backpressure-discipline", "observations-retention-projections", "sim-worlds-checkpoint-determinism"]) {
+  it("the F341A remainder + D17 sixth-slot journeys declare NO epochs (single-epoch mechanics, D14 default)", () => {
+    for (const journeyId of ["observations-backpressure-discipline", "observations-retention-projections", "sim-worlds-checkpoint-determinism", "observations-kernel-immutability-audit"]) {
       const journey = FIELD_JOURNEYS.find((j) => j.id === journeyId)!;
       expect(journey.epochs, `${journeyId} must not declare epochs (post-census, D14 single-epoch)`).toBeUndefined();
       const digests = FROZEN_EPOCH_SCHEDULE.map((anchor) => executeJourney(journey, { startedAt: anchor }).outcome.digest);

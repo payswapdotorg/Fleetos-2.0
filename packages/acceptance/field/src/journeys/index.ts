@@ -5,12 +5,13 @@
  * lane A — the edge firmware/OTA campaign journey + the D8 census-certified
  * epoch parameterizations, see epoch-schedule.ts).
  *
- * 31 journeys across the fixed 7-persona vocabulary, one per acceptance
- * capability of the device/field lane (14 original + 6 genuinely distinct
- * host-integration journeys added by F300A + 10 genuinely distinct F321A
- * journeys + 1 F331A edge firmware/OTA campaign journey). Journeys are
- * pure DATA (typed operations + declarative assertions); the runner
- * executes them against the REAL public APIs of this lane's packages.
+ * 35 journeys across the fixed 7-persona vocabulary (14 original + 6
+ * genuinely distinct host-integration journeys added by F300A + 10 genuinely
+ * distinct F321A journeys + 1 F331A edge firmware/OTA campaign journey + 3
+ * F341A field remainder journeys + 1 TL-adjudicated F341A D17 sixth-slot
+ * journey). Journeys are pure DATA (typed operations + declarative
+ * assertions); the runner executes them against the REAL public APIs of
+ * this lane's packages.
  *
  * ORDER MATTERS: `handoff-field-to-operator-consume` declares
  * `consumesHandoff` — the corpus runner threads the publishing journey's
@@ -59,6 +60,7 @@ import {
   observationsBackpressureDisciplineJourney,
   observationsRetentionProjectionsJourney,
   simWorldsCheckpointDeterminismJourney,
+  observationsKernelImmutabilityAuditJourney,
 } from "./f341a-field-remainder.js";
 
 export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
@@ -99,12 +101,14 @@ export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   edgeFirmwareOtaCampaignJourney,
   // F341A (Wave 14 lane A) — the three field remainder journeys (the F340
   // §1 census candidates: observations backpressure discipline, retention
-  // + projections, sim-worlds checkpoint determinism). No epochs declared
-  // (queueing/storage/determinism mechanics are single-epoch by D14's
-  // default; the F330 census set is closed).
+  // + projections, sim-worlds checkpoint determinism) + the TL-adjudicated
+  // D17 sixth slot (the observations kernel immutability-audit family).
+  // No epochs declared (queueing/storage/determinism mechanics are
+  // single-epoch by D14's default; the F330 census set is closed).
   observationsBackpressureDisciplineJourney,
   observationsRetentionProjectionsJourney,
   simWorldsCheckpointDeterminismJourney,
+  observationsKernelImmutabilityAuditJourney,
 ];
 
 export {
@@ -142,4 +146,5 @@ export {
   observationsBackpressureDisciplineJourney,
   observationsRetentionProjectionsJourney,
   simWorldsCheckpointDeterminismJourney,
+  observationsKernelImmutabilityAuditJourney,
 };

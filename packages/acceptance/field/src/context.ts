@@ -63,7 +63,7 @@ import type { FirmwareCampaign } from "@fleetos/maintenance";
 // journeys: the observations backpressure queue + immutable store (public
 // types of @fleetos/observations) and the sim-worlds engine run records
 // (public types of @fleetos/sim-worlds). The context owns no domain logic.
-import type { BackpressurePolicy, InMemoryImmutableStore, QueueState } from "@fleetos/observations";
+import type { BackpressurePolicy, InMemoryImmutableStore, QueueState, AdmittedObservationLog } from "@fleetos/observations";
 import type { FaultScenario, FleetWorld, WorldEngineState, WorldEvent, WorldRunCheckpoint } from "@fleetos/sim-worlds";
 
 /** A JSON-shaped reading value (assertions compare these canonically). */
@@ -192,6 +192,9 @@ export interface JourneyContext {
   /** REAL sim-worlds engine run records for the checkpoint determinism
    * journey (full run, prefix, checkpoint, resumed segment). */
   worldCheckpointRuns: Map<string, F341AWorldRunRecord>;
+  /** REAL kernel admitted-log records by id (admitToLog outputs — the
+   * kernel's authoritative read side, append-only, D17 sixth slot). */
+  admittedLogs: Map<string, AdmittedObservationLog>;
 }
 
 /** The caller-threaded sim-worlds run record (REAL engine outputs only). */
@@ -266,6 +269,7 @@ export function createJourneyContext(tenantId: string, startedAt: number): Journ
     retentionStores: new Map(),
     firstSummaries: new Map(),
     worldCheckpointRuns: new Map(),
+    admittedLogs: new Map(),
   };
 }
 
