@@ -3,17 +3,20 @@
  * (F310C scoped TL grant; FINAL-RELEASE-HANDOFF Wave 11).
  *
  * HONEST PARAMETERIZATION RECORD, not a machine-run claim: this module
- * records the corpora's convergence state per wave. Wave 13 (F332) updates
+ * records the corpora's convergence state per wave. Wave 13 (F332) updated
  * the tree counts to the merged F331A (field 30→31) + F331C (commerce
- * 34→36) corpora — machine-measured by the F332 probe (2613 counted at
- * the INACTIVE gate; the ACTIVE ledger recompute is F332 phase 2).
+ * 34→36) corpora; Wave 14 (F342) updates them to the merged F341A (field
+ * 31→35) + F341B (security 27→29) corpora — machine-measured by the F342
+ * probe on the converged post-F341B tree (docs/evidence/F342/report.md).
  * The historical lane-extension records are preserved below.
  *
  * The 100-counted-journeys-per-firm target is NEVER silently weakened:
- * the convergence expectation (94 for a fully-applicable firm on the
- * Wave-13 corpora, single-counted) still falls short of 100 by 6 as a
- * single-count cap, and the shortfall stays STRUCTURAL (epoch counting
- * gated by F332), preserved in the honest-counts ledger for a documented
+ * the Wave-14 convergence lands the fully-applicable firm's single-counted
+ * cap at EXACTLY 100 (the F340 §3 B-3 closure — machine-measured:
+ * manufacturing + energy-utilities small firms at 100). A cap that MEETS
+ * the target is a measured closure, never an inflation: the cap still must
+ * equal the real corpus sum, and every masked-industry shortfall stays
+ * STRUCTURAL, preserved in the honest-counts ledger for a documented
  * TL/user decision.
  */
 
@@ -104,6 +107,26 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     journeysInThisTree: 34,
     delta: 2,
   },
+  {
+    workItem: "F341A",
+    lane: "worker-a (asset/field)",
+    branch: "work/f341a",
+    branchTipCommit: "e954ec8",
+    corpus: "field",
+    journeysAtTip: 35,
+    journeysInThisTree: 31,
+    delta: 4,
+  },
+  {
+    workItem: "F341B",
+    lane: "worker-b (safety/intel)",
+    branch: "work/f341b",
+    branchTipCommit: "46e948c",
+    corpus: "security",
+    journeysAtTip: 29,
+    journeysInThisTree: 27,
+    delta: 2,
+  },
 ];
 
 /** This branch's machine-run corpus counts (the CURRENT tree). */
@@ -116,10 +139,10 @@ export interface CurrentCorpusCounts {
 }
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
-  field: 31,
+  field: 35,
   commerce: 36,
-  security: 27,
-  fullyApplicableFirmCap: 31 + 36 + 27,
+  security: 29,
+  fullyApplicableFirmCap: 35 + 36 + 29,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -130,17 +153,18 @@ export interface ConvergenceExpectation {
   /** A fully-applicable firm's counted cap at convergence. */
   readonly fullyApplicableFirmCap: number;
   readonly targetPerFirm: number;
-  /** Still short — the shortfall stays structural, never silently weakened. */
+  /** The residual to the 100 target (0 at the F342 closure — never negative,
+   * never silently weakened; masked-industry shortfalls live in the ledger). */
   readonly shortfallPerFullyApplicableFirm: number;
 }
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
-  field: 31,
+  field: 35,
   commerce: 36,
-  security: 27,
-  fullyApplicableFirmCap: 31 + 36 + 27,
+  security: 29,
+  fullyApplicableFirmCap: 35 + 36 + 29,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (31 + 36 + 27),
+  shortfallPerFullyApplicableFirm: 100 - (35 + 36 + 29),
 };
 
 /** Machine-check the parameterization's internal consistency. */
@@ -173,8 +197,8 @@ export function verifyConvergenceExpectation(): readonly string[] {
   if (CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm !== CONVERGENCE_EXPECTATION.targetPerFirm - CONVERGENCE_EXPECTATION.fullyApplicableFirmCap) {
     problems.push("convergence shortfall does not equal target minus cap");
   }
-  if (CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm <= 0) {
-    problems.push("the shortfall vanished — the 100/firm target must never be silently weakened");
+  if (CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm < 0) {
+    problems.push("the cap exceeded the 100/firm target — count inflation is never honest (the F342 B-3 closure lands at EXACTLY 100, machine-measured)");
   }
   return problems;
 }
