@@ -7,8 +7,6 @@
 import { useMemo } from "react";
 import {
   assembleControlTower,
-  listTowerCommands,
-  type TowerCommandEntry,
 } from "@fleetos/control-tower";
 import { buildFindingViews } from "@fleetos/experience-safety-intel";
 import { buildWorkBoard } from "@fleetos/experience-work-commerce";
@@ -17,7 +15,6 @@ import { workCommerceHostSurface } from "@fleetos/experience-work-commerce/host"
 import { makeTenantContext } from "@fleetos/identity";
 import { T0, runLab, type TenantWorld } from "./world.js";
 import { mapWorkItems } from "./work-items.js";
-import type { FleetCommandPath, SubmissionRecord } from "./commandPath.js";
 
 declare const __FLEETOS_COMMIT__: string;
 declare const __FLEETOS_BUILT_AT__: string;

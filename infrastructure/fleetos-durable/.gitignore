@@ -1,0 +1,7 @@
+# The durable segments are operational data, not source (F351A packet law:
+# "data/ gitignored"). Regenerate by driving the service; the restart proof
+# uses its own isolated temp dir.
+data/
+data-proof/
+*.log
+*.pid
