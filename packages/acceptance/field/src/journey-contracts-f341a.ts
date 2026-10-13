@@ -165,6 +165,48 @@ export interface WorldRefusalProbeOp {
   readonly probe: "invalid-step-count" | "state-world-mismatch" | "state-tenant-mismatch";
 }
 
+// ---------------------------------------------------------------------------
+// D17 — the TL-adjudicated sixth slot: the observations kernel admitted-log
+// + immutability-audit family (Wave 1 kernel.ts, zero prior corpus coverage;
+// census evidence recorded in the lane report §4).
+// ---------------------------------------------------------------------------
+
+export interface KernLogOpenOp {
+  readonly kind: "kern.log-open";
+  readonly logId: string;
+}
+
+export interface KernAdmitOp {
+  readonly kind: "kern.admit";
+  readonly logId: string;
+  readonly deviceId: string;
+  readonly seq: number;
+  readonly observedAt: number;
+  /** Deterministic admission time (the REAL AuditEventRef carries it as its timestamp). */
+  readonly admittedAt: number;
+  readonly observationKind: string;
+  readonly payload: Readonly<Record<string, unknown>>;
+}
+
+export interface KernListDeviceOp {
+  readonly kind: "kern.list-device";
+  readonly logId: string;
+  readonly deviceId: string;
+  /** Absent = the context tenant; a foreign tenant probes the fail-closed listing. */
+  readonly tenantId?: string;
+}
+
+export interface KernImmutabilityProbeOp {
+  readonly kind: "kern.immutability-probe";
+  readonly logId: string;
+  readonly deviceId: string;
+  readonly seq: number;
+  /** The tamper mode mutates exactly ONE identity field so each of the
+   * kernel's three REAL mismatch reasons fires in isolation; absent = the
+   * honest untampered re-presentation. */
+  readonly tamper?: "device" | "seq" | "digest";
+}
+
 export type F341AOperation =
   | BpQueueOpenOp
   | BpEnqueueBatchOp
@@ -185,7 +227,11 @@ export type F341AOperation =
   | WorldAdvanceResumeOp
   | WorldResumeFoldOp
   | WorldFoldRebuildOp
-  | WorldRefusalProbeOp;
+  | WorldRefusalProbeOp
+  | KernLogOpenOp
+  | KernAdmitOp
+  | KernListDeviceOp
+  | KernImmutabilityProbeOp;
 
 export const F341A_BP_OP_KINDS: ReadonlySet<string> = new Set([
   "bp.queue-open",
@@ -214,4 +260,11 @@ export const F341A_WORLD_OP_KINDS: ReadonlySet<string> = new Set([
   "world.resume-fold",
   "world.fold-rebuild",
   "world.refusal-probe",
+]);
+
+export const F341A_KERNEL_OP_KINDS: ReadonlySet<string> = new Set([
+  "kern.log-open",
+  "kern.admit",
+  "kern.list-device",
+  "kern.immutability-probe",
 ]);

@@ -35,7 +35,8 @@ import { executeF331AOtaOperation, F331A_OTA_OP_KINDS } from "./ops/f331a-ota.js
 import { executeF341ABackpressureOperation } from "./ops/f341a-backpressure.js";
 import { executeF341ARetentionOperation } from "./ops/f341a-retention.js";
 import { executeF341AWorldsOperation } from "./ops/f341a-worlds.js";
-import { F341A_BP_OP_KINDS, F341A_RET_OP_KINDS, F341A_WORLD_OP_KINDS } from "./journey-contracts-f341a.js";
+import { executeF341AKernelOperation } from "./ops/f341a-kernel.js";
+import { F341A_BP_OP_KINDS, F341A_RET_OP_KINDS, F341A_WORLD_OP_KINDS, F341A_KERNEL_OP_KINDS } from "./journey-contracts-f341a.js";
 import type { OpExecution } from "./ops/common.js";
 import { TENANT, T0 } from "./fixtures.js";
 import { deepEquals } from "./determinism.js";
@@ -88,6 +89,7 @@ const F331A_OTA_OPS = F331A_OTA_OP_KINDS;
 const F341A_BP_OPS = F341A_BP_OP_KINDS;
 const F341A_RET_OPS = F341A_RET_OP_KINDS;
 const F341A_WORLD_OPS = F341A_WORLD_OP_KINDS;
+const F341A_KERNEL_OPS = F341A_KERNEL_OP_KINDS;
 
 function executeOperation(step: JourneyStep, ctx: JourneyContext): OpExecution {
   const kind = step.op.kind;
@@ -103,6 +105,7 @@ function executeOperation(step: JourneyStep, ctx: JourneyContext): OpExecution {
   if (F341A_BP_OPS.has(kind)) return executeF341ABackpressureOperation(step.op, ctx);
   if (F341A_RET_OPS.has(kind)) return executeF341ARetentionOperation(step.op, ctx);
   if (F341A_WORLD_OPS.has(kind)) return executeF341AWorldsOperation(step.op, ctx);
+  if (F341A_KERNEL_OPS.has(kind)) return executeF341AKernelOperation(step.op, ctx);
   return executeViewOperation(step.op, ctx);
 }
 
