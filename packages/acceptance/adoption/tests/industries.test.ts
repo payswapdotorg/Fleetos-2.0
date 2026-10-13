@@ -100,16 +100,16 @@ describe("industries", () => {
     }
   });
 
-  it("HONEST SUBSET law: not every industry is the full 94 — and the corpora are 31+36+27", () => {
-    expect(FIELD_JOURNEYS.length).toBe(31);
+  it("HONEST SUBSET law: not every industry is the full 100 — and the corpora are 35+36+29 (converged Wave 14)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(35);
     expect(COMMERCE_JOURNEYS.length).toBe(36);
-    expect(SECURITY_JOURNEYS.length).toBe(27);
+    expect(SECURITY_JOURNEYS.length).toBe(29);
     const applicableCounts = INDUSTRIES.map(
       (i) => applicableFieldJourneys(i).length + applicableCommerceJourneys(i).length + applicableSecurityJourneys(i).length,
     );
-    const fullNinetyFour = applicableCounts.filter((c) => c === 94).length;
-    expect(fullNinetyFour).toBeLessThan(10);
-    expect(fullNinetyFour).toBeGreaterThan(0); // at least one industry legitimately spans everything
+    const fullHundred = applicableCounts.filter((c) => c === 100).length;
+    expect(fullHundred).toBeLessThan(10);
+    expect(fullHundred).toBeGreaterThan(0); // manufacturing + energy-utilities legitimately span everything (the F342 B-3 closure)
   });
 
   it("every industry keeps at least one applicable journey per corpus", () => {

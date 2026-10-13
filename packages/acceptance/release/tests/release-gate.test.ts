@@ -163,23 +163,37 @@ function blockerOf(verdict: ReleaseGateVerdict, code: string): ReleaseBlocker | 
 // Tests.
 // ---------------------------------------------------------------------------
 
-describe("release gate — the all-green path", () => {
-  it("READY over the REAL corpora + REAL healthy lanes + within-budget cost (zero blockers)", () => {
+describe("release gate — the REAL-stack verdict path", () => {
+  it("the REAL adoption baseline carries the recorded ka6 failure → NOT-READY with EXACTLY the named adoption blocker (the F342 honest pin)", () => {
     const verdict = evaluateReleaseGate(greenInputs());
-    expect(verdict.verdict).toBe("READY");
-    expect(verdict.blockers).toEqual([]);
+    // Machine-measured at the converged tree: the A-lane D17 journey's ka6
+    // tenant pin fails in every adoption workspace (F341B §6-L4), so the REAL
+    // adoption baseline carries allJourneysPassed=false and the gate fails
+    // closed with the NAMED blocker — every other signal (lanes, cost,
+    // field/security/commerce baselines) is green. The fix is a
+    // field-package change OUTSIDE the F342 boundary; when it lands, this
+    // pin trips and the next convergence re-measures (READY again).
+    expect(verdict.verdict).toBe("NOT-READY");
+    expect(verdict.blockers).toEqual([
+      {
+        code: "ACCEPTANCE_FAILED",
+        source: "acceptance.adoption",
+        detail: "allJourneysPassed=false determinismVerified=true journeyExecutions=3027",
+      },
+    ]);
     expect(verifyReleaseGateVerdict(verdict)).toBe(true);
   });
 
-  it("the REAL baseline counts the gate verified: field 31, security 27, commerce 36, adoption 30 workspaces (converged Wave 13 corpora)", () => {
-    expect(FIELD_JOURNEYS.length).toBe(31);
-    expect(SECURITY_JOURNEYS.length).toBe(27);
+  it("the REAL baseline counts the gate verified: field 35, security 29, commerce 36, adoption 30 workspaces (converged Wave 14 corpora)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(35);
+    expect(SECURITY_JOURNEYS.length).toBe(29);
     expect(COMMERCE_JOURNEYS.length).toBe(36);
-    expect(fieldReport.aggregate.journeys).toBe(31);
-    expect(securityReport.totalJourneys).toBe(27);
+    expect(fieldReport.aggregate.journeys).toBe(35);
+    expect(securityReport.totalJourneys).toBe(29);
     expect(commerceReport.totals.journeyCount).toBe(36);
     expect(adoptionReport.aggregate.workspaces).toBe(30);
-    expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
+    // Machine-measured at this tree: false (the ka6 tenant pin, F341B §6-L4).
+    expect(adoptionReport.aggregate.allJourneysPassed).toBe(false);
   });
 
   it("byte-identical re-evaluation (determinism law)", () => {
@@ -285,7 +299,7 @@ describe("release gate — each single lane degradation blocks with the NAMED bl
     expect(blockerOf(verdict, "LANE_DEGRADED")).toBeDefined();
   });
 
-  it("custom requiredLanes with a status carrying only that lane → READY (no phantom LANE_MISSING)", () => {
+  it("custom requiredLanes with a status carrying only that lane → NOT-READY from ONLY the adoption blocker (no phantom LANE_MISSING)", () => {
     const verdict = evaluateReleaseGate({
       ...greenInputs(),
       status: assembleSystemStatus({
@@ -294,8 +308,12 @@ describe("release gate — each single lane degradation blocks with the NAMED bl
       }),
       requiredLanes: ["audit-ledger"],
     });
-    expect(verdict.verdict).toBe("READY");
-    expect(verdict.blockers).toEqual([]);
+    // The lane-presence mechanics stay exact: with only the audit-ledger lane
+    // present and required, NO LANE_MISSING fires; the sole blocker is the
+    // REAL adoption baseline's recorded ka6 failure (machine-measured).
+    expect(verdict.verdict).toBe("NOT-READY");
+    expect(verdict.blockers.map((b) => b.code)).toEqual(["ACCEPTANCE_FAILED"]);
+    expect(verdict.blockers[0]!.source).toBe("acceptance.adoption");
   });
 
   it("status refused → STATUS_REFUSED with the REAL refusal reasonCode verbatim", () => {
@@ -354,7 +372,7 @@ describe("release gate — cost blockers", () => {
     expect(blocker!.detail).toContain("projection=true");
   });
 
-  it("a warning posture does NOT breach (warnings are under-ceiling — READY)", () => {
+  it("a warning posture does NOT breach (warnings are under-ceiling — the only blocker is the adoption baseline)", () => {
     const verdict = evaluateReleaseGate({
       ...greenInputs(),
       cost: buildCostPosture({
@@ -363,8 +381,11 @@ describe("release gate — cost blockers", () => {
         checks: [withinCeilingCheck(TENANT)],
       }),
     });
-    expect(verdict.verdict).toBe("READY");
-    expect(verdict.blockers).toEqual([]);
+    // Machine-measured: warnings are NOT breaches (zero CEILING_BREACHED
+    // blockers — the cost law is unaffected); the gate's only blocker is the
+    // REAL adoption baseline's recorded ka6 failure (F341B §6-L4).
+    expect(verdict.verdict).toBe("NOT-READY");
+    expect(verdict.blockers.map((b) => b.code)).toEqual(["ACCEPTANCE_FAILED"]);
   });
 
   it("cost refused → COST_REFUSED with the REAL refusal reasonCode", () => {
@@ -420,8 +441,11 @@ describe("release gate — acceptance baselines (present, green, count-exact, un
     expect(blockerOf(verdict, "ACCEPTANCE_TAMPERED")!.source).toBe("acceptance.field");
   });
 
-  it("tampered adoption report → ACCEPTANCE_TAMPERED", () => {
-    const tampered = { ...adoptionReport, aggregate: { ...adoptionReport.aggregate, allJourneysPassed: false } };
+  it("tampered adoption report (forged allJourneysPassed=true) → ACCEPTANCE_TAMPERED", () => {
+    // F342: the REAL report carries allJourneysPassed=false (the recorded
+    // ka6 pin), so the honest tamper direction at this tree FORGES a green
+    // aggregate — the digest seal no longer matches the mutated content.
+    const tampered = { ...adoptionReport, aggregate: { ...adoptionReport.aggregate, allJourneysPassed: true } };
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: fieldReport, security: securityReport, commerce: commerceReport, adoption: tampered } });
     expect(blockerOf(verdict, "ACCEPTANCE_TAMPERED")!.source).toBe("acceptance.adoption");
   });
@@ -448,18 +472,18 @@ describe("release gate — acceptance baselines (present, green, count-exact, un
     expect(blocker!.detail).toContain("allJourneysPassed=false");
   });
 
-  it("short field corpus (REAL assembler over a subset) → ACCEPTANCE_COUNT_MISMATCH (expected 31, got 29)", () => {
+  it("short field corpus (REAL assembler over a subset) → ACCEPTANCE_COUNT_MISMATCH (expected 35, got 29)", () => {
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: subsetFieldReport(), security: securityReport, commerce: commerceReport, adoption: adoptionReport } });
     expect(verdict.verdict).toBe("NOT-READY");
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 31");
+    expect(blocker!.detail).toContain("expected 35");
     expect(blocker!.detail).toContain("report carries 29");
   });
 
   it("short security corpus → ACCEPTANCE_COUNT_MISMATCH", () => {
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: fieldReport, security: subsetSecurityReport(), commerce: commerceReport, adoption: adoptionReport } });
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 27");
+    expect(blocker!.detail).toContain("expected 29");
   });
 
   it("short commerce corpus → ACCEPTANCE_COUNT_MISMATCH", async () => {
@@ -497,8 +521,13 @@ describe("release gate — boolean law + tenant fail-closed + tamper", () => {
     });
     expect(verdict.verdict).toBe("NOT-READY");
     const codes = verdict.blockers.map((b) => b.code).sort();
+    // F342 re-pin (machine-measured): the REAL adoption baseline's recorded
+    // ka6 failure adds ACCEPTANCE_FAILED alongside the deliberate
+    // degradations (the adoption report is supplied and count-exact — it
+    // carries allJourneysPassed=false).
     expect(codes).toEqual(
       [
+        "ACCEPTANCE_FAILED",
         "LANE_DEGRADED",
         "LANE_MISSING",
         "CEILING_BREACHED",
@@ -535,7 +564,9 @@ describe("release gate — boolean law + tenant fail-closed + tamper", () => {
   it("verifyReleaseGateVerdict detects a tampered verdict", () => {
     const verdict = evaluateReleaseGate(greenInputs());
     expect(verifyReleaseGateVerdict(verdict)).toBe(true);
-    const tampered: ReleaseGateVerdict = { ...verdict, verdict: "NOT-READY" };
+    // F342: the base verdict is NOT-READY (the recorded ka6 adoption
+    // blocker), so the honest tamper direction FORGES readiness.
+    const tampered: ReleaseGateVerdict = { ...verdict, verdict: "READY" };
     expect(verifyReleaseGateVerdict(tampered)).toBe(false);
   });
 });

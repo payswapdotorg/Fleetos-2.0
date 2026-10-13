@@ -21,8 +21,8 @@ describe("convergence expectation (honest parameterization)", () => {
     expect(verifyConvergenceExpectation()).toEqual([]);
   });
 
-  it("records ALL lane extensions (Wave 10 + 12 + 13) with their branch tips", () => {
-    expect(LANE_EXTENSIONS.map((r) => r.workItem).sort()).toEqual(["F300A", "F300B", "F321A", "F321B", "F321C", "F331A", "F331C"]);
+  it("records ALL lane extensions (Wave 10 + 12 + 13 + 14) with their branch tips", () => {
+    expect(LANE_EXTENSIONS.map((r) => r.workItem).sort()).toEqual(["F300A", "F300B", "F321A", "F321B", "F321C", "F331A", "F331C", "F341A", "F341B"]);
     expect(LANE_EXTENSIONS.every((r) => r.branchTipCommit.length > 0)).toBe(true);
     expect(LANE_EXTENSIONS.every((r) => r.branch.startsWith("work/"))).toBe(true);
   });
@@ -36,11 +36,16 @@ describe("convergence expectation (honest parameterization)", () => {
     );
   });
 
-  it("the convergence expectation still falls short of the 100/firm target — the threshold is never weakened", () => {
-    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(94);
+  it("the convergence expectation MEETS the 100/firm target exactly for fully-applicable firms (the F342 B-3 closure — machine-measured, never weakened, never inflated)", () => {
+    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(100);
     expect(CONVERGENCE_EXPECTATION.targetPerFirm).toBe(100);
-    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(6);
-    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBeGreaterThan(0);
+    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(0);
+    // The closure is a MEASURED landing (the 6 Wave-14 journeys are counted
+    // by the REAL runners — field 35 + commerce 36 + security 29), never a
+    // target reduction: the cap is machine-checked against the real corpus
+    // lengths above, and verifyConvergenceExpectation refuses any negative
+    // shortfall (inflation) as loudly as it refuses a weakened target.
+    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBeGreaterThanOrEqual(0);
   });
 
   it("the commerce corpus in this tree is the Wave-13 converged extension (36 distinct journeys — 15 via F300C, 21 via F310C, 34 via F321C, 36 via F331C)", () => {

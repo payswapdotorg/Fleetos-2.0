@@ -28,10 +28,16 @@ describe("adoption report (2-industry simulation)", () => {
   it("carries per-industry verdicts with their exact inputs", () => {
     expect(REPORT.industryVerdicts.length).toBe(2);
     const manufacturing = REPORT.industryVerdicts.find((v) => v.industryId === "manufacturing");
-    expect(manufacturing?.verdict).toBe("SWITCH-ONLY");
-    expect(manufacturing?.coverageTotal).toBe(94);
-    expect(manufacturing?.coveragePassed).toBe(94);
-    expect(manufacturing?.coverageRatio).toBe(1);
+    // F342 re-pin (machine-measured): manufacturing's one failing journey —
+    // the ka6 tenant pin (F341B §6-L4) — drops coverage to 99/100, so the
+    // verdict is MAIN-INTERFACE (ratio < 1.0; all capabilities still
+    // replaced — the failing journey sits in no incumbent family).
+    expect(manufacturing?.verdict).toBe("MAIN-INTERFACE");
+    expect(manufacturing?.coverageTotal).toBe(100);
+    expect(manufacturing?.coveragePassed).toBe(99);
+    expect(manufacturing?.coverageRatio).toBe(0.99);
+    expect(manufacturing?.failingJourneys).toHaveLength(1);
+    expect(manufacturing?.failingJourneys[0]?.journeyId).toBe("observations-kernel-immutability-audit");
     expect(manufacturing?.unmappedCapabilities).toHaveLength(0);
     const agriculture = REPORT.industryVerdicts.find((v) => v.industryId === "agriculture");
     expect(agriculture?.verdict).toBe("COMPLEMENT");
@@ -79,14 +85,15 @@ describe("adoption report (2-industry simulation)", () => {
   it("honest-counts ledger is complete and exact", () => {
     expect(REPORT.honestCounts.targetPerFirm).toBe(100);
     expect(REPORT.honestCounts.entries.length).toBe(6);
-    // F332 ACTIVE: manufacturing's medium (102) and large (110) firms REACH
-    // 100+ honestly (shortfall 0); agriculture's firms stay below.
+    // F342 (machine-measured): manufacturing's firms all REACH 100+
+    // honestly (100/108/116 — the small firm AT 100 is the F340 §3 B-3
+    // closure); agriculture's firms stay below (82/90/98).
     for (const entry of REPORT.honestCounts.entries) {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
-      expect(entry.executed).toBeLessThanOrEqual(110);
+      expect(entry.executed).toBeLessThanOrEqual(116);
     }
     const manufacturingMedium = REPORT.honestCounts.entries.find((e) => e.firmId === "firm-manufacturing-medium");
-    expect(manufacturingMedium?.executed).toBe(102);
+    expect(manufacturingMedium?.executed).toBe(108);
     expect(manufacturingMedium?.shortfall).toBe(0);
     expect(REPORT.honestCounts.structuralReasons.length).toBe(5);
     expect(REPORT.honestCounts.aggregateShortfall).toBe(
@@ -99,7 +106,8 @@ describe("adoption report (2-industry simulation)", () => {
     expect(REPORT.aggregate.industries).toBe(2);
     expect(REPORT.aggregate.journeyExecutions).toBe(SIM.aggregate.journeyExecutions);
     expect(REPORT.aggregate.determinismVerified).toBe(true);
-    expect(REPORT.aggregate.allJourneysPassed).toBe(true);
+    // Machine-measured: the ka6 tenant pin fails once per firm (F341B §6-L4).
+    expect(REPORT.aggregate.allJourneysPassed).toBe(false);
     expect(REPORT.schemaVersion).toBe(1);
     expect(REPORT.generatedAt).toBe(SIM.startedAt);
   });

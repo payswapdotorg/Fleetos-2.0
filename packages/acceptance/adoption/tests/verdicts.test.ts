@@ -85,23 +85,23 @@ function mapping(
 describe("coverage computation", () => {
   it("all-passing facts over a full industry give ratio 1.0 with the applicable denominator", () => {
     const coverage = computeCoverage(industryById("manufacturing")!, allPassingFacts("manufacturing"));
-    expect(coverage.total).toBe(94);
-    expect(coverage.passed).toBe(94);
+    expect(coverage.total).toBe(100);
+    expect(coverage.passed).toBe(100);
     expect(coverage.ratio).toBe(1);
     expect(coverage.failing).toHaveLength(0);
   });
 
   it("masked journeys are EXCLUDED from the denominator (never covered, never failed)", () => {
     const coverage = computeCoverage(industryById("agriculture")!, allPassingFacts("agriculture"));
-    expect(coverage.total).toBe(76); // 94 - 18 masked (field 2 + commerce 13 + security 3)
-    expect(coverage.passed).toBe(76);
+    expect(coverage.total).toBe(82); // 100 - 18 masked (field 2 + commerce 13 + security 3)
+    expect(coverage.passed).toBe(82);
     expect(coverage.ratio).toBe(1);
   });
 
   it("a failing journey is visible with its REAL failure note (never hidden)", () => {
     const facts = withFailing(allPassingFacts("manufacturing"), "maintain-asset-schedule");
     const coverage = computeCoverage(industryById("manufacturing")!, facts);
-    expect(coverage.passed).toBe(93);
+    expect(coverage.passed).toBe(99);
     expect(coverage.failed).toBe(1);
     const failing = coverage.failing[0];
     expect(failing?.journeyId).toBe("maintain-asset-schedule");
@@ -112,16 +112,16 @@ describe("coverage computation", () => {
   it("a journey with ZERO executions counts as not-passed but not as failed", () => {
     const facts = withoutJourney(allPassingFacts("construction"), "quote-scoring");
     const coverage = computeCoverage(industryById("construction")!, facts);
-    expect(coverage.total).toBe(91);
-    expect(coverage.passed).toBe(90);
+    expect(coverage.total).toBe(97);
+    expect(coverage.passed).toBe(96);
     expect(coverage.failed).toBe(0);
-    expect(coverage.ratio).toBeCloseTo(90 / 91, 10);
+    expect(coverage.ratio).toBeCloseTo(96 / 97, 10);
   });
 
   it("multiple executions of one journey: ANY failing execution fails the journey", () => {
     const facts = [...allPassingFacts("agriculture"), fact("field", "mobile-field-shape", false)];
     const coverage = computeCoverage(industryById("agriculture")!, facts);
-    expect(coverage.passed).toBe(75);
+    expect(coverage.passed).toBe(81);
     expect(coverage.failing[0]?.journeyId).toBe("mobile-field-shape");
   });
 });
@@ -276,7 +276,7 @@ describe("industry verdicts (fixture facts)", () => {
     // security.learn-from-outcomes sits in learning-loop (ADJUNCT) for construction.
     const facts = withFailing(allPassingFacts("construction"), "security.learn-from-outcomes");
     const result = computeVerdict(industryById("construction")!, facts);
-    expect(result.verdict).toBe("MAIN-INTERFACE"); // core intact, coverage 64/65
+    expect(result.verdict).toBe("MAIN-INTERFACE"); // core intact, coverage 96/97
     expect(result.input.coverage.failing[0]?.journeyId).toBe("security.learn-from-outcomes");
     const learning = result.input.mappings.find((m) => m.capabilityId === "learning-loop");
     expect(learning?.status).toBe("partial");
