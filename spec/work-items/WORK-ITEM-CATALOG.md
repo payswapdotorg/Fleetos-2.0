@@ -456,6 +456,7 @@ DONE on `work/f341a` (base `81be8e7`; published to origin — the push-channel r
 
 ### F341B — worker B: the two security remainder journeys
 Owner: B. Per F340 §4: B1 artifact-store completeness, B2 world-context windowing. Acceptance: same laws; security suite green grow-only. Optional D17 sixth-slot proposal with census evidence.
+DONE on `work/f341b` (base `5c2ba68`, NEWER than the packet's reference — recorded per the base-check law): B1 evidence-artifact-store-completeness (4 steps / 40 assertions; the Promise-signature family driven at module evaluation via top-level await, the F321B async-dispatch law extended) + B2 world-context-windowing (5 steps / 53 assertions; maturity gating, inclusive boundary honesty, windowing≠staleness both directions) — security suite 166→179 green grow-only (8 files), corpus 27/70/933 → 29/79/1026 machine-probed (every base digest byte-identical), simulation 2967→3027 with manufacturing/energy-utilities small firms AT 100 (the B-3 closure, exactly the F342 pre-staged arithmetic); D17 NOT proposed (restraint recorded with census evidence); boundary clean; evidence at `docs/evidence/F341B/report.md`.
 
 ### F342 — TL convergence, recount + verdict
 Owner: TL. Recount the ledger at the converged tree; re-pin; full battery; the honest verdict per F340 §3 (if 5 land: 99/100, NOT READY with a named 1-journey remainder; if a D17 sixth lands: 100, B-3 closes for fully-applicable firms; medium/large already closed at 102-110).

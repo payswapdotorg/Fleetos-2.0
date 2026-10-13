@@ -48,7 +48,10 @@
  *     `evidence-gated-recovery` precedent for out-of-schedule response).
  *   - The D12 gate therefore yields an EMPTY parameterization set
  *     (`PARAMETERIZED_SECURITY_JOURNEYS`): zero security journeys carry
- *     per-epoch expectation tables this wave; all 27 stay single-counted.
+ *     per-epoch expectation tables this wave; all 29 stay single-counted
+ *     (the two F341B additions are census-invariant: the artifact-store
+ *     family is content-addressed with no time surface; the windowing
+ *     family's asserted values are all relative to the run anchor).
  *
  * Determinism: the census is a pure function of the corpus + the frozen
  * grid — no clock, no randomness, no network.
@@ -165,7 +168,8 @@ const ECHO_UNIFORM_CITATION =
   "F331B census: non-responder — absolute-timestamp equality pins (D13 echo family) fail IDENTICALLY at T0 and every Δ in the adoption-anchored regime (the security fixture clock BASE_MS 2026-10-12 is displaced ~206d from ADOPTION_T0 2026-04); digest moves with the anchor (machine-evidenced) but pass/fail never flips; single-counted";
 
 /**
- * The declared 27-row census table. The two responders are transition-class
+ * The declared 29-row census table (the 27 F331B-era rows + the two F341B
+ * remainder additions). The two responders are transition-class
  * (D2(b) family) but their crossings sit at Δ ≈ +206.4d — beyond the frozen
  * D9 schedule [T0, T0+30d, T0+90d] — so they are SCHEDULE-EXCLUDED: no
  * per-epoch tables, no epochs, single-counted (the F330 evidence-gated-
@@ -203,6 +207,21 @@ export const SECURITY_CENSUS: readonly SecurityCensusEntry[] = [
     "security.degradation-staleness-honesty",
     "security.posture-fold-determinism",
   ].map((journeyId) => ({ journeyId, responder: false, censusClass: null, citation: INVARIANT_CITATION })),
+  // ---- F341B additions (Wave 14 lane B — the F340 census remainders) ----
+  {
+    journeyId: "security.evidence-artifact-store-completeness",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F341B census: invariant — the artifact-store family is content-addressed (no time surface at all); the Promise-signature family is driven to completion at module evaluation via top-level await over deterministic in-memory ports (the F321B async-dispatch law extended, documented in the journey module); single-counted, NO epochs (D2(d))",
+  },
+  {
+    journeyId: "security.world-context-windowing",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F341B census: invariant — the windowing family consumes the startedAt seam for its ISO clocks (the reasoning.ts pattern) while every asserted value is relative (counts/refs/classes/booleans), so the outcome is byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
 ];
 
 export function censusEntryOf(journeyId: string): SecurityCensusEntry | undefined {

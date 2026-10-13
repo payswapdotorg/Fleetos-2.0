@@ -7,12 +7,12 @@
  *     13-capability vocabularies, typed steps, declarative read-model
  *     assertions, JourneyOutcome with per-assertion actual-vs-expected,
  *     digest + verify, JourneyReport double-digest form);
- *   - `./journeys` — the 13-journey corpus driving the REAL public entry
+ *   - `./journeys` — the 29-journey corpus driving the REAL public entry
  *     points of this lane's packages;
  *   - `./runner` — the deterministic journey runner (with the F331B
  *     `startedAt` time seam);
  *   - `./census` — the F331B security time-census (D12): the frozen grid,
- *     the machine measurement, the declared 27-row table and the (empty)
+ *     the machine measurement, the declared 29-row table and the (empty)
  *     parameterization set;
  *   - `./report` — acceptance report assembly (coverage matrix persona x
  *     capability, honest zero-inflation, digest + verify).

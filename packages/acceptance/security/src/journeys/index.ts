@@ -1,7 +1,8 @@
 /**
- * @fleetos/acceptance/security — the journey corpus (F270B + F300B + F321B).
+ * @fleetos/acceptance/security — the journey corpus (F270B + F300B + F321B
+ * + F341B).
  *
- * 27 journeys over the REAL lane packages: the 13 F270B journeys (one per
+ * 29 journeys over the REAL lane packages: the 13 F270B journeys (one per
  * acceptance capability of the F270B deliverable list plus the tenant-
  * isolation cross-cut), the 4 F300B extensions (the Guardian journey
  * end-to-end, mission replay on real package outputs, predictive honesty
@@ -12,9 +13,14 @@
  * capability-store DR, outcome-evaluation adoption, JEPA-family honesty,
  * degradation/staleness honesty — plus the tenth-slot posture-fold
  * determinism journey; arena-evaluation-runs EXCLUDED, Arena is
- * CONTRACT_ONLY / provider-not-ready). Every journey is DATA + declarative
- * assertions executed by the runner. Identical reruns never count — each
- * F321B journey drives genuinely distinct REAL surfaces.
+ * CONTRACT_ONLY / provider-not-ready), plus the 2 F341B remainder
+ * journeys (Wave 14 lane B: the evidence artifact-store completeness and
+ * the world-context windowing families per the F340 census — both
+ * single-epoch invariant; the artifact-store family is driven at module
+ * evaluation via top-level await, its documented async-API law). Every
+ * journey is DATA + declarative assertions executed by the runner.
+ * Identical reruns never count — each journey drives genuinely distinct
+ * REAL surfaces.
  */
 
 import type { AcceptanceJourney } from "../journey-contracts.ts";
@@ -46,6 +52,9 @@ import { evaluationAdoptionJourney } from "./evaluation-adoption.ts";
 import { jepaFamilyJourney } from "./jepa-family.ts";
 import { degradationStalenessJourney } from "./degradation-staleness.ts";
 import { postureFoldJourney } from "./posture-fold.ts";
+// ---- F341B extensions (Wave 14 lane B; the F340 census remainders) ----
+import { artifactStoreCompletenessJourney } from "./artifact-store-completeness.ts";
+import { worldContextWindowingJourney } from "./world-windowing.ts";
 
 /** The full security/action/intelligence acceptance corpus, in declared order. */
 export const SECURITY_JOURNEYS: readonly AcceptanceJourney[] = [
@@ -78,6 +87,9 @@ export const SECURITY_JOURNEYS: readonly AcceptanceJourney[] = [
   jepaFamilyJourney,
   degradationStalenessJourney,
   postureFoldJourney,
+  // ---- F341B extensions (Wave 14 lane B; the F340 census remainders) ----
+  artifactStoreCompletenessJourney,
+  worldContextWindowingJourney,
 ];
 
 export {
@@ -108,4 +120,6 @@ export {
   jepaFamilyJourney,
   degradationStalenessJourney,
   postureFoldJourney,
+  artifactStoreCompletenessJourney,
+  worldContextWindowingJourney,
 };
