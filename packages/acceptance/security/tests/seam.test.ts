@@ -27,7 +27,10 @@ import { SECURITY_JOURNEYS } from "../src/journeys/index.ts";
 import { SECURITY_CORPUS_T0 } from "../src/journeys/fixture-world.ts";
 import type { AcceptanceJourney, JourneyStepContext } from "../src/journey-contracts.ts";
 
-/** The pre-seam base-tree corpus digests (harvested at `e2103c6`). */
+/** The pre-seam base-tree corpus digests (harvested at `e2103c6`), plus the
+ *  two F341B remainder journeys' digests harvested on the F341B lane tree
+ *  (they did not exist at the base — grow-only: the 27 base entries are
+ *  byte-identical and untouched). */
 export const BASE_CORPUS_DIGESTS = [
   { journeyId: "security.investigate-finding", digest: "297ba68f", pass: true },
   { journeyId: "security.understand-evidence", digest: "78f52574", pass: true },
@@ -56,6 +59,9 @@ export const BASE_CORPUS_DIGESTS = [
   { journeyId: "security.jepa-family-honesty", digest: "3f3e9084", pass: true },
   { journeyId: "security.degradation-staleness-honesty", digest: "6853a7d8", pass: true },
   { journeyId: "security.posture-fold-determinism", digest: "db47a8a3", pass: true },
+  // ---- F341B additions (harvested on the F341B lane tree, grow-only) ----
+  { journeyId: "security.evidence-artifact-store-completeness", digest: "43f7fa34", pass: true },
+  { journeyId: "security.world-context-windowing", digest: "e1792e6d", pass: true },
 ] as const;
 
 describe("F331B — the startedAt time seam (zero behavior change at the corpus anchor)", () => {
