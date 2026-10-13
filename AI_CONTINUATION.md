@@ -59,3 +59,24 @@ This is a compact navigation/status pointer, not a second source of truth. The r
 4. Re-run the full gates at any new frozen candidate before verdict changes; keep NOT READY until every fully-applicable firm honestly reaches 100 AND deployment/persistence evidence exists.
 
 **Canonical current handoff:** `docs/tech-lead/FINAL-RELEASE-HANDOFF.md`.
+
+## Execution state — post Wave-15 F352 convergence (2026-10-13, resident-watch session)
+
+**Release disposition: READY — with named standing qualifications, none a blocker** (per FINAL-RELEASE-HANDOFF §11, the TL's statement at the converged tree `88b8506`; evidence `docs/evidence/F352/report.md`).
+
+### Wave-15 final state (converged main `88b8506`)
+- **F350 DONE:** the deployment + durable-persistence qualification law (Q1–Q5) frozen; the F351A lane contract with the D11-analog grant (deployment/composition are TL-owned, granted for exactly this item); the masked-industry F351B capability-backed disposition (NOT dispatched this wave).
+- **F351A DELIVERED + CONVERGED:** worker A (w15a) delivered the durable deployment composition — code `ab3a85d`, evidence `be46b01`, TL gate ACCEPTED, merge `88b8506` (identical tree to the gated tip). The service: node:http on fixed :3106, static shell + durable API over three append-only fsync-before-ack JSONL segments (commands/audit/assets), replay-on-start through the REAL CommandQueue/EnrollmentDirectory with canonical-JSON byte-exact verification, idempotency exactly the in-process contract (duplicate=true = the ORIGINAL ack), tenant-scoping fail-closed; the shell durable-mode adapter (?mode=durable, in-process default untouched); the supervisor-keep script. Q2 exit 0 twice (worker at ab3a85d, TL at 88b8506); browser E2E + restart-survival twice (worker 15 screenshots; TL isolated redo — audit digest byte-identical across SIGKILL+restart+reload). Evidence: `docs/evidence/F351A/report.md`.
+- **F352 DONE:** the TL convergence — full battery at `88b8506` (six suites + release green; counts 3027/1179/1017/831/931 machine-locked; typecheck 13 projects + service exit 0; oxlint 0w/0e; boundary clean; file law held); Q2/Q3 re-run by the TL at the exact converged SHA; the wave verdict (deployment + persistence qualifications CONVERTED to demonstrated + scoped); the release disposition stated. Evidence: `docs/evidence/F352/report.md`.
+
+### Standing qualifications (the honest scope of READY)
+1. Sandbox-hosted: single external port (the resident console); no public-internet claim.
+2. Process-crash durability via fsync — not power-loss durability.
+3. The fixture WORLD remains the domain-input convention; the OPERATIONAL plane (commands/audit/assets) is what is durable.
+4. Actor identity is shape/scope-validated, not authenticated (the shell demo's trust model).
+5. Providers (Aurum/ADCOS/Arena) remain CONTRACT_ONLY — F323 deferred pending upstream evidence.
+6. Masked industries remain structurally below cap with per-journey rationales — F351B is the honest next lane if the roadmap reopens.
+7. B-3 is closed for fully-applicable firms (mfg + energy small AT 100; 17/30 firms ≥ 100) — the masked-industry remainder is the qualification above, never fabricated.
+
+### Canonical current handoff
+`docs/tech-lead/FINAL-RELEASE-HANDOFF.md`; the wave-15 close record is `docs/evidence/F352/report.md`.

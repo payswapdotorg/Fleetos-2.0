@@ -50,14 +50,14 @@ TL's operational record.
 | C6 | Substrate full build fails on 4 packages in the sandbox (web OOM; desktop/server ENOENT tooling under --ignore-scripts; zcode-cli sea) | F302 B-2: same builder + full toolchain; the FleetOS product surface builds standalone and deploys |
 | C7 | All external integrations are CONTRACT_ONLY — no live endpoint/credential exists; a live binding is a new, separately-verified capability | F300C §4 matrix (machine-audited); LIVE_VERIFIED requires real endpoints + credential handling outside this repo |
 | C8 | The 100-counted-journeys-per-firm adoption target is structurally unreachable at the current corpus (58/100 fully-applicable) | F302 B-3 + F300C §6: shortfall preserved with structural reasons; extending requires genuinely new journey families — TL/user decision |
-| C9 | The deployed shell's demo world is fixture-input composed (the acceptance-suite convention) — production composition (real persistence wiring) is not yet a deployment | F301 report honest-limitations section; the views themselves are REAL package outputs |
+| C9 | The shell's DOMAIN-INPUT world remains fixture-composed (the acceptance-suite convention, Q4) — but the OPERATIONAL plane (commands/audit/assets) is now DURABLE via the F351A service (:3106, fsync-before-ack JSONL segments, replay-on-start byte-exact, SIGKILL-restart-proven). What is durable vs what is not is recorded per-segment | F351A evidence; F352 §2/§3 TL re-verification at `88b8506` |
 | C10 | The browser crypto shim (pure-TS sha256) is verified test-vector-identical to node:crypto, but a browser-native sync-hash story would remove the seam | packages/web/src/fleetos/crypto-shim.ts; verified byte-identical |
 
 | C11 | B-1 resolved — but the root gate's honesty depends on the PIPESTATUS exit-capture (fixed at 7065542 after F310A found the tee bug); any future workflow edit must preserve it | release-gates.yml step contract; F310A §5 |
 | C12 | The FleetOS shell is now type-checked by its DEDICATED project (tsconfig.fleetos.json) with the domain context — the substrate web project excludes src/fleetos; a future substrate change that re-includes it would resurface the false-context errors | F311 P2(a) record; packages/web/tsconfig.json |
 | C13 | B-3 remains at the Wave-12 converged cap of **91/100** (shortfall 9 per fully-applicable firm; counted executions 2,523; corpora field 30 / commerce 34 / security 27). All three lanes delivered and converged under F322 (`docs/evidence/F322/report.md`; frozen candidate `5c3d18f`). F320 froze Wave 12 as non-parameterized; the remaining gap needs the F310C §3.5 capability rows (row 36 time-parameterization is highest-leverage). | F322 evidence report; gates runs 38146799222/38160560665/38164045093/38165177822/38165903409 |
 | C14 | The adoption count-honesty laws (reruns never counted; masks only narrow) live in adoption-run.ts — any future corpus extension must hold them; the convergence-delta module pins the current-tree expectation | adoption suite tests enforce; TL re-pins release counts at convergence |
-| C15 | The deployed product runs on the sandbox's supervisor-kept static server (:3105) — a sandbox reset (proven 2026-10-09) takes it down until re-deployed; dist-fleetos rebuild is fast (vite, ~1s) but manual | RUNBOOK redeploy procedure; the durable browser profile + ops vault survive resets |
+| C15 | The deployment of record is now the F351A durable service (:3106, supervisor-kept, SIGKILL restart-recovery machine-proven at `88b8506`) — a sandbox reset still takes it down until re-deployed (the composition is fully in-repo: build + `node supervisor.mjs`); the old :3105 static-only server is superseded | RUNBOOK redeploy procedure; F351A README; F352 Q2/Q3 re-runs |
 
 
 ## F. Wave-12 provider-readiness clarification (2026-10-10)
@@ -65,7 +65,7 @@ TL's operational record.
 | ID | Risk | Mitigation / record |
 |---|---|---|
 | C16 | User-confirmed: Aurum, ADCOS and Arena providers/integrations are not ready. The current adapters/contracts are not live or sandbox bindings. A local contract test must not be interpreted as a remote provider success or used to mark the provider ready. | Keep each status CONTRACT_ONLY / provider not ready; defer F323 until upstream readiness, versioned APIs and a runnable endpoint/sandbox are evidenced. Wave-12 adoption work must use real local domain behavior and must not depend on these providers. |
-| C17 | The Wave-11 verdict's “B-3 sole substantive blocker” is bounded to the remaining counted-journey acceptance target, not a claim of complete production readiness. Public deployment, durable operational persistence and required live-provider integration are still not evidenced. | Preserve the NOT READY production disposition; track provider integration under F323 and deployment/persistence evidence separately. |
+| C17 | RESOLVED at Wave-15 close (`88b8506`): B-3 closed for fully-applicable firms (F342/F343); deployment composition + durable operational persistence DEMONSTRATED + scoped (F351A, TL re-verified F352). The disposition is READY with standing qualifications: sandbox-hosted single-port, fsync process-crash durability, fixture domain-input world, providers CONTRACT_ONLY (F323 deferred), masked industries structural (F351B the next honest lane). No required external integration is described as ready without evidence. | `docs/evidence/F352/report.md` §5; the machine-pinned release verdict (F343 pins, green at this tree) |
 
 
 ## G. Wave-12 delivery status (2026-10-11)
@@ -74,3 +74,11 @@ TL's operational record.
 |---|---|---|
 | C18 | F321B has delivered ten journeys, but its branch-tree adoption/release tests have count-pin transition failures (11 adoption, 3 release). F321A and F321C reports are not present in inspected main, so Wave-12 integration and count totals are not converged. | Keep F321B marked delivered but not globally converged; execute A and C concurrently; TL-owned F322 recounts all 30 workspaces, re-pins only from machine evidence and runs the full gate at one frozen SHA. |
 | C19 | The time-parameterization ceiling from F310C is theoretical; F320 ruled Wave 12 non-parameterized because genuine distinct per-epoch runner behavior and expectations do not exist. | Freeze D1–D6 for this wave. Do not count epoch variants, reruns, timestamp-only changes, duplicate steps or synthetic telemetry; any future runner capability needs a separate TL-owned work item. |
+
+
+## G. Wave-15 close clarification (2026-10-13, F352)
+
+| ID | Risk | Mitigation / record |
+|---|---|---|
+| C18 | The durable service (:3106) is the qualification composition, not wired to the resident console gateway (:3100) — productizing that wiring is a future TL decision, not a Wave-15 obligation | F352 report §7 |
+| C19 | The release disposition READY is bounded to the honestly-scoped qualifications (F352 §5): any future lane (F351B, F323, gateway wiring) must re-run the full battery at its own converged tree before verdict-carrying claims | FINAL-RELEASE-HANDOFF §1 law: old green ticks do not carry forward |
