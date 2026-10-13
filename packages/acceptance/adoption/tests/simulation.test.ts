@@ -45,35 +45,27 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     // declare no epochs (single-epoch T0) — the epoch ledger is UNCHANGED.
   });
 
-  it("journeys > 0; every counted execution PASSED except the recorded ka6 tenant pin (the F341B §6-L4 defect, pinned for the TL's adjudication)", () => {
+  it("journeys > 0; every counted execution PASSED (the F343 fix — the ka6 tenant pin is regime-honest in BOTH regimes)", () => {
     expect(SIMULATION.aggregate.journeyExecutions).toBeGreaterThan(0);
-    // Machine-measured at this tree: exactly 30 failing execution facts —
-    // ONE per firm, ALL the A-lane D17 journey `observations-kernel-
-    // immutability-audit`, whose ka6 assertion pins the fixture tenant
-    // `tnt_field-accept-01` while the adoption runner threads the firm's
-    // REAL tenant (F341B §6-L4: pre-existing, regime-specific — the field
-    // suite itself is green 102/102). Pinned honestly, never hidden: the
-    // fix is a field-package change OUTSIDE the F342 boundary; when it
-    // lands, this pin trips and the next convergence re-measures.
-    expect(SIMULATION.aggregate.allJourneysPassed).toBe(false);
+    // F343 re-pin (machine-measured at the fixed tree, never copied): the
+    // A-lane D17 journey `observations-kernel-immutability-audit` now
+    // exposes the run-context tenant as a kern.admit reading
+    // (`k4.kern.ctxTenant`) and ka6 asserts reading-equals against it —
+    // green in the field fixture regime (both sides the fixture tenant)
+    // AND in the adoption-composition regime (both sides the firm's REAL
+    // tenant). Zero failing execution facts; allJourneysPassed=true; the
+    // counts are UNCHANGED (3027/1179/1017/831/931 — the fix flips
+    // pass/fail states, never counts).
+    expect(SIMULATION.aggregate.allJourneysPassed).toBe(true);
     for (const run of SIMULATION.firmRuns) {
       expect(run.executionFacts.length).toBe(run.executionCounts.total);
       const failing = run.executionFacts.filter((f) => !f.passed);
-      expect(failing).toHaveLength(1);
-      expect(failing[0]!.corpus).toBe("field");
-      expect(failing[0]!.journeyId).toBe("observations-kernel-immutability-audit");
-      expect(failing[0]!.failureNote).toBe(
-        `assertion ka6 failed: expected "tnt_field-accept-01", actual "${run.firm.tenantId}"`,
-      );
+      expect(failing).toHaveLength(0);
       for (const fact of run.executionFacts) {
-        if (fact.passed) {
-          expect(fact.failureNote).toBeNull();
-          // Digest shapes are the owning runner's REAL conventions (field: 8
-          // hex chars; security/commerce: `journey_`-prefixed hex).
-          expect(fact.digest).toMatch(/^(journey_)?[0-9a-f]{8}$/);
-        } else {
-          expect(fact.digest).toMatch(/^[0-9a-f]{8}$/);
-        }
+        expect(fact.failureNote).toBeNull();
+        // Digest shapes are the owning runner's REAL conventions (field: 8
+        // hex chars; security/commerce: `journey_`-prefixed hex).
+        expect(fact.digest).toMatch(/^(journey_)?[0-9a-f]{8}$/);
       }
     }
   });
@@ -87,14 +79,13 @@ describe("full industry adoption simulation (REAL corpora)", () => {
   });
 
   it("the per-industry verdict table is exactly the honest computation", () => {
-    // F342 re-pin (machine-measured): every industry carries exactly the one
-    // ka6 failure (the kernel-audit journey sits in NO incumbent capability
-    // family — not a critical failure), so coverage is (total-1)/total per
-    // industry and manufacturing drops SWITCH-ONLY -> MAIN-INTERFACE (ratio
-    // 0.99 < 1.0); energy-utilities/facilities/mining/water-waste/construction
-    // stay MAIN-INTERFACE; the four masked-core industries stay COMPLEMENT.
+    // F343 re-pin (machine-measured at the fixed tree): zero failing
+    // journeys anywhere — every industry's coverage is total/total; the
+    // distribution returns to 1 SWITCH-ONLY / 5 MAIN-INTERFACE /
+    // 4 COMPLEMENT / 0 RETAIN (manufacturing back to SWITCH-ONLY at ratio
+    // 1.0 — the F342 0.99 record is resolved, never silently flipped).
     const expected: Record<string, string> = {
-      manufacturing: "MAIN-INTERFACE",
+      manufacturing: "SWITCH-ONLY",
       construction: "MAIN-INTERFACE",
       "energy-utilities": "MAIN-INTERFACE",
       "transportation-logistics": "COMPLEMENT",
@@ -108,28 +99,25 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(REPORT.industryVerdicts.length).toBe(10);
     for (const row of REPORT.industryVerdicts) {
       expect(row.verdict).toBe(expected[row.industryId]);
-      expect(row.coveragePassed).toBe(row.coverageTotal - 1); // exactly the ka6 failure per industry
-      expect(row.coverageRatio).toBe((row.coverageTotal - 1) / row.coverageTotal);
-      expect(row.failingJourneys).toHaveLength(1);
-      expect(row.failingJourneys[0]!.journeyId).toBe("observations-kernel-immutability-audit");
+      expect(row.coveragePassed).toBe(row.coverageTotal); // zero failing journeys per industry
+      expect(row.coverageRatio).toBe(1);
+      expect(row.failingJourneys).toHaveLength(0);
     }
-    // Verdict distribution: 0 SWITCH-ONLY, 6 MAIN-INTERFACE, 4 COMPLEMENT, 0 RETAIN.
+    // Verdict distribution: 1 SWITCH-ONLY, 5 MAIN-INTERFACE, 4 COMPLEMENT, 0 RETAIN.
     const verdicts = REPORT.industryVerdicts.map((v) => v.verdict);
-    expect(verdicts.filter((v) => v === "SWITCH-ONLY")).toHaveLength(0);
-    expect(verdicts.filter((v) => v === "MAIN-INTERFACE")).toHaveLength(6);
+    expect(verdicts.filter((v) => v === "SWITCH-ONLY")).toHaveLength(1);
+    expect(verdicts.filter((v) => v === "MAIN-INTERFACE")).toHaveLength(5);
     expect(verdicts.filter((v) => v === "COMPLEMENT")).toHaveLength(4);
     expect(verdicts.filter((v) => v === "RETAIN")).toHaveLength(0);
   });
 
-  it("no industry earned RETAIN on the REAL corpora — the ka6 defect is visible everywhere but is never a critical failure", () => {
-    // The honest statement: zero CRITICAL journey failures exist (the ka6
-    // failing journey sits in no incumbent family), so the fail-closed
-    // RETAIN path is NOT triggered by it; the negative fixtures prove the
-    // rubric fails closed when a real critical failure appears. Every
-    // industry carries exactly the one recorded ka6 failure — visible,
-    // never hidden, awaiting the TL's adjudication.
-    expect(REPORT.industryVerdicts.every((v) => v.failingJourneys.length === 1
-      && v.failingJourneys[0]!.journeyId === "observations-kernel-immutability-audit")).toBe(true);
+  it("no industry earned RETAIN on the REAL corpora — zero failing journeys anywhere (the F343 fix); the fail-closed RETAIN path stays proven by the negative fixtures", () => {
+    // The honest statement: zero journey failures exist on the REAL corpora
+    // (the F343 fix resolved the recorded ka6 defect — machine-measured: 30
+    // failing facts -> 0); the fail-closed RETAIN path is NOT triggered, and
+    // the negative fixtures in verdicts.test.ts prove the rubric fails
+    // closed when a real critical failure appears.
+    expect(REPORT.industryVerdicts.every((v) => v.failingJourneys.length === 0)).toBe(true);
     const mining = computeVerdict(industryById("mining")!, SIMULATION.firmRuns
       .filter((r) => r.industry.id === "mining")
       .flatMap((r) => r.executionFacts));

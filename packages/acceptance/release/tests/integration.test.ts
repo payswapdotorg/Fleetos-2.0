@@ -187,28 +187,23 @@ describe("REAL-run integration — the hardened surfaces feed the gate", () => {
     expect(enforcement.posture.budgets[0]).toBe(burnProjection);
   });
 
-  it("the gate verdict over the full REAL stack is NOT-READY with EXACTLY the named adoption blocker (the F342 honest pin)", () => {
-    // Machine-measured at the converged tree: every hardened lane is
-    // healthy, the cost posture is within budget, the field/security/
-    // commerce baselines are green — and the REAL adoption baseline carries
-    // allJourneysPassed=false (the A-lane D17 journey's ka6 tenant pin fails
-    // in every workspace, F341B §6-L4 — 30 failing facts, one per firm), so
-    // the gate fails closed with the NAMED blocker. The fix is a
-    // field-package change OUTSIDE the F342 boundary; when it lands, this
-    // pin trips and the next convergence re-measures (READY with zero
-    // blockers again).
-    expect(FINAL_VERDICT.verdict).toBe("NOT-READY");
-    expect(FINAL_VERDICT.blockers).toEqual([
-      {
-        code: "ACCEPTANCE_FAILED",
-        source: "acceptance.adoption",
-        detail: "allJourneysPassed=false determinismVerified=true journeyExecutions=3027",
-      },
-    ]);
+  it("the gate verdict over the full REAL stack is READY with zero blockers (the F343 fix — the recorded ka6 adoption blocker clears)", () => {
+    // F343 re-pin (machine-measured at the fixed tree, never assumed):
+    // every hardened lane is healthy, the cost posture is within budget,
+    // the field/security/commerce baselines are green — and the REAL
+    // adoption baseline carries allJourneysPassed=true (the A-lane D17
+    // journey's ka6 tenant pin is regime-honest in BOTH regimes at the
+    // fixed tree; zero failing facts), so the gate's verdict over the full
+    // REAL stack is READY with zero blockers. The F342 NOT-READY record
+    // with the NAMED ACCEPTANCE_FAILED/acceptance.adoption blocker is
+    // RESOLVED by the fix — the tripwire pin flipped red at this tree and
+    // was re-pinned from this measured run.
+    expect(FINAL_VERDICT.verdict).toBe("READY");
+    expect(FINAL_VERDICT.blockers).toEqual([]);
     expect(verifyReleaseGateVerdict(FINAL_VERDICT)).toBe(true);
   });
 
-  it("the acceptance baselines are the REAL corpora counts — field/security/commerce green; adoption carries the recorded ka6 failure", () => {
+  it("the acceptance baselines are the REAL corpora counts — field/security/commerce/adoption all green (the F343 re-measure)", () => {
     expect(fieldReport.aggregate.journeys).toBe(FIELD_JOURNEYS.length);
     expect(fieldReport.aggregate.failed).toBe(0);
     expect(securityReport.totalJourneys).toBe(SECURITY_JOURNEYS.length);
@@ -216,8 +211,9 @@ describe("REAL-run integration — the hardened surfaces feed the gate", () => {
     expect(commerceReport.totals.journeyCount).toBe(COMMERCE_JOURNEYS.length);
     expect(commerceReport.totals.failed).toBe(0);
     expect(adoptionReport.aggregate.workspaces).toBe(30);
-    // Machine-measured at this tree (the ka6 tenant pin, F341B §6-L4).
-    expect(adoptionReport.aggregate.allJourneysPassed).toBe(false);
+    // F343 re-pin (machine-measured at the fixed tree): true — the ka6
+    // tenant pin is regime-honest (zero failing facts; counts unchanged).
+    expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
     expect(adoptionReport.aggregate.determinismVerified).toBe(true);
     // F342 re-pin (machine-measured on the converged tree): 2847 + 180 =
     // the 6 Wave-14 journeys x 30 firms (field 31→35 via F341A incl. the D17
@@ -321,10 +317,10 @@ describe("REAL-run integration — the hardened surfaces feed the gate", () => {
       acceptance: { field: fieldReport, security: securityReport, commerce: commerceReport, adoption: adoptionReport },
     });
     // Machine-measured: warnings are NOT breaches (zero CEILING_BREACHED
-    // blockers); the gate's only blocker is the REAL adoption baseline's
-    // recorded ka6 failure (F341B §6-L4) — the cost law is unaffected.
-    expect(verdict.verdict).toBe("NOT-READY");
-    expect(verdict.blockers.map((b) => b.code)).toEqual(["ACCEPTANCE_FAILED"]);
-    expect(verdict.blockers[0]!.source).toBe("acceptance.adoption");
+    // blockers); the REAL adoption baseline is all-green at the fixed tree
+    // (the F343 re-measure), so the gate's verdict is READY with zero
+    // blockers — the cost law is unaffected.
+    expect(verdict.verdict).toBe("READY");
+    expect(verdict.blockers).toEqual([]);
   });
 });
