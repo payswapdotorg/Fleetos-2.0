@@ -32,8 +32,7 @@ corepack pnpm run lint                     # oxlint (0 warnings / 0 errors requi
 - File law: every file ≤ 400 code lines (skipBlankLines/skipComments).
 - Purity law: no `Date.now`, `Math.random`, timers, network, `new Date` in domain code.
 - Full monorepo: `corepack pnpm -r test` (run at wave close; per-packet cost is too high).
-- Acceptance baselines (re-run on every merge that touches a lane): field 61, security 90,
-  commerce 65, adoption 90, release 88, convergence (see F291 evidence).
+- Last converged baseline at F352 candidate `88b8506` (historical; do not transfer to changed code): field 102, security 179, commerce 115, adoption 120, release 88, convergence 82, maintenance 99. Recount and rerun all relevant gates after F351B/F351C integration.
 
 ## Merging a worker delivery (the gate procedure)
 
@@ -122,17 +121,21 @@ public, so ubuntu runners (4 vCPU / 16 GB) are free:
 
 ## Sandbox redeploy (after a reset)
 
-1. Clone `payswapdotorg/fleetos-2.0` + `payswapdotorg/replay2`; the durable browser
-   profile (`/home/z/my-project/browser-profile`) and ops vault survive resets.
-2. Replay stack: `cd replay2 && bun install && NEXT_DIST_DIR=.next-prod bun run build &&
-   CONSOLE_LAUNCHER=scripts/launch_prod.py ./deploy.sh` (PORT GUARD evicts the
-   template squatter on :3000).
-3. FleetOS product: `cd fleetos && corepack pnpm install --frozen-lockfile
-   --ignore-scripts` (the 4 GB box cannot run the native postinstalls; the product
-   surface needs none of them) then `cd packages/web && npx vite build --config
-   vite.fleetos.config.ts`; serve `dist-fleetos/` via the supervisor-kept
-   `scripts/local/fleetos_server.py` (:3105, registered in
-   `scripts/flags/local_services.json`).
-4. The monorepo install on the 4 GB box: `--ignore-scripts` is mandatory (three
-   silent OOM deaths at native-compile phases otherwise); the full-toolchain install
-   and the root gates run on the CI builder, not this box.
+1. Read `infrastructure/fleetos-durable/README.md` and `docs/evidence/F351A/report.md` first.
+2. Install the workspace from the repository root with `corepack pnpm install --frozen-lockfile --ignore-scripts` in the documented 4 GB sandbox. The native-toolchain build and root gates belong on the high-memory CI builder; `--ignore-scripts` is not a production build qualification.
+3. Build the FleetOS shell at the exact candidate SHA:
+
+   ```bash
+   cd packages/web && npx vite build --config vite.fleetos.config.ts && cd ../..
+   ```
+
+4. Start the supervisor-kept durable composition:
+
+   ```bash
+   node infrastructure/fleetos-durable/supervisor.mjs
+   ```
+
+   This serves the FleetOS shell and durable operational API on port `:3106`. Smoke-check `http://localhost:3106/?mode=durable#/tower` and all six routes. The F351A service on :3106 supersedes the old :3105 static-only server; do not use `scripts/local/fleetos_server.py` as the current deployment of record.
+
+5. Run the restart proof as documented in `infrastructure/fleetos-durable/README.md`, using an isolated temporary data directory and a controlled process. Never run destructive kill/restart tests against a shared or customer environment.
+6. Keep the scope honest: sandbox-hosted only, no public-internet claim, no authenticated actor identity, no durable fixture WORLD, no power-loss durability claim, and no provider-ready claim for Aurum/ADCOS/Arena.
