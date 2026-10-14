@@ -502,3 +502,11 @@ DELIVERED (TL-delegated worker session, two phases): `docs/evidence/F332/report.
 - F323 stays DEFERRED (providers CONTRACT_ONLY; no lane drives provider APIs; row 38 out of scope).
 - Row 37 (validated predictive model) deferred to Wave 14.
 - Workers may not touch TL-owned adoption/release paths (D11 — no grant issued).
+
+## Wave 16 — masked-industry coverage (F351B capability tranches, opened by operator word 2026-10-14)
+
+### F351B — masked-industry coverage, tranche 1 (mining + construction)
+Owner: A. Per F350 §4 (the binding disposition): close the two single-mask industries' small-firm shortfall with NEW genuinely-applicable journeys — mining −2, construction −3 → both at ≥100 counted (B-3 closes for both; medium/large already ≥100). Capability-backed: REAL unexercised public APIs in the persona-relevant packages (assets/work/workloads/projects/procurement/health/connectivity per the TL pre-scan); EXISTING masks byte-identical; per-industry applicability honestly declared (D15-strict; industries.ts granted for NEW journey-id mask entries only — the F350-pattern D11-analog grant). Acceptance: census citations, D14 journey form, field suite green grow-only, measured closure arithmetic, exact SHA + owned-path diff + evidence at `docs/evidence/F351B/report.md`.
+
+### F353 — TL convergence, tranche-1 recount + re-pin + disposition update
+Owner: TL. After F351B merges: recompute the 30-workspace ledger at the converged tree; re-pin (corpus counts, simulation ledger, cap, per-firm expectations — TL-owned transitions only); full battery (six suites + release; typecheck + lint); grow-only + never-weaken verified on every counted number; the disposition update (which standing qualifications converted; the masked-industries remainder restated honestly); documentation (catalog rows, AI_CONTINUATION.md, issue #3 comment, RESIDUAL-RISKS.md). Do not lower the target or broaden masks.
