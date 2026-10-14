@@ -58,6 +58,13 @@ const T0_90D = T0 + EPOCH_90D_MS;
 // the B-3 closure; agriculture large is 82+16=98, healthcare/facilities
 // large 85+14=99 / 86+14=100 — 5 field responders there because
 // edge-command-lifecycle is masked.
+// F353 re-pin (machine-measured at the integrated 10de683 tree, probe
+// f353-measure): every unmasked-industry firm +5 counted (the 5 F351B
+// journeys); transportation-logistics +4 and agriculture +4 (the
+// project-closeout-archival journey is masked there — the D15-strict
+// honesty); construction small 97->102 and mining small 98->103 — B-3
+// closes for both; telecommunications/water-waste small firms land AT
+// 100 as the honest field-journey bonus.
 const INACTIVE_PER_FIRM: Record<string, number> = {
   manufacturing: 94,
   construction: 91,
@@ -72,16 +79,16 @@ const INACTIVE_PER_FIRM: Record<string, number> = {
 };
 
 const ACTIVE_PER_FIRM: Record<string, [number, number, number]> = {
-  manufacturing: [100, 108, 116],
-  construction: [97, 105, 113],
-  "energy-utilities": [100, 108, 116],
-  "transportation-logistics": [93, 101, 109],
-  agriculture: [82, 90, 98],
-  "healthcare-facilities": [85, 92, 99],
-  "facilities-management": [86, 93, 100],
-  telecommunications: [95, 103, 111],
-  mining: [98, 106, 114],
-  "water-waste": [95, 103, 111],
+  manufacturing: [105, 113, 121],
+  construction: [102, 110, 118],
+  "energy-utilities": [105, 113, 121],
+  "transportation-logistics": [97, 105, 113],
+  agriculture: [86, 94, 102],
+  "healthcare-facilities": [90, 97, 104],
+  "facilities-management": [91, 98, 105],
+  telecommunications: [100, 108, 116],
+  mining: [103, 111, 119],
+  "water-waste": [100, 108, 116],
 };
 
 const SIMULATION = await runAdoptionSimulation();
@@ -118,13 +125,13 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
 
   it("the aggregate is exactly the pinned numbers of the current mode (machine-measured, never copied)", () => {
     if (EPOCH_COUNTING_ACTIVE) {
-      // F342 re-pin (machine-measured on the converged tree): 2847 + 180
-      // (the 6 Wave-14 journeys x 30 firms — field +120, security +60);
-      // raw re-run transparency metrics unchanged (the new journeys declare
-      // no epochs — the epoch dimension still executes only the 6 field +
-      // 2 commerce census-certified responders).
-      expect(SIMULATION.aggregate.journeyExecutions).toBe(3027);
-      expect(SIMULATION.aggregate.fieldExecutions).toBe(1179);
+      // F353 re-pin (machine-measured at the integrated tree, probe
+      // f353-measure): 3027 + 144 = the 5 F351B field journeys x the firms
+      // where they apply (28 of 30 firms; transport+agriculture mask the
+      // closeout journey — D15-strict); uniqueApplicable 931 -> 979; the
+      // epoch dimensions unchanged (the F351B journeys declare no epochs).
+      expect(SIMULATION.aggregate.journeyExecutions).toBe(3171);
+      expect(SIMULATION.aggregate.fieldExecutions).toBe(1323);
       expect(SIMULATION.aggregate.commerceExecutions).toBe(1017);
       expect(SIMULATION.aggregate.securityExecutions).toBe(831);
       expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
@@ -137,7 +144,7 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
       expect(SIMULATION.aggregate.securityExecutions).toBe(771);
       expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(885);
     }
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(931);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(979);
     expect(SIMULATION.aggregate.determinismVerified).toBe(true);
     // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
     // is regime-honest in BOTH regimes (the kern.admit readings now expose

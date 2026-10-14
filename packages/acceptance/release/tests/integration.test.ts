@@ -215,12 +215,11 @@ describe("REAL-run integration — the hardened surfaces feed the gate", () => {
     // tenant pin is regime-honest (zero failing facts; counts unchanged).
     expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
     expect(adoptionReport.aggregate.determinismVerified).toBe(true);
-    // F342 re-pin (machine-measured on the converged tree): 2847 + 180 =
-    // the 6 Wave-14 journeys x 30 firms (field 31→35 via F341A incl. the D17
-    // sixth slot; security 27→29 via F341B; commerce unchanged 36) + the
-    // unchanged 234 D10-proof-passing epoch counts (the Wave-14 journeys
-    // declare no epochs — single-epoch T0).
-    expect(adoptionReport.aggregate.journeyExecutions).toBe(3027);
+    // F353 re-pin (machine-measured at the integrated tree, probe
+    // f353-measure): 3027 + 144 = the 5 F351B field journeys x the firms
+    // where they apply (28 of 30 — transport+agriculture mask the closeout
+    // journey); epochs unchanged (F351B journeys declare no epochs).
+    expect(adoptionReport.aggregate.journeyExecutions).toBe(3171);
   });
 
   it("gate re-evaluation is byte-identical (determinism over the REAL stack)", () => {

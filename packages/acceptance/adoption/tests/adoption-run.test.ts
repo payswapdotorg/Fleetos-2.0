@@ -135,15 +135,23 @@ describe("adoption driver (per-firm)", () => {
     const simulation = await runAdoptionSimulation({ industryIds: ["agriculture"] });
     expect(simulation.honestCounts.targetPerFirm).toBe(TARGET_JOURNEYS_PER_FIRM);
     expect(simulation.honestCounts.entries.length).toBe(3);
-    for (const entry of simulation.honestCounts.entries) {
-      // Agriculture's firms stay below 100 (76/84/92 machine-measured).
-      expect(entry.executed).toBeLessThan(TARGET_JOURNEYS_PER_FIRM);
+    // F353 re-pin (machine-measured): agriculture small/medium stay below
+    // 100 (86/94 — the masked subset); agriculture large crosses at 102
+    // (105 cap - 19 masked + 16 epochs) — the honest large-firm landing.
+    const below = simulation.honestCounts.entries.filter((e) => e.executed < TARGET_JOURNEYS_PER_FIRM);
+    expect(below.length).toBe(2);
+    for (const entry of below) {
       expect(entry.shortfall).toBe(TARGET_JOURNEYS_PER_FIRM - entry.executed);
       expect(entry.reasons.length).toBeGreaterThanOrEqual(5);
       expect(entry.reasons.some((r) => r.includes("T0-anchored"))).toBe(true);
       expect(entry.reasons.some((r) => r.includes("census-certified"))).toBe(true);
       expect(entry.reasons.some((r) => r.includes("TODO-F332-SECURITY"))).toBe(true);
       expect(entry.reasons.some((r) => r.includes("masked out"))).toBe(true);
+    }
+    const atOrAbove = simulation.honestCounts.entries.filter((e) => e.executed >= TARGET_JOURNEYS_PER_FIRM);
+    expect(atOrAbove.length).toBe(1);
+    for (const entry of atOrAbove) {
+      expect(entry.shortfall).toBe(0);
     }
     expect(simulation.honestCounts.aggregateShortfall).toBe(
       simulation.honestCounts.entries.reduce((acc, e) => acc + e.shortfall, 0),
@@ -155,29 +163,31 @@ describe("adoption driver (per-firm)", () => {
     const { aggregate } = simulation;
     expect(aggregate.workspaces).toBe(6);
     expect(aggregate.journeyExecutions).toBe(aggregate.fieldExecutions + aggregate.commerceExecutions + aggregate.securityExecutions);
-    // F342 re-pin (machine-measured): construction 97/105/113 + mining
-    // 98/106/114 (the F332 base 91/92 + 6 Wave-14 journeys + the certified
-    // epoch counts per size: +8/+16 field-commerce epochs for medium/large).
-    expect(aggregate.journeyExecutions).toBe(315 + 318);
+    // F353 re-pin (machine-measured at the integrated tree, probe
+    // f353-measure): construction 102/110/118 + mining 103/111/119 (the
+    // F342 pins + the 5 F351B journeys — zero construction/mining masks on
+    // the new journey ids).
+    expect(aggregate.journeyExecutions).toBe(330 + 333);
     expect(aggregate.fieldEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.commerceEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.determinismVerified).toBe(true);
     // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
     // is regime-honest — zero failing facts, allJourneysPassed=true.
     expect(aggregate.allJourneysPassed).toBe(true);
-    expect(aggregate.uniqueApplicableJourneys).toBe(195); // journey-level (epochs add executions, not journeys)
+    expect(aggregate.uniqueApplicableJourneys).toBe(205); // journey-level (journey x industry pairs; epochs add executions, not journeys): 195 + the 5 F351B ids x 2 industries (all applicable to both)
   }, 120_000);
 
   it("firms of an industry share the verdict inputs (per-industry consistency)", async () => {
     const runs = await Promise.all(firmsOfIndustry("water-waste").map((f) => runFirm(f)));
     const counted = runs.map((r) => r.executionCounts.total);
-    // All three sizes share the SAME epoch-1 counted set (95 applicable —
-    // 89 at F332 + the 6 Wave-14 journeys); the epoch dimension grows
-    // counted executions by size only — the certified responders' D9
-    // epochs (never the verdict denominator).
-    expect(counted).toEqual([95, 95 + 8, 95 + 16]);
+    // All three sizes share the SAME epoch-1 counted set (100 applicable —
+    // 89 at F332 + the 6 Wave-14 journeys + the 5 F351B journeys, all
+    // applicable to water-waste); the epoch dimension grows counted
+    // executions by size only — the certified responders' D9 epochs
+    // (never the verdict denominator).
+    expect(counted).toEqual([100, 100 + 8, 100 + 16]);
     for (const run of runs) {
-      expect(run.executionFacts.filter((f) => f.epoch === 0).length).toBe(95);
+      expect(run.executionFacts.filter((f) => f.epoch === 0).length).toBe(100);
       // F343 re-pin (machine-measured at the fixed tree): zero failing
       // facts per firm (the ka6 tenant pin resolved by the fix).
       expect(run.executionFacts.filter((f) => !f.passed)).toHaveLength(0);

@@ -127,6 +127,21 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     journeysInThisTree: 27,
     delta: 2,
   },
+  {
+    // F353 re-pin (machine-measured at the integrated 10de683 tree): the
+    // F351B masked-industry coverage lane — 5 census-certified D14 journeys
+    // over the persona-relevant unexercised surface (assets registry
+    // lifecycle, work-order shift supersession, project closeout archival,
+    // procurement Guardian-law ordering, health threshold escalation).
+    workItem: "F351B",
+    lane: "worker-a (asset/field)",
+    branch: "work/f351b",
+    branchTipCommit: "da6a8e9",
+    corpus: "field",
+    journeysAtTip: 40,
+    journeysInThisTree: 35,
+    delta: 5,
+  },
 ];
 
 /** This branch's machine-run corpus counts (the CURRENT tree). */
@@ -139,10 +154,10 @@ export interface CurrentCorpusCounts {
 }
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
-  field: 35,
+  field: 40,
   commerce: 36,
   security: 29,
-  fullyApplicableFirmCap: 35 + 36 + 29,
+  fullyApplicableFirmCap: 40 + 36 + 29,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -153,18 +168,22 @@ export interface ConvergenceExpectation {
   /** A fully-applicable firm's counted cap at convergence. */
   readonly fullyApplicableFirmCap: number;
   readonly targetPerFirm: number;
-  /** The residual to the 100 target (0 at the F342 closure — never negative,
-   * never silently weakened; masked-industry shortfalls live in the ledger). */
+  /** The residual to the 100 target. F342 closed B-3 at EXACTLY 100
+   * (35+36+29). F351B's sanctioned grow-only corpus expansion (F350 §4 —
+   * the binding masked-industry disposition) raises the cap ABOVE the
+   * closed target (105 at F353); the never-weaken invariant is now
+   * cap >= target (a regression below 100 is refused as loudly as ever),
+   * while masked-industry shortfalls live in the ledger. */
   readonly shortfallPerFullyApplicableFirm: number;
 }
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
-  field: 35,
+  field: 40,
   commerce: 36,
   security: 29,
-  fullyApplicableFirmCap: 35 + 36 + 29,
+  fullyApplicableFirmCap: 40 + 36 + 29,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (35 + 36 + 29),
+  shortfallPerFullyApplicableFirm: 100 - (40 + 36 + 29),
 };
 
 /** Machine-check the parameterization's internal consistency. */
@@ -197,8 +216,15 @@ export function verifyConvergenceExpectation(): readonly string[] {
   if (CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm !== CONVERGENCE_EXPECTATION.targetPerFirm - CONVERGENCE_EXPECTATION.fullyApplicableFirmCap) {
     problems.push("convergence shortfall does not equal target minus cap");
   }
-  if (CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm < 0) {
-    problems.push("the cap exceeded the 100/firm target — count inflation is never honest (the F342 B-3 closure lands at EXACTLY 100, machine-measured)");
+  // F353 re-pin: the F342 tripwire refused a NEGATIVE shortfall (count
+  // inflation faking the B-3 closure). Post-closure, the binding law is the
+  // F350 §4 disposition: grow-only corpus expansion legitimately raises the
+  // cap above the closed 100 target. The never-weaken invariant preserved:
+  // the cap may never REGRESS below the target, and must always equal the
+  // live corpus sum (checked above) — inflation via fake journeys remains
+  // impossible because every corpus member is census-certified D14 real.
+  if (CONVERGENCE_EXPECTATION.fullyApplicableFirmCap < CONVERGENCE_EXPECTATION.targetPerFirm) {
+    problems.push("the fully-applicable cap fell below the 100/firm target — the F342 B-3 closure must never regress (post-closure growth is sanctioned grow-only per F350 §4; weakening is not)");
   }
   return problems;
 }

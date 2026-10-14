@@ -100,16 +100,20 @@ describe("industries", () => {
     }
   });
 
-  it("HONEST SUBSET law: not every industry is the full 100 — and the corpora are 35+36+29 (converged Wave 14)", () => {
-    expect(FIELD_JOURNEYS.length).toBe(35);
+  it("HONEST SUBSET law: not every industry is the full set — and the corpora are 40+36+29 (converged Wave 16 at F353)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(40);
     expect(COMMERCE_JOURNEYS.length).toBe(36);
     expect(SECURITY_JOURNEYS.length).toBe(29);
     const applicableCounts = INDUSTRIES.map(
       (i) => applicableFieldJourneys(i).length + applicableCommerceJourneys(i).length + applicableSecurityJourneys(i).length,
     );
-    const fullHundred = applicableCounts.filter((c) => c === 100).length;
-    expect(fullHundred).toBeLessThan(10);
-    expect(fullHundred).toBeGreaterThan(0); // manufacturing + energy-utilities legitimately span everything (the F342 B-3 closure)
+    // F353: the fully-applicable cap is 105 post-F351B (sanctioned grow-only
+    // corpus expansion per F350 §4); the B-3 law is now "at or above the 100
+    // target" — never below.
+    const fullSet = applicableCounts.filter((c) => c >= 100).length;
+    const belowTarget = applicableCounts.filter((c) => c < 100).length;
+    expect(fullSet).toBeGreaterThan(0); // manufacturing + energy-utilities legitimately span everything (the F342 B-3 closure, now at 105)
+    expect(belowTarget).toBeGreaterThan(0); // the honest subset law: masked industries remain below the cap
   });
 
   it("every industry keeps at least one applicable journey per corpus", () => {

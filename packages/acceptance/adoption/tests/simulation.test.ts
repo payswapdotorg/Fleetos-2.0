@@ -21,17 +21,17 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(INDUSTRIES.length).toBe(10);
   });
 
-  it("executes 3027 COUNTED journeys over the REAL corpora (plus raw epoch re-runs, never counted)", () => {
-    // F342 re-pin (machine-measured on the converged post-F341B tree, never
-    // copied): 2847 + 180 = the 6 Wave-14 journeys x 30 firms (field +120 =
-    // 4 F341A journeys incl. the D17 sixth slot; security +60 = 2 F341B
-    // journeys; commerce unchanged); uniqueApplicable 871 -> 931 (the 6
-    // journeys x 10 industries — all fully-applicable, D15, zero masks).
-    expect(SIMULATION.aggregate.fieldExecutions).toBe(1179);
+  it("executes 3171 COUNTED journeys over the REAL corpora (plus raw epoch re-runs, never counted)", () => {
+    // F353 re-pin (machine-measured at the integrated tree, probe
+    // f353-measure): 3027 + 144 = the 5 F351B journeys x the firms where
+    // they apply (28 of 30 — transport+agriculture mask the closeout
+    // journey); uniqueApplicable 931 -> 979; epochs unchanged (F351B
+    // journeys declare no epochs).
+    expect(SIMULATION.aggregate.fieldExecutions).toBe(1323);
     expect(SIMULATION.aggregate.commerceExecutions).toBe(1017);
     expect(SIMULATION.aggregate.securityExecutions).toBe(831);
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(3027);
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(931);
+    expect(SIMULATION.aggregate.journeyExecutions).toBe(3171);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(979);
     expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
     expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(897);
     // F332 ACTIVE (machine-measured, never copied): the INACTIVE gate counted
@@ -156,19 +156,18 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     }
   });
 
-  it("honest-counts ledger: exact shortfalls + structural reasons; the B-3 closure lands 17 firms at 100+ honestly", () => {
+  it("honest-counts ledger: exact shortfalls + structural reasons; 23 firms at 100+ (F353 measured)", () => {
     const { honestCounts } = REPORT;
     expect(honestCounts.targetPerFirm).toBe(100);
     expect(honestCounts.entries.length).toBe(30);
-    // F342 (machine-measured): 17 firms reach 100+ (10 at F332 + the Wave-14
-    // arithmetic — the fully-applicable industries' SMALL firms land AT 100
-    // exactly: manufacturing + energy-utilities 94+6, the F340 §3 B-3
-    // closure; construction medium, transportation medium+large,
-    // facilities-management large, telecommunications medium+large,
-    // mining medium+large, water-waste medium+large join at 100+); every
-    // other firm carries its exact shortfall with reasons.
+    // F353 re-pin (machine-measured): 23 firms reach 100+ (17 at F342 +
+    // the 5 F351B field journeys closing construction small 97->102 and
+    // mining small 98->103 — B-3 closes for both — plus the honest bonus:
+    // telecommunications + water-waste small firms land AT 100, and
+    // agriculture large crosses at 102); every other firm carries its
+    // exact shortfall with reasons.
     const atOrAbove = honestCounts.entries.filter((e) => e.executed >= 100);
-    expect(atOrAbove.length).toBe(17);
+    expect(atOrAbove.length).toBe(23);
     for (const entry of atOrAbove) {
       expect(entry.shortfall).toBe(0);
     }
@@ -176,14 +175,14 @@ describe("full industry adoption simulation (REAL corpora)", () => {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
     }
     const maxExecuted = Math.max(...honestCounts.entries.map((e) => e.executed));
-    expect(maxExecuted).toBe(116); // manufacturing/energy large: 100 + 12 field epochs + 4 commerce epochs
-    expect(honestCounts.aggregateShortfall).toBe(97);
+    expect(maxExecuted).toBe(121); // manufacturing/energy large: 105 + 12 field epochs + 4 commerce epochs
+    expect(honestCounts.aggregateShortfall).toBe(47);
     for (const reason of honestCounts.structuralReasons) {
       expect(reason.length).toBeGreaterThan(30);
     }
     // The masked-journey reason varies per firm (per-industry masks).
     const agricultureEntry = honestCounts.entries.find((e) => e.firmId === "firm-agriculture-large");
-    expect(agricultureEntry?.reasons.some((r) => r.includes("18 journey(s) masked"))).toBe(true);
+    expect(agricultureEntry?.reasons.some((r) => r.includes("19 journey(s) masked"))).toBe(true);
   });
 
   it("the report verifies and renders deterministically", () => {

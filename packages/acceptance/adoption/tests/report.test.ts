@@ -34,8 +34,8 @@ describe("adoption report (2-industry simulation)", () => {
     // MAIN-INTERFACE record is resolved by the fix, never silently
     // flipped).
     expect(manufacturing?.verdict).toBe("SWITCH-ONLY");
-    expect(manufacturing?.coverageTotal).toBe(100);
-    expect(manufacturing?.coveragePassed).toBe(100);
+    expect(manufacturing?.coverageTotal).toBe(105);
+    expect(manufacturing?.coveragePassed).toBe(105);
     expect(manufacturing?.coverageRatio).toBe(1);
     expect(manufacturing?.failingJourneys).toHaveLength(0);
     expect(manufacturing?.unmappedCapabilities).toHaveLength(0);
@@ -85,15 +85,16 @@ describe("adoption report (2-industry simulation)", () => {
   it("honest-counts ledger is complete and exact", () => {
     expect(REPORT.honestCounts.targetPerFirm).toBe(100);
     expect(REPORT.honestCounts.entries.length).toBe(6);
-    // F342 (machine-measured): manufacturing's firms all REACH 100+
-    // honestly (100/108/116 — the small firm AT 100 is the F340 §3 B-3
-    // closure); agriculture's firms stay below (82/90/98).
+    // F353 re-pin (machine-measured): manufacturing's firms all EXCEED
+    // 100 honestly (105/113/121 — the 5 F351B journeys on top of the F342
+    // B-3 closure); agriculture's firms stay below (86/94) with large at
+    // 102 (19 masked).
     for (const entry of REPORT.honestCounts.entries) {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
-      expect(entry.executed).toBeLessThanOrEqual(116);
+      expect(entry.executed).toBeLessThanOrEqual(121);
     }
     const manufacturingMedium = REPORT.honestCounts.entries.find((e) => e.firmId === "firm-manufacturing-medium");
-    expect(manufacturingMedium?.executed).toBe(108);
+    expect(manufacturingMedium?.executed).toBe(113);
     expect(manufacturingMedium?.shortfall).toBe(0);
     expect(REPORT.honestCounts.structuralReasons.length).toBe(5);
     expect(REPORT.honestCounts.aggregateShortfall).toBe(
