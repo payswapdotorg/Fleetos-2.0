@@ -516,3 +516,42 @@ Owner: C. Per F350 §4, tranche 2 (dispatched in parallel with F351B — owned p
 
 ### F354 — TL convergence, tranche-2 recount + re-pin + disposition update
 Owner: TL. Packet: `docs/tech-lead/packets/f354.md`. After F351C merges (following F353): recompute the 30-workspace ledger at the converged tree; re-pin; full battery; adjudicate + apply any declarative applicability proposals from the F351C report (honesty-gated); grow-only + never-weaken verified; the disposition update + documentation (catalog rows, AI_CONTINUATION.md, issue #3 comment, RESIDUAL-RISKS.md). Do not lower the target or broaden masks.
+
+
+## Post-Wave-16 product mission roadmap — planned, not dispatched
+
+Canonical product target: `docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md`. These items are the roadmap after F354. They are **PLANNED**, not implementation-complete and not dispatchable ahead of their stated dependencies. Every item must retain its own packet, evidence report and exact-candidate acceptance.
+
+### Wave 17 — equipment marketplace contract and integration
+
+#### F360 — TL product/transaction contract freeze
+**Status: PLANNED; packet:** `docs/tech-lead/packets/f360.md`.  
+Owner: TL. Dependency: Wave-16 disposition F354; contract discovery may overlap only if the TL records a non-conflicting scope. Freeze the one-market live-pilot boundary, real customer/supplier feasibility, supported equipment categories, participant roles, state machines, bounded-context ownership, authoritative persistence decision, provider/manual-ingestion seams, idempotency/reconciliation, Guardian/tenant rules, success metrics and exact end-to-end acceptance. Deliver `docs/product/MARKETPLACE-MVP-FREEZE.md`, evidence at `docs/evidence/F360/report.md`, standalone F361A/B/C packets and the full Wave-17 catalog detail. Do not invent suppliers, stock, availability, APIs, or payment capabilities. If real customer/supplier access cannot be evidenced, record the pilot blocker and onboarding actions. Follow explicit operator gates for architecture-lock, authentication/security invariant, new authoritative persistence, money movement/licensing or materially changed product contracts.
+
+#### F361A — receiving and asset lifecycle link
+**Status: PLANNED; Worker A; packet authored by F360.**  
+Implement equipment receiving/inspection, serial/tag and duplicate guards, tenant/site/custody, warranty/condition, enrollment/link into authoritative asset truth, discrepancies and lifecycle evidence. Own only A-authorized asset/device/observation/field paths and evidence. Acceptance includes deterministic domain tests, tenant/refusal cases, evidence-linked state changes, field-corpus extension where justified, and an end-to-end contract for TL composition. No fabricated physical delivery claim.
+
+#### F361B — marketplace trust, Guardian and evidence controls
+**Status: PLANNED; Worker B; packet authored by F360.**  
+Implement supplier/offer evidence requirements, verification status and freshness policy, authorization, budget/role gates, consequential-action approval/refusal, audit/evidence references, untrusted or duplicate provider-event handling and secure failure states. Own only B-authorized security/policy/action/evidence paths and security corpus. Guardian remains the sole consequential-action authority. Do not own supplier/order source-of-truth state or claim identity authentication until production auth is actually wired and tested.
+
+#### F361C — supplier catalogue, offers, procurement and fulfilment state
+**Status: PLANNED; Worker C; packet authored by F360.**  
+Implement supplier profiles/catalogue, source and freshness of availability, request/RFQ, offers/quotes, transparent comparison, purchase/rental/lease/service-order state, provider/manual acknowledgement, delivery/service milestones, reconciliation, cancellation/return/dispute for the frozen pilot. Own only C-authorized vendor/procurement/work/commerce paths and evidence. Start provider-neutral; Aurum/ADCOS/Arena remain `CONTRACT_ONLY` until separately evidenced.
+
+#### F362 — TL convergence: live-pilot transaction spine
+**Status: PLANNED; Owner TL.**  
+Integrate F361A/B/C with the real web UI, control plane, authoritative persistence and supported supplier seam. Prove request → source-verified offer(s) → governed approval → real supplier commitment → fulfilment/receipt evidence → authoritative asset enrollment/link. Run all relevant acceptance suites, typecheck/lint/architecture/dependency checks, clean-checkout root gates, browser E2E and exact-deployment verification. Create `docs/evidence/F362/report.md`; preserve all provider, tenant/security, durability and live-versus-fixture boundaries.
+
+### Wave 18 — production and live-pilot evidence
+
+#### F370 — production pilot hardening
+**Status: PLANNED; Owner TL with work scoped to A/B/C ownership.**  
+Productionize the pilot's authoritative business persistence, identity/authentication and server-side tenant authorization, secret management, integration health, observability, idempotency/retries/reconciliation, backup/restore, incident/rollback runbooks and verified deployment. Any new authoritative store or material security/persistence change requires the Architecture Lock/operator-gate protocol. Do not use the F351A JSONL qualification service as blanket authorization for marketplace transaction state. Evidence: `docs/evidence/F370/report.md`.
+
+#### F371 — real customer + supplier pilot acceptance
+**Status: PLANNED; Owner TL.**  
+Demonstrate a real customer request and real supplier participation in the selected market. Capture verified offers, approval/commitment, actual delivery or service completion, customer acceptance/exceptions, and asset linkage when equipment is involved. Measure quote response time, request-to-decision, fill rate, on-time fulfilment/service, cost baseline, exception/dispute rate and customer/supplier feedback. A manual operator-verified adapter is permitted only when clearly labelled and auditable. No real customer/provider evidence means the live-pilot gate stays BLOCKED. Evidence: `docs/evidence/F371/report.md`; disposition must name the exact candidate SHA and all residual qualifications.
+
+**Dispatch rule:** only F360 may freeze F361A/B/C contracts and author their complete packets. Do not start F361 from this roadmap prose alone. Do not describe Wave 17/18 as implemented before evidence and exact-tree convergence.
