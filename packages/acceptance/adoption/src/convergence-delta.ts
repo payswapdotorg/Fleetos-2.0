@@ -142,6 +142,21 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     journeysInThisTree: 35,
     delta: 5,
   },
+  {
+    // F354 re-pin (machine-measured at the integrated 678c7bf tree): the
+    // F351C masked-industry coverage lane tranche 2 — 5 fleet-universal
+    // commerce D14 journeys (procurement-order authorization, vendor
+    // matching, quote comparison, vendor KPI rollup, idempotent document
+    // creation); ZERO industries.ts motion (all universal).
+    workItem: "F351C",
+    lane: "worker-c (work/commerce)",
+    branch: "work/f351c",
+    branchTipCommit: "0207559",
+    corpus: "commerce",
+    journeysAtTip: 41,
+    journeysInThisTree: 36,
+    delta: 5,
+  },
 ];
 
 /** This branch's machine-run corpus counts (the CURRENT tree). */
@@ -155,9 +170,9 @@ export interface CurrentCorpusCounts {
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
   field: 40,
-  commerce: 36,
+  commerce: 41,
   security: 29,
-  fullyApplicableFirmCap: 40 + 36 + 29,
+  fullyApplicableFirmCap: 40 + 41 + 29,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -179,11 +194,11 @@ export interface ConvergenceExpectation {
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
   field: 40,
-  commerce: 36,
+  commerce: 41,
   security: 29,
-  fullyApplicableFirmCap: 40 + 36 + 29,
+  fullyApplicableFirmCap: 40 + 41 + 29,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (40 + 36 + 29),
+  shortfallPerFullyApplicableFirm: 100 - (40 + 41 + 29),
 };
 
 /** Machine-check the parameterization's internal consistency. */

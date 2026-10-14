@@ -21,7 +21,7 @@ import { COMMERCE_T0 } from "../src/journey-world.js";
 import { canonicalJson } from "../src/journey-contracts.js";
 
 const F351C_IDS = [
-  "procurement-order-authorization",
+  "procurement-quote-to-order-authorization",
   "vendor-matching-discipline",
   "quote-comparison-discipline",
   "vendor-fulfillment-kpi-rollup",
@@ -68,7 +68,7 @@ describe("F351C — census bound + corpus laws", () => {
         a.description.startsWith("REFUSAL") || a.description.includes("fail-closed") || a.description.includes("refuses"));
       expect(refusals.length, journey.id).toBeGreaterThanOrEqual(1);
     }
-    expect(byId("procurement-order-authorization").assertions.length).toBe(24);
+    expect(byId("procurement-quote-to-order-authorization").assertions.length).toBe(24);
     expect(byId("vendor-matching-discipline").assertions.length).toBe(19);
     expect(byId("quote-comparison-discipline").assertions.length).toBe(19);
     expect(byId("vendor-fulfillment-kpi-rollup").assertions.length).toBe(14);
@@ -120,8 +120,8 @@ describe("F351C — census bound + corpus laws", () => {
 });
 
 describe("F351C — deep facts (pinned verbatim)", () => {
-  it("procurement-order-authorization: the refusal + creation logs in order", async () => {
-    const { facts } = await runJourney(byId("procurement-order-authorization"));
+  it("procurement-quote-to-order-authorization: the refusal + creation logs in order", async () => {
+    const { facts } = await runJourney(byId("procurement-quote-to-order-authorization"));
     expect(facts.get("pdir.orderLog")).toEqual([
       "ord-1:refused:AUTHORIZATION_DENIED",
       "ord-1:refused:ILLEGAL_TRANSITION",

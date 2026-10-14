@@ -100,9 +100,9 @@ describe("industries", () => {
     }
   });
 
-  it("HONEST SUBSET law: not every industry is the full set — and the corpora are 40+36+29 (converged Wave 16 at F353)", () => {
+  it("HONEST SUBSET law: not every industry is the full set — and the corpora are 40+41+29 (converged Wave 16 at F354)", () => {
     expect(FIELD_JOURNEYS.length).toBe(40);
-    expect(COMMERCE_JOURNEYS.length).toBe(36);
+    expect(COMMERCE_JOURNEYS.length).toBe(41);
     expect(SECURITY_JOURNEYS.length).toBe(29);
     const applicableCounts = INDUSTRIES.map(
       (i) => applicableFieldJourneys(i).length + applicableCommerceJourneys(i).length + applicableSecurityJourneys(i).length,

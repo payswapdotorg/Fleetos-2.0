@@ -44,7 +44,7 @@ const guardianDeny = { decisionId: "gd-deny-1", authorized: false, reasonCode: "
  * the directory return NOTHING (fail-closed).
  */
 export const procurementOrderAuthorizationJourney: AcceptanceJourney = {
-  id: "procurement-order-authorization",
+  id: "procurement-quote-to-order-authorization",
   persona: "procurement-lead",
   capability: "procurement-ordering",
   goal: "Create a purchase order through the REAL ProcurementDirectory over the REAL in-memory repository — the quote must be ACCEPTED first (an early attempt off a submitted quote refuses ILLEGAL_TRANSITION), the law-A5 Guardian gate refuses a denied decision (AUTHORIZATION_DENIED — procurement never self-authorizes), the successful creation persists a draft order whose audit event carries the authorization decision id, and cross-tenant order/quote reads fail closed (the other tenant sees nothing, never a record).",

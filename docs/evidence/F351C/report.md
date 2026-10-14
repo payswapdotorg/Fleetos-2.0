@@ -2,7 +2,7 @@
 
 - **Work item:** F351C (`spec/work-items/WORK-ITEM-CATALOG.md`, Wave 16; packet
   `docs/tech-lead/packets/f351c.md` — the binding contract).
-- **Worker:** C (the commerce lane). **Date:** 2026-10-15.
+- **Worker:** C (the commerce lane). **Date:** 2026-10-14 (corrected at F354 from a worker typo that read 2026-10-15; the lane commit timestamp 2026-10-14 06:43:52 +0000 is the evidence of record).
 - **Base:** `cb572b8` (main HEAD at clone — EXACTLY the F351C freeze commit,
   the packet's expected base). Branch `work/f351c`; the pushed tip SHA is in
   the FINAL REPORT (the repository is the source of truth).
@@ -46,7 +46,7 @@ The work package has NO journey-grade unexercised surface (row 10).
 
 | journey id | persona | capability | steps | assertions | refusal paths asserted |
 |---|---|---|---:|---:|---|
-| `procurement-order-authorization` | procurement-lead | procurement-ordering | 12 | 24 | AUTHORIZATION_DENIED, ILLEGAL_TRANSITION (×2: early quote + terminal quote), cross-tenant order/quote reads return NOTHING |
+| `procurement-quote-to-order-authorization` (renamed at F354 from `procurement-order-authorization` — the F351B field lane delivered the same id over the shared createOrder/A5 surface in parallel; see the F354 report adjudication) | procurement-lead | procurement-ordering | 12 | 24 | AUTHORIZATION_DENIED, ILLEGAL_TRANSITION (×2: early quote + terminal quote), cross-tenant order/quote reads return NOTHING |
 | `vendor-matching-discipline` | vendor-manager | vendor-matching | 4 | 19 | TENANT_MISMATCH (foreign demand), zero-match + foreign-tenant vendors never enter the match set |
 | `quote-comparison-discipline` | procurement-lead | quote-comparison | 9 | 19 | NO_QUOTES, WEIGHTS_MUST_SUM_TO_10000, INVALID_UNIT_COST, INVALID_LEAD_TIME, TENANT_MISMATCH |
 | `vendor-fulfillment-kpi-rollup` | vendor-manager | vendor-performance | 5 | 14 | EMPTY_PERFORMANCE_HISTORY, NEGATIVE_QUANTITY, foreign-tenant outcomes/capabilities never counted |

@@ -79,16 +79,16 @@ const INACTIVE_PER_FIRM: Record<string, number> = {
 };
 
 const ACTIVE_PER_FIRM: Record<string, [number, number, number]> = {
-  manufacturing: [105, 113, 121],
-  construction: [102, 110, 118],
-  "energy-utilities": [105, 113, 121],
-  "transportation-logistics": [97, 105, 113],
-  agriculture: [86, 94, 102],
-  "healthcare-facilities": [90, 97, 104],
-  "facilities-management": [91, 98, 105],
-  telecommunications: [100, 108, 116],
-  mining: [103, 111, 119],
-  "water-waste": [100, 108, 116],
+  manufacturing: [110, 118, 126],
+  construction: [107, 115, 123],
+  "energy-utilities": [110, 118, 126],
+  "transportation-logistics": [102, 110, 118],
+  agriculture: [91, 99, 107],
+  "healthcare-facilities": [95, 102, 109],
+  "facilities-management": [96, 103, 110],
+  telecommunications: [105, 113, 121],
+  mining: [108, 116, 124],
+  "water-waste": [105, 113, 121],
 };
 
 const SIMULATION = await runAdoptionSimulation();
@@ -130,12 +130,12 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
       // where they apply (28 of 30 firms; transport+agriculture mask the
       // closeout journey — D15-strict); uniqueApplicable 931 -> 979; the
       // epoch dimensions unchanged (the F351B journeys declare no epochs).
-      expect(SIMULATION.aggregate.journeyExecutions).toBe(3171);
+      expect(SIMULATION.aggregate.journeyExecutions).toBe(3321);
       expect(SIMULATION.aggregate.fieldExecutions).toBe(1323);
-      expect(SIMULATION.aggregate.commerceExecutions).toBe(1017);
+      expect(SIMULATION.aggregate.commerceExecutions).toBe(1167);
       expect(SIMULATION.aggregate.securityExecutions).toBe(831);
       expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
-      expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(897);
+      expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1047);
     } else {
       // The frozen Wave-13 INACTIVE record (unreachable while ACTIVE).
       expect(SIMULATION.aggregate.journeyExecutions).toBe(2613);
@@ -144,7 +144,7 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
       expect(SIMULATION.aggregate.securityExecutions).toBe(771);
       expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(885);
     }
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(979);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1029);
     expect(SIMULATION.aggregate.determinismVerified).toBe(true);
     // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
     // is regime-honest in BOTH regimes (the kern.admit readings now expose
