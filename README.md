@@ -40,7 +40,9 @@ Key principles:
 | [spec/DEPENDENCY-GRAPH.md](spec/DEPENDENCY-GRAPH.md) | dependency direction |
 | [spec/worker-ownership.yaml](spec/worker-ownership.yaml) | TL + three-worker ownership |
 | [spec/work-items/WORK-ITEM-CATALOG.md](spec/work-items/WORK-ITEM-CATALOG.md) | implementation backlog |
-| [docs/tech-lead/FINAL-HANDOFF.md](docs/tech-lead/FINAL-HANDOFF.md) | autonomous TL handoff |
+| [docs/tech-lead/FINAL-RELEASE-HANDOFF.md](docs/tech-lead/FINAL-RELEASE-HANDOFF.md) | current TL execution handoff and release disposition |
+| [docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md](docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md) | canonical equipment marketplace mission + live-pilot acceptance |
+| [docs/tech-lead/FINAL-HANDOFF.md](docs/tech-lead/FINAL-HANDOFF.md) | standing TL role, ownership and quality rubric |
 | [docs/tech-lead/CONCURRENCY-PROTOCOL.md](docs/tech-lead/CONCURRENCY-PROTOCOL.md) | concurrency/merge protocol |
 
 ## Fork strategy
