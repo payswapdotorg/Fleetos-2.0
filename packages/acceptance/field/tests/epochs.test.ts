@@ -53,6 +53,8 @@ describe("F331A epoch declarations (D8's closed set)", () => {
     "project-closeout-archival", // F351B (census row P: project closeout/archival)
     "procurement-order-authorization", // F351B (census row M/O: procurement ordering)
     "equipment-health-threshold-escalation", // F351B (census row H: health thresholds)
+    "marketplace-receipt-enrollment", // F361A (the F360 freeze §3.5 receipt→enrollment machine)
+    "marketplace-receipt-discrepancy", // F361A (the discrepancy + verified re-record path)
   ]);
   it("the census table covers the 30 census-era journeys with the frozen class law", () => {
     expect(FIELD_CENSUS.length).toBe(30);

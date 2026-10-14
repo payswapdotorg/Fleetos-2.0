@@ -41,8 +41,10 @@ import { executeF351BWorkOperation } from "./ops/f351b-work-ops.js";
 import { executeF351BProjectOperation } from "./ops/f351b-project-ops.js";
 import { executeF351BProcurementOperation } from "./ops/f351b-procurement-ops.js";
 import { executeF351BHealthOperation } from "./ops/f351b-health-ops.js";
+import { executeF361AMarketplaceOperation } from "./ops/f361a-marketplace-ops.js";
 import { F341A_BP_OP_KINDS, F341A_RET_OP_KINDS, F341A_WORLD_OP_KINDS, F341A_KERNEL_OP_KINDS } from "./journey-contracts-f341a.js";
 import { F351B_ASSET_OP_KINDS, F351B_WORK_OP_KINDS, F351B_PROJECT_OP_KINDS, F351B_PROCUREMENT_OP_KINDS, F351B_HEALTH_OP_KINDS } from "./journey-contracts-f351b.js";
+import { F361A_OP_KINDS } from "./journey-contracts-f361a.js";
 import type { OpExecution } from "./ops/common.js";
 import { TENANT, T0 } from "./fixtures.js";
 import { deepEquals } from "./determinism.js";
@@ -101,6 +103,7 @@ const F351B_WORK_OPS = F351B_WORK_OP_KINDS;
 const F351B_PROJECT_OPS = F351B_PROJECT_OP_KINDS;
 const F351B_PROCUREMENT_OPS = F351B_PROCUREMENT_OP_KINDS;
 const F351B_HEALTH_OPS = F351B_HEALTH_OP_KINDS;
+const F361A_MRE_OPS = F361A_OP_KINDS;
 
 function executeOperation(step: JourneyStep, ctx: JourneyContext): OpExecution {
   const kind = step.op.kind;
@@ -122,6 +125,7 @@ function executeOperation(step: JourneyStep, ctx: JourneyContext): OpExecution {
   if (F351B_PROJECT_OPS.has(kind)) return executeF351BProjectOperation(step.op, ctx);
   if (F351B_PROCUREMENT_OPS.has(kind)) return executeF351BProcurementOperation(step.op, ctx);
   if (F351B_HEALTH_OPS.has(kind)) return executeF351BHealthOperation(step.op, ctx);
+  if (F361A_MRE_OPS.has(kind)) return executeF361AMarketplaceOperation(step.op, ctx);
   return executeViewOperation(step.op, ctx);
 }
 

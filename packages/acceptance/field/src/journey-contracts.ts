@@ -21,6 +21,7 @@ import type { F321AOperation } from "./journey-contracts-f321a.js";
 import type { F331AOperation } from "./journey-contracts-f331a.js";
 import type { F341AOperation } from "./journey-contracts-f341a.js";
 import type { F351BOperation } from "./journey-contracts-f351b.js";
+import type { F361AOperation } from "./journey-contracts-f361a.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabulary — personas (7) + capabilities.
@@ -204,7 +205,11 @@ export type JourneyOperation =
   // operations (the F351B census: assets registry lifecycle, work-order
   // supersession, project closeout, procurement ordering, health
   // threshold escalation).
-  | F351BOperation;
+  | F351BOperation
+  // F361A (Wave 17 lane A) — the marketplace receipt→asset enrollment
+  // operations (the F361A census: the receipt evidence state machine +
+  // the enrollment contract over the EXISTING asset registry).
+  | F361AOperation;
 
 export interface JourneyStep {
   readonly id: string;
