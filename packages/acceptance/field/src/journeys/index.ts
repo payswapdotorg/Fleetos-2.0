@@ -5,15 +5,18 @@
  * lane A — the edge firmware/OTA campaign journey + the D8 census-certified
  * epoch parameterizations, see epoch-schedule.ts; F341A Wave 14 lane A —
  * the three field remainder journeys + the TL-adjudicated D17 sixth slot;
- * F351B Wave 16 lane A — the five masked-industry coverage journeys).
+ * F351B Wave 16 lane A — the five masked-industry coverage journeys;
+ * F361A Wave 17 lane A — the two marketplace receipt→asset enrollment
+ * journeys per the F360 freeze §3.5).
  *
- * 40 journeys across the fixed 7-persona vocabulary (14 original + 6
+ * 42 journeys across the fixed 7-persona vocabulary (14 original + 6
  * genuinely distinct host-integration journeys added by F300A + 10 genuinely
  * distinct F321A journeys + 1 F331A edge firmware/OTA campaign journey + 3
  * F341A field remainder journeys + 1 TL-adjudicated F341A D17 sixth-slot
- * journey + 5 F351B masked-industry coverage journeys). Journeys are pure
- * DATA (typed operations + declarative assertions); the runner executes
- * them against the REAL public APIs of this lane's packages.
+ * journey + 5 F351B masked-industry coverage journeys + 2 F361A marketplace
+ * receipt→enrollment journeys). Journeys are pure DATA (typed operations +
+ * declarative assertions); the runner executes them against the REAL public
+ * APIs of this lane's packages.
  *
  * ORDER MATTERS: `handoff-field-to-operator-consume` declares
  * `consumesHandoff` — the corpus runner threads the publishing journey's
@@ -69,6 +72,10 @@ import { workOrderShiftSupersessionJourney } from "./f351b-work-order.js";
 import { projectCloseoutArchivalJourney } from "./f351b-project-closeout.js";
 import { procurementOrderAuthorizationJourney } from "./f351b-procurement-order.js";
 import { equipmentHealthThresholdEscalationJourney } from "./f351b-health-thresholds.js";
+import {
+  marketplaceReceiptEnrollmentJourney,
+  marketplaceReceiptDiscrepancyJourney,
+} from "./f361a-marketplace.js";
 
 export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   enrollNewAssetJourney,
@@ -126,6 +133,13 @@ export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   projectCloseoutArchivalJourney,
   procurementOrderAuthorizationJourney,
   equipmentHealthThresholdEscalationJourney,
+  // F361A (Wave 17 lane A) — the two marketplace receipt→asset
+  // enrollment journeys (the F360 freeze §3.5 state machines over the
+  // REAL receipt-evidence + enrollment contract; the duplicate-serial
+  // guard and the tenant fail-closed reads). No epochs declared (D14's
+  // single-epoch default; the F330 census set is closed).
+  marketplaceReceiptEnrollmentJourney,
+  marketplaceReceiptDiscrepancyJourney,
 ];
 
 export {
@@ -169,4 +183,6 @@ export {
   projectCloseoutArchivalJourney,
   procurementOrderAuthorizationJourney,
   equipmentHealthThresholdEscalationJourney,
+  marketplaceReceiptEnrollmentJourney,
+  marketplaceReceiptDiscrepancyJourney,
 };

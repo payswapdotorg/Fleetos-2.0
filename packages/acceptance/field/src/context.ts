@@ -73,6 +73,11 @@ import type { WorkItem, ProgressEvent } from "@fleetos/work";
 import type { Project, ProjectArchivalRecord } from "@fleetos/projects";
 import type { Order } from "@fleetos/procurement";
 import { emptyDiagnosisRegistry, type DiagnosisRegistry } from "@fleetos/health";
+// F361A (Wave 17 lane A) — the REAL marketplace receipt→enrollment
+// directory (public API of @fleetos/assets), wired onto the SAME
+// in-memory registry repository backing ctx.assets (the EXISTING asset
+// truth — never a second one).
+import { ReceiptEnrollmentDirectory } from "@fleetos/assets";
 
 /** A JSON-shaped reading value (assertions compare these canonically). */
 export type ReadingValue = string | number | boolean | null | ReadonlyArray<unknown> | { readonly [k: string]: unknown };
@@ -221,6 +226,12 @@ export interface JourneyContext {
   f351bOrders: Map<string, Order>;
   /** REAL diagnosis registry (registerDiagnosis outputs, tenant-scoped). */
   f351bDiagnosisRegistry: DiagnosisRegistry;
+  // -------------------------------------------------------------------------
+  // F361A (Wave 17 lane A) — the REAL marketplace receipt→asset enrollment
+  // directory, constructed over the SAME registry repository as ctx.assets
+  // (admit/activate/twin-link all land in the EXISTING asset truth).
+  // -------------------------------------------------------------------------
+  f361aEnrollment: ReceiptEnrollmentDirectory;
 }
 
 /** The caller-threaded sim-worlds run record (REAL engine outputs only). */
@@ -237,11 +248,15 @@ export interface F341AWorldRunRecord {
 }
 
 export function createJourneyContext(tenantId: string, startedAt: number): JourneyContext {
+  // F361A: the registry repository is retained so the receipt-enrollment
+  // directory consumes the SAME asset truth as ctx.assets (the twins port
+  // IS the registry's own twin persistence — never a second registry).
+  const assetsRepo = new InMemoryAssetRepository();
   return {
     tenantId,
     startedAt,
     clock: startedAt,
-    assets: new AssetDirectory(new InMemoryAssetRepository()),
+    assets: new AssetDirectory(assetsRepo),
     devices: new Map(),
     enrollment: new EnrollmentDirectory(new InMemoryEnrollmentRegistry()),
     admission: emptyAdmissionStore(),
@@ -304,6 +319,10 @@ export function createJourneyContext(tenantId: string, startedAt: number): Journ
     f351bProjectArchives: [],
     f351bOrders: new Map(),
     f351bDiagnosisRegistry: emptyDiagnosisRegistry(),
+    // F361A state — the REAL directory over the shared registry repo
+    // (the twins port IS the registry's own twin persistence, so the
+    // enrollment's twin link lands in the EXISTING asset truth).
+    f361aEnrollment: new ReceiptEnrollmentDirectory(new AssetDirectory(assetsRepo), undefined, assetsRepo),
   };
 }
 
