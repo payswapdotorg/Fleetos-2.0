@@ -12,7 +12,9 @@ Before changing behavior, read:
 4. `spec/DEPENDENCY-GRAPH.md`
 5. `spec/worker-ownership.yaml`
 6. `spec/work-items/WORK-ITEM-CATALOG.md`
-7. the applicable work item and ADRs.
+7. `docs/tech-lead/FINAL-RELEASE-HANDOFF.md` (current disposition and next execution order)
+8. `docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md` (canonical equipment-marketplace destination and live-pilot gate, when relevant)
+9. the applicable work item packet and ADRs.
 
 Never require conversation history to understand or implement a task.
 
