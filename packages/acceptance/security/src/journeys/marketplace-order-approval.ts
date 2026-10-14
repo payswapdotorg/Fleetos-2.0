@@ -150,8 +150,8 @@ export const marketplaceOrderApprovalJourney: AcceptanceJourney = {
         ctx.record("propose.capabilityCategory", proposed.capability.category);
         ctx.record("propose.capabilityRisk", proposed.capability.risk);
         ctx.record("propose.idempotencyNonce", proposed.record.intent.idempotencyKey.nonce);
-        ctx.record("propose.inputsOrderId", (proposed.record.intent.inputs as Record<string, unknown>)["orderId"]);
-        ctx.record("propose.inputsPolicyRefs", (proposed.record.intent.inputs as Record<string, unknown>)["policyRefs"]);
+        ctx.record("propose.inputsOrderId", String((proposed.record.intent.inputs as Record<string, unknown>)[("orderId" as const)]));
+        ctx.record("propose.inputsPolicyRefs", (proposed.record.intent.inputs as Record<string, unknown>)["policyRefs"] as readonly string[]);
       },
     },
     {
@@ -196,11 +196,12 @@ export const marketplaceOrderApprovalJourney: AcceptanceJourney = {
       packages: ["@fleetos/policy", "@fleetos/actions"],
       operations: ["evaluateMarketplaceOrderApproval", "authorizeMarketplaceOrderAction", "rejectMarketplaceOrderAction"],
       run: (ctx) => {
+        const amountCheck = overLimitApproval.limitFindings.find((f) => f.check === "check.amount_within_ceiling");
         ctx.record("overLimit.decision", overLimitApproval.decision);
         ctx.record("overLimit.reasonCode", overLimitApproval.reasonCode);
-        ctx.record("overLimit.amountCheckPassed", overLimitApproval.limitFindings.find((f) => f.check === "check.amount_within_ceiling")?.passed);
-        ctx.record("overLimit.amountObserved", overLimitApproval.limitFindings.find((f) => f.check === "check.amount_within_ceiling")?.observed);
-        ctx.record("overLimit.amountLimit", overLimitApproval.limitFindings.find((f) => f.check === "check.amount_within_ceiling")?.limit);
+        ctx.record("overLimit.amountCheckPassed", amountCheck === undefined ? "missing" : amountCheck.passed);
+        ctx.record("overLimit.amountObserved", amountCheck === undefined ? "missing" : amountCheck.observed);
+        ctx.record("overLimit.amountLimit", amountCheck === undefined ? "missing" : amountCheck.limit);
         ctx.record("overLimit.authorizeOk", overLimitAuthorize.ok);
         ctx.record("overLimit.authorizeRefusalReason", overLimitAuthorize.ok ? "none" : overLimitAuthorize.reason);
         ctx.record("overLimit.stateAfterAuthorizeAttempt", overLimitProposed.record.state);

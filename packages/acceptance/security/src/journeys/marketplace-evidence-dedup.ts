@@ -45,7 +45,7 @@
 
 import type { AcceptanceJourney } from "../journey-contracts.ts";
 import { InMemoryMarketplaceEvidenceStore, classifyMarketplaceEvidenceFreshness } from "@fleetos/evidence";
-import type { MarketplaceEvidenceInput } from "@fleetos/evidence";
+import type { MarketplaceEvidenceInput, MarketplaceEvidenceRecordOutcome } from "@fleetos/evidence";
 import { buildArtifact, utf8Bytes } from "@fleetos/evidence";
 import { TENANT, FOREIGN_TENANT } from "./fixture-world.ts";
 
@@ -80,7 +80,7 @@ const KIND_INPUTS: readonly { readonly kind: MarketplaceEvidenceInput["kind"]; r
   { kind: "marketplace.receipt", event: "prov-event-receipt-4", system: "operator-received" },
 ];
 
-const kindRecords = [];
+const kindRecords: MarketplaceEvidenceRecordOutcome[] = [];
 for (const k of KIND_INPUTS) {
   const outcome = await STORE.recordEvidence(TENANT, input({
     kind: k.kind,
@@ -90,7 +90,9 @@ for (const k of KIND_INPUTS) {
   kindRecords.push(outcome);
 }
 const storedCount = STORE.size();
-const offerRecord = kindRecords[0]!.ok ? kindRecords[0]!.record : null;
+const offerOutcome = kindRecords[0];
+if (offerOutcome === undefined || !offerOutcome.ok) throw new Error("fixture offer record failed");
+const offerRecord = offerOutcome.record;
 
 // Duplicate provider event: SAME payload re-presented.
 const duplicateSame = await STORE.recordEvidence(TENANT, input(), AT);
@@ -103,9 +105,9 @@ const duplicateDivergent = await STORE.recordEvidence(TENANT, divergentInput, AT
 const countAfterDuplicates = STORE.size();
 
 // Tenant fail-closed: foreign reads + foreign write.
-const foreignRead = await STORE.readEvidence(FOREIGN_TENANT, offerRecord?.evidenceId ?? "mpe-none");
+const foreignRead = await STORE.readEvidence(FOREIGN_TENANT, offerRecord.evidenceId);
 const foreignFindByEvent = await STORE.findByProviderEvent(FOREIGN_TENANT, "prov-event-offer-1");
-const foreignList = await STORE.listBySubject(FOREIGN_TENANT, "order-100");
+const foreignListIds = (await STORE.listBySubject(FOREIGN_TENANT, "order-100")).map((r) => r.evidenceId);
 const foreignWrite = await STORE.recordEvidence(FOREIGN_TENANT, input(), AT);
 const countAfterForeignWrite = STORE.size();
 
@@ -119,12 +121,13 @@ const futureCapture = await STORE.recordEvidence(TENANT, input({
   capturedAt: "2026-10-12T18:45:00.001Z",
 }), AT);
 const missingCapture = await STORE.recordEvidence(TENANT, input({ providerEventId: "prov-event-missing-8", capturedAt: "" }), AT);
-const freshClass = offerRecord ? classifyMarketplaceEvidenceFreshness(offerRecord, Date.parse(AT), FRESH_WINDOW) : null;
+const freshClass = classifyMarketplaceEvidenceFreshness(offerRecord, Date.parse(AT), FRESH_WINDOW);
 const staleRecordOutcome = await STORE.recordEvidence(TENANT, input({
   providerEventId: "prov-event-stale-7",
   capturedAt: "2026-10-01T09:00:00.000Z",
 }), AT);
-const staleClass = staleRecordOutcome.ok ? classifyMarketplaceEvidenceFreshness(staleRecordOutcome.record, Date.parse(AT), FRESH_WINDOW) : null;
+if (!staleRecordOutcome.ok) throw new Error("fixture stale record failed");
+const staleClass = classifyMarketplaceEvidenceFreshness(staleRecordOutcome.record, Date.parse(AT), FRESH_WINDOW);
 
 export const marketplaceEvidenceDedupJourney: AcceptanceJourney = {
   journeyId: "security.marketplace-evidence-dedup-discipline",
@@ -142,13 +145,13 @@ export const marketplaceEvidenceDedupJourney: AcceptanceJourney = {
         ctx.record("retain.allOk", kindRecords.every((r) => r.ok && !r.duplicate));
         ctx.record("retain.kinds", kindRecords.map((r) => (r.ok ? r.record.kind : "failed")));
         ctx.record("retain.count", storedCount);
-        ctx.record("retain.idPrefix", offerRecord?.evidenceId.slice(0, 4) ?? "none");
-        ctx.record("retain.sourceSystem", offerRecord?.source.system);
-        ctx.record("retain.sourceReference", offerRecord?.source.reference);
-        ctx.record("retain.retrievedVia", offerRecord?.source.retrievedVia);
-        ctx.record("retain.capturedAt", offerRecord?.capturedAt);
-        ctx.record("retain.recordedAt", offerRecord?.recordedAt);
-        ctx.record("retain.digestLength", offerRecord?.contentDigest.length ?? 0);
+        ctx.record("retain.idPrefix", offerRecord.evidenceId.slice(0, 4));
+        ctx.record("retain.sourceSystem", offerRecord.source.system);
+        ctx.record("retain.sourceReference", offerRecord.source.reference);
+        ctx.record("retain.retrievedVia", offerRecord.source.retrievedVia);
+        ctx.record("retain.capturedAt", offerRecord.capturedAt);
+        ctx.record("retain.recordedAt", offerRecord.recordedAt);
+        ctx.record("retain.digestLength", offerRecord.contentDigest.length);
       },
     },
     {
@@ -161,14 +164,14 @@ export const marketplaceEvidenceDedupJourney: AcceptanceJourney = {
         ctx.record("dup.samePayloadOk", duplicateSame.ok);
         ctx.record("dup.samePayloadDuplicate", duplicateSame.ok ? duplicateSame.duplicate : false);
         ctx.record("dup.samePayloadEvidenceId", duplicateSame.ok ? duplicateSame.record.evidenceId : "none");
-        ctx.record("dup.originalEvidenceId", offerRecord?.evidenceId ?? "none");
+        ctx.record("dup.originalEvidenceId", offerRecord.evidenceId);
         ctx.record("dup.samePayloadRecordedAt", duplicateSame.ok ? duplicateSame.record.recordedAt : "none");
         ctx.record("dup.divergentOk", duplicateDivergent.ok);
-        ctx.record("dup.divergentDuplicate", duplicateDivergent.ok && duplicateDivergent.duplicate ? duplicateDivergent.duplicate : false);
+        ctx.record("dup.divergentDuplicate", duplicateDivergent.ok ? duplicateDivergent.duplicate : false);
         ctx.record("dup.divergentFlagged", duplicateDivergent.ok && "divergent" in duplicateDivergent ? duplicateDivergent.divergent : false);
         ctx.record("dup.divergentReturnsOriginalId", duplicateDivergent.ok ? duplicateDivergent.record.evidenceId : "none");
         ctx.record("dup.divergentReturnsOriginalDigest", duplicateDivergent.ok ? duplicateDivergent.record.contentDigest : "none");
-        ctx.record("dup.originalDigest", offerRecord?.contentDigest ?? "none");
+        ctx.record("dup.originalDigest", offerRecord.contentDigest);
         ctx.record("dup.divergentOriginalCapturedAt", duplicateDivergent.ok ? duplicateDivergent.record.capturedAt : "none");
         ctx.record("dup.storeNeverGrew", countAfterDuplicates === storedCount);
       },
@@ -182,14 +185,14 @@ export const marketplaceEvidenceDedupJourney: AcceptanceJourney = {
       run: (ctx) => {
         ctx.record("tenant.foreignReadIsNull", foreignRead === null);
         ctx.record("tenant.foreignFindByEventIsNull", foreignFindByEvent === null);
-        ctx.record("tenant.foreignListEmpty", foreignList);
+        ctx.record("tenant.foreignListEmpty", foreignListIds);
         ctx.record("tenant.foreignWriteOk", foreignWrite.ok);
         ctx.record("tenant.foreignWriteReason", foreignWrite.ok ? "none" : foreignWrite.reason);
         ctx.record("tenant.storeUnchangedAfterForeignWrite", countAfterForeignWrite === countAfterDuplicates);
         ctx.record("tenant.foreignEventOk", foreignEvent.ok);
         ctx.record("tenant.foreignEventDuplicate", foreignEvent.ok ? foreignEvent.duplicate : true);
         ctx.record("tenant.foreignEventOwnRecord", foreignEvent.ok ? foreignEvent.record.tenantId : "none");
-        ctx.record("tenant.crossTenantEventIdsDiffer", foreignEvent.ok && offerRecord ? foreignEvent.record.evidenceId !== offerRecord.evidenceId : true);
+        ctx.record("tenant.crossTenantEventIdsDiffer", foreignEvent.ok ? foreignEvent.record.evidenceId !== offerRecord.evidenceId : true);
         ctx.record("tenant.countAfterForeignEvent", countAfterForeignEvent);
       },
     },
@@ -204,9 +207,9 @@ export const marketplaceEvidenceDedupJourney: AcceptanceJourney = {
         ctx.record("intake.futureCaptureReason", futureCapture.ok ? "none" : futureCapture.reason);
         ctx.record("intake.missingCaptureOk", missingCapture.ok);
         ctx.record("intake.missingCaptureReason", missingCapture.ok ? "none" : missingCapture.reason);
-        ctx.record("fresh.offerClass", freshClass?.freshness ?? "none");
-        ctx.record("fresh.offerAgeMs", freshClass?.ageMs ?? 0);
-        ctx.record("fresh.staleClass", staleClass?.freshness ?? "none");
+        ctx.record("fresh.offerClass", freshClass.freshness);
+        ctx.record("fresh.offerAgeMs", freshClass.ageMs);
+        ctx.record("fresh.staleClass", staleClass.freshness);
       },
     },
   ],

@@ -164,8 +164,7 @@ describe("F361B marketplace order approval — refusal reason codes", () => {
   });
 
   it("REFUSAL: category outside the frozen pilot categories refuses with refuse.category_not_allowed", () => {
-    const order = baseRequest().order as { category: "laptops" };
-    const request = baseRequest({ order: { ...order, category: "printers" }, limits: { ...LIMITS, allowedCategories: ["laptops"] } });
+    const request = baseRequest({ order: { ...baseRequest().order, category: "printers" }, limits: { ...LIMITS, allowedCategories: ["laptops"] } });
     const approval = evaluateMarketplaceOrderApproval(basePolicy(), request);
     expect(approval.decision).toBe("refuse");
     expect(approval.reasonCode).toBe("refuse.category_not_allowed");
@@ -293,7 +292,7 @@ describe("F361B marketplace order approval — advisory NEVER self-authorizes", 
   };
 
   it("the advisory type exposes NO authority surface (input data only)", () => {
-    const advisory = APPROVE_ADVISORY as Record<string, unknown>;
+    const advisory = APPROVE_ADVISORY as unknown as Record<string, unknown>;
     expect(Object.keys(advisory).sort()).toEqual(["rationale", "recommendation", "source"]);
     expect("authority" in advisory).toBe(false);
     expect("authorizedBy" in advisory).toBe(false);
