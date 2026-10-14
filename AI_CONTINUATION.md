@@ -124,3 +124,29 @@ At final ref check, main was `759c6439b386c2dba8b4c6e9f45dacf79911ec40`. The rem
 - `work/f351c`: diverged; 1 commit ahead / 20 behind main; merge base `cb572b89e2b41fe85b3c3c5fb8c779d12cbb7c5a`.
 
 These counts are point-in-time only. The issue tracker records a later comparison snapshot, and any commit will change the counts. Always fetch and inspect the live refs. The F351B/F351C evidence reports still return 404 on main and exist only on their respective worker branches. No code lane was merged as part of this documentation setup.
+
+## 2026-10-14 — F353 convergence executed (Wave-16 tranche 1 closed)
+
+- **Converged candidate:** `5d74b5c` on main (merge `10de683`: main `c7bb5b1` +
+  work/f351b `da6a8e9`; all 29 main-side takeover docs preserved).
+- **F351B ACCEPTED:** TL lane gate machine-green (field 107/107 grow-only,
+  corpus 35→40, industries.ts +4 NEW entries / 0 removals byte-identical,
+  typecheck+lint clean, determinism byte-identical, boundary CLEAN).
+- **Independent recount reproduced the lane report exactly:** 3171 counted
+  (field 1323 / commerce 1017 / security 831), 979 unique applicable,
+  determinismVerified + allJourneysPassed true, 23 firms ≥ 100 (from 17),
+  aggregateShortfall 97 → 47. **B-3 closes for mining (98→103) and
+  construction (97→102)**; honest bonus: telecom + water-waste small AT 100,
+  agriculture large at 102.
+- **TL re-pin from measured values:** convergence-delta counts/cap (40/36/29,
+  cap 105) + the F351B LANE_EXTENSIONS record; the anti-inflation tripwire
+  evolved to the never-regress form (cap ≥ 100, cap == corpus sum — F350 §4
+  sanctioned post-closure growth); adoption suite 120/120 (16 stale F342-era
+  pins re-measured); release suite 88/88 (gate baselines + the tamper
+  tripwire rebased to expected-40).
+- **Battery at `5d74b5c`:** all seven suites green; typecheck exit 0 (root
+  substrate sequential + durable service + changed packages); oxlint 0w/0e.
+- **Next:** F354 (work/f351c @ 0207559 integration + proposal adjudication +
+  the combined recount) per `docs/tech-lead/packets/f354.md`; then F360.
+- **Evidence:** `docs/evidence/F353/report.md` (SHAs, battery, 30-firm table,
+  mask proofs, deviations, residuals).
