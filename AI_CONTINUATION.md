@@ -117,3 +117,10 @@ At the initial audit base, main was `cb572b89e2b41fe85b3c3c5fb8c779d12cbb7c5a` (
 
 This review examined GitHub main and the two remote Wave-16 branches, the current files, commit history, packet/corpus evidence, branch ancestry/diffs and the release reports. It did **not** run a fresh build or tests inside a clean checkout; repository-documentation commits are not test evidence. The TL must run the exact-candidate gates prescribed by F353/F354 before issuing a new release disposition.
 
+### Final remote-ref comparison after documentation setup commits
+
+At final ref check, main was `759c6439b386c2dba8b4c6e9f45dacf79911ec40`. The remote branches had not been rebased/merged by this review:
+- `work/f351b`: diverged; 2 commits ahead / 21 behind main; merge base `4f59ffed4cf3299da6bbd99ae3b51a4988755ea8`.
+- `work/f351c`: diverged; 1 commit ahead / 20 behind main; merge base `cb572b89e2b41fe85b3c3c5fb8c779d12cbb7c5a`.
+
+These counts will change when any commit lands. Always fetch and inspect the live refs. The F351B/F351C evidence reports still return 404 on main and exist only on their respective worker branches. No code lane was merged as part of this documentation setup.
