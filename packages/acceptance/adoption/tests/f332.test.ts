@@ -65,6 +65,10 @@ const T0_90D = T0 + EPOCH_90D_MS;
 // honesty); construction small 97->102 and mining small 98->103 — B-3
 // closes for both; telecommunications/water-waste small firms land AT
 // 100 as the honest field-journey bonus.
+// F362 final re-pin (machine-measured at 2521cba, probe f362-measure): every
+// firm +4 (the 4 F361C commerce journeys — fleet-universal); healthcare-
+// facilities small crosses 99 -> 103; agriculture small lands at 99 (the
+// honest last gap, -1); water-waste/telecommunications small 113.
 const INACTIVE_PER_FIRM: Record<string, number> = {
   manufacturing: 94,
   construction: 91,
@@ -79,16 +83,16 @@ const INACTIVE_PER_FIRM: Record<string, number> = {
 };
 
 const ACTIVE_PER_FIRM: Record<string, [number, number, number]> = {
-  manufacturing: [114, 122, 130],
-  construction: [111, 119, 127],
-  "energy-utilities": [114, 122, 130],
-  "transportation-logistics": [106, 114, 122],
-  agriculture: [95, 103, 111],
-  "healthcare-facilities": [99, 106, 113],
-  "facilities-management": [100, 107, 114],
-  telecommunications: [109, 117, 125],
-  mining: [112, 120, 128],
-  "water-waste": [109, 117, 125],
+  manufacturing: [118, 126, 134],
+  construction: [115, 123, 131],
+  "energy-utilities": [118, 126, 134],
+  "transportation-logistics": [110, 118, 126],
+  agriculture: [99, 107, 115],
+  "healthcare-facilities": [103, 110, 117],
+  "facilities-management": [104, 111, 118],
+  telecommunications: [113, 121, 129],
+  mining: [116, 124, 132],
+  "water-waste": [113, 121, 129],
 };
 
 const SIMULATION = await runAdoptionSimulation();
@@ -130,12 +134,16 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
       // where they apply (28 of 30 firms; transport+agriculture mask the
       // closeout journey — D15-strict); uniqueApplicable 931 -> 979; the
       // epoch dimensions unchanged (the F351B journeys declare no epochs).
-      expect(SIMULATION.aggregate.journeyExecutions).toBe(3441);
+      // F362 final re-pin (machine-measured at 2521cba, probe f362-measure):
+      // 3441 + 120 = the 4 F361C commerce journeys x 30 firms (universal);
+      // uniqueApplicable 1069 -> 1109; commerceEpochReRuns 1047 -> 1167
+      // (one declared epoch per F361C journey — +120 raw re-runs).
+      expect(SIMULATION.aggregate.journeyExecutions).toBe(3561);
       expect(SIMULATION.aggregate.fieldExecutions).toBe(1383);
-      expect(SIMULATION.aggregate.commerceExecutions).toBe(1167);
+      expect(SIMULATION.aggregate.commerceExecutions).toBe(1287);
       expect(SIMULATION.aggregate.securityExecutions).toBe(891);
       expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
-      expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1047);
+      expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1167);
     } else {
       // The frozen Wave-13 INACTIVE record (unreachable while ACTIVE).
       expect(SIMULATION.aggregate.journeyExecutions).toBe(2613);
@@ -144,7 +152,7 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
       expect(SIMULATION.aggregate.securityExecutions).toBe(771);
       expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(885);
     }
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1069);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1109);
     expect(SIMULATION.aggregate.determinismVerified).toBe(true);
     // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
     // is regime-honest in BOTH regimes (the kern.admit readings now expose

@@ -167,14 +167,14 @@ describe("adoption driver (per-firm)", () => {
     // f353-measure): construction 102/110/118 + mining 103/111/119 (the
     // F342 pins + the 5 F351B journeys — zero construction/mining masks on
     // the new journey ids).
-    expect(aggregate.journeyExecutions).toBe(357 + 360);
+    expect(aggregate.journeyExecutions).toBe(369 + 372);
     expect(aggregate.fieldEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.commerceEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.determinismVerified).toBe(true);
     // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
     // is regime-honest — zero failing facts, allJourneysPassed=true.
     expect(aggregate.allJourneysPassed).toBe(true);
-    expect(aggregate.uniqueApplicableJourneys).toBe(223); // journey-level (journey x industry pairs): 215 + the 4 F361A/B universal ids x 2 industries
+    expect(aggregate.uniqueApplicableJourneys).toBe(231); // journey-level (journey x industry pairs): 215 + the 4 F361A/B + 4 F361C universal ids x 2 industries
   }, 120_000);
 
   it("firms of an industry share the verdict inputs (per-industry consistency)", async () => {
@@ -185,9 +185,9 @@ describe("adoption driver (per-firm)", () => {
     // applicable to water-waste); the epoch dimension grows counted
     // executions by size only — the certified responders' D9 epochs
     // (never the verdict denominator).
-    expect(counted).toEqual([109, 109 + 8, 109 + 16]);
+    expect(counted).toEqual([113, 113 + 8, 113 + 16]);
     for (const run of runs) {
-      expect(run.executionFacts.filter((f) => f.epoch === 0).length).toBe(109);
+      expect(run.executionFacts.filter((f) => f.epoch === 0).length).toBe(113);
       // F343 re-pin (machine-measured at the fixed tree): zero failing
       // facts per firm (the ka6 tenant pin resolved by the fix).
       expect(run.executionFacts.filter((f) => !f.passed)).toHaveLength(0);

@@ -21,19 +21,20 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(INDUSTRIES.length).toBe(10);
   });
 
-  it("executes 3441 COUNTED journeys over the REAL corpora (plus raw epoch re-runs, never counted)", () => {
-    // F353 re-pin (machine-measured at the integrated tree, probe
-    // f353-measure): 3027 + 144 = the 5 F351B journeys x the firms where
-    // they apply (28 of 30 — transport+agriculture mask the closeout
-    // journey); uniqueApplicable 931 -> 979; epochs unchanged (F351B
-    // journeys declare no epochs).
+  it("executes 3561 COUNTED journeys over the REAL corpora (plus raw epoch re-runs, never counted)", () => {
+    // F362 final re-pin (machine-measured at the integrated tree 2521cba,
+    // probe f362-measure): 3441 + 120 = the 4 F361C commerce journeys x 30
+    // firms (fleet-universal — every industry procures equipment);
+    // uniqueApplicable 1069 -> 1109 (+40 = 4 x 10 industries);
+    // commerceEpochReRuns 1047 -> 1167 (the F361C journeys declare one
+    // epoch each — +120 raw re-runs, never counted).
     expect(SIMULATION.aggregate.fieldExecutions).toBe(1383);
-    expect(SIMULATION.aggregate.commerceExecutions).toBe(1167);
+    expect(SIMULATION.aggregate.commerceExecutions).toBe(1287);
     expect(SIMULATION.aggregate.securityExecutions).toBe(891);
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(3441);
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1069);
+    expect(SIMULATION.aggregate.journeyExecutions).toBe(3561);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1109);
     expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
-    expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1047);
+    expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1167);
     // F332 ACTIVE (machine-measured, never copied): the INACTIVE gate counted
     // 2613 (Wave-13 corpora: field 31 + commerce 36); activation adds the
     // D10-proof-passing epoch counts — 174 field (6 census-certified journeys
@@ -156,18 +157,17 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     }
   });
 
-  it("honest-counts ledger: exact shortfalls + structural reasons; 28 firms at 100+ (F362 A+B measured)", () => {
+  it("honest-counts ledger: exact shortfalls + structural reasons; 29 firms at 100+ (F362 final measured)", () => {
     const { honestCounts } = REPORT;
     expect(honestCounts.targetPerFirm).toBe(100);
     expect(honestCounts.entries.length).toBe(30);
-    // F353 re-pin (machine-measured): 23 firms reach 100+ (17 at F342 +
-    // the 5 F351B field journeys closing construction small 97->102 and
-    // mining small 98->103 — B-3 closes for both — plus the honest bonus:
-    // telecommunications + water-waste small firms land AT 100, and
-    // agriculture large crosses at 102); every other firm carries its
-    // exact shortfall with reasons.
+    // F362 final re-pin (machine-measured at 2521cba, probe f362-measure):
+    // 29 firms reach 100+ (28 at the A+B first-half + healthcare-facilities
+    // small crossing 99 -> 103 on the 4 universal F361C commerce journeys);
+    // agriculture small lands at 99 — the honest last gap (-1, masked-journey
+    // structural); every other firm carries its exact shortfall with reasons.
     const atOrAbove = honestCounts.entries.filter((e) => e.executed >= 100);
-    expect(atOrAbove.length).toBe(28);
+    expect(atOrAbove.length).toBe(29);
     for (const entry of atOrAbove) {
       expect(entry.shortfall).toBe(0);
     }
@@ -175,8 +175,8 @@ describe("full industry adoption simulation (REAL corpora)", () => {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
     }
     const maxExecuted = Math.max(...honestCounts.entries.map((e) => e.executed));
-    expect(maxExecuted).toBe(130); // manufacturing/energy large: 114 + 12 field epochs + 4 commerce epochs
-    expect(honestCounts.aggregateShortfall).toBe(6);
+    expect(maxExecuted).toBe(134); // manufacturing/energy large: 118 + 12 field epochs + 4 commerce epochs
+    expect(honestCounts.aggregateShortfall).toBe(1);
     for (const reason of honestCounts.structuralReasons) {
       expect(reason.length).toBeGreaterThan(30);
     }

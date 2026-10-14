@@ -184,6 +184,21 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     journeysInThisTree: 29,
     delta: 2,
   },
+  {
+    // F362 final re-pin (machine-measured at the integrated 2521cba tree,
+    // probe f362-measure): the F361C marketplace supplier/catalogue/request/
+    // order lane — 4 fleet-universal D14 journeys (request lifecycle; offer
+    // freshness discipline; supplier verification gate; order ack
+    // discipline) — commerce 41 -> 45; ZERO industries.ts motion.
+    workItem: "F361C",
+    lane: "worker-c (work/commerce)",
+    branch: "work/f361c",
+    branchTipCommit: "c0aae58",
+    corpus: "commerce",
+    journeysAtTip: 45,
+    journeysInThisTree: 41,
+    delta: 4,
+  },
 ];
 
 /** This branch's machine-run corpus counts (the CURRENT tree). */
@@ -197,9 +212,9 @@ export interface CurrentCorpusCounts {
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
   field: 42,
-  commerce: 41,
+  commerce: 45,
   security: 31,
-  fullyApplicableFirmCap: 42 + 41 + 31,
+  fullyApplicableFirmCap: 42 + 45 + 31,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -221,11 +236,11 @@ export interface ConvergenceExpectation {
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
   field: 42,
-  commerce: 41,
+  commerce: 45,
   security: 31,
-  fullyApplicableFirmCap: 42 + 41 + 31,
+  fullyApplicableFirmCap: 42 + 45 + 31,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (42 + 41 + 31),
+  shortfallPerFullyApplicableFirm: 100 - (42 + 45 + 31),
 };
 
 /** Machine-check the parameterization's internal consistency. */

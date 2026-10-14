@@ -34,8 +34,8 @@ describe("adoption report (2-industry simulation)", () => {
     // MAIN-INTERFACE record is resolved by the fix, never silently
     // flipped).
     expect(manufacturing?.verdict).toBe("SWITCH-ONLY");
-    expect(manufacturing?.coverageTotal).toBe(114);
-    expect(manufacturing?.coveragePassed).toBe(114);
+    expect(manufacturing?.coverageTotal).toBe(118);
+    expect(manufacturing?.coveragePassed).toBe(118);
     expect(manufacturing?.coverageRatio).toBe(1);
     expect(manufacturing?.failingJourneys).toHaveLength(0);
     expect(manufacturing?.unmappedCapabilities).toHaveLength(0);
@@ -85,16 +85,16 @@ describe("adoption report (2-industry simulation)", () => {
   it("honest-counts ledger is complete and exact", () => {
     expect(REPORT.honestCounts.targetPerFirm).toBe(100);
     expect(REPORT.honestCounts.entries.length).toBe(6);
-    // F353 re-pin (machine-measured): manufacturing's firms all EXCEED
-    // 100 honestly (105/113/121 — the 5 F351B journeys on top of the F342
-    // B-3 closure); agriculture's firms stay below (86/94) with large at
-    // 102 (19 masked).
+    // F362 final re-pin (machine-measured at 2521cba, probe f362-measure):
+    // manufacturing's firms all EXCEED 100 honestly (109/117/125 at the
+    // first-half; +4 each on the 4 F361C commerce journeys); agriculture's
+    // firms stay below (90/98) with large at 106 (19 masked).
     for (const entry of REPORT.honestCounts.entries) {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
-      expect(entry.executed).toBeLessThanOrEqual(130);
+      expect(entry.executed).toBeLessThanOrEqual(134);
     }
     const manufacturingMedium = REPORT.honestCounts.entries.find((e) => e.firmId === "firm-manufacturing-medium");
-    expect(manufacturingMedium?.executed).toBe(122);
+    expect(manufacturingMedium?.executed).toBe(126);
     expect(manufacturingMedium?.shortfall).toBe(0);
     expect(REPORT.honestCounts.structuralReasons.length).toBe(5);
     expect(REPORT.honestCounts.aggregateShortfall).toBe(

@@ -219,7 +219,7 @@ describe("REAL-run integration — the hardened surfaces feed the gate", () => {
     // f353-measure): 3027 + 144 = the 5 F351B field journeys x the firms
     // where they apply (28 of 30 — transport+agriculture mask the closeout
     // journey); epochs unchanged (F351B journeys declare no epochs).
-    expect(adoptionReport.aggregate.journeyExecutions).toBe(3441);
+    expect(adoptionReport.aggregate.journeyExecutions).toBe(3561);
   });
 
   it("gate re-evaluation is byte-identical (determinism over the REAL stack)", () => {
