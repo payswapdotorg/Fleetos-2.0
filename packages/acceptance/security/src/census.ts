@@ -51,7 +51,11 @@
  *     per-epoch expectation tables this wave; all 29 stay single-counted
  *     (the two F341B additions are census-invariant: the artifact-store
  *     family is content-addressed with no time surface; the windowing
- *     family's asserted values are all relative to the run anchor).
+ *     family's asserted values are all relative to the run anchor; the
+ *     two F361B additions are likewise census-invariant — fixed logical
+ *     ISO fixtures and content-addressed digests, never the run anchor).
+ *     The corpus now carries 31 journeys; the 8-journey echo-failure
+ *     baseline is unchanged.
  *
  * Determinism: the census is a pure function of the corpus + the frozen
  * grid — no clock, no randomness, no network.
@@ -168,12 +172,13 @@ const ECHO_UNIFORM_CITATION =
   "F331B census: non-responder — absolute-timestamp equality pins (D13 echo family) fail IDENTICALLY at T0 and every Δ in the adoption-anchored regime (the security fixture clock BASE_MS 2026-10-12 is displaced ~206d from ADOPTION_T0 2026-04); digest moves with the anchor (machine-evidenced) but pass/fail never flips; single-counted";
 
 /**
- * The declared 29-row census table (the 27 F331B-era rows + the two F341B
- * remainder additions). The two responders are transition-class
- * (D2(b) family) but their crossings sit at Δ ≈ +206.4d — beyond the frozen
- * D9 schedule [T0, T0+30d, T0+90d] — so they are SCHEDULE-EXCLUDED: no
- * per-epoch tables, no epochs, single-counted (the F330 evidence-gated-
- * recovery precedent: out-of-schedule response is recorded, never filled).
+ * The declared 31-row census table (the 27 F331B-era rows + the two F341B
+ * remainder additions + the two F361B marketplace-trust additions). The
+ * two responders are transition-class (D2(b) family) but their crossings
+ * sit at Δ ≈ +206.4d — beyond the frozen D9 schedule [T0, T0+30d,
+ * T0+90d] — so they are SCHEDULE-EXCLUDED: no per-epoch tables, no
+ * epochs, single-counted (the F330 evidence-gated-recovery precedent:
+ * out-of-schedule response is recorded, never filled).
  */
 export const SECURITY_CENSUS: readonly SecurityCensusEntry[] = [
   { journeyId: "security.predictive-advice", responder: true, censusClass: "transition", citation: "F331B census: transition (forward, +365d only) | staleness-class transition — classifyStaleness(originMs = fixture BASE_MS+3s, nowMs = anchor) returns fresh in the inverted regime and unknown once the anchor passes the staleness window; crossing at anchor > BASE_MS+63_000 (Δ = +17_830_463_001 ≈ +206.4d) — OUTSIDE the frozen D9 schedule; schedule-excluded, NO epochs declared, single-counted" },
@@ -221,6 +226,21 @@ export const SECURITY_CENSUS: readonly SecurityCensusEntry[] = [
     censusClass: null,
     citation:
       "F341B census: invariant — the windowing family consumes the startedAt seam for its ISO clocks (the reasoning.ts pattern) while every asserted value is relative (counts/refs/classes/booleans), so the outcome is byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  // ---- F361B additions (Wave 17 lane B — the F360 freeze §3.6 marketplace trust controls) ----
+  {
+    journeyId: "security.marketplace-order-approval-discipline",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F361B census: invariant — the approval-discipline family is pure fixture data over the sync policy/actions APIs with fixed logical ISO timestamps and never reads the run anchor, so the outcome is byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  {
+    journeyId: "security.marketplace-evidence-dedup-discipline",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F361B census: invariant — the evidence-dedup family is content-addressed with caller-supplied logical timestamps only (the F341B artifact-store precedent: the Promise-signature store is driven to completion at module evaluation via top-level await over the deterministic in-memory port, documented in the journey module) and never reads the run anchor; byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
   },
 ];
 

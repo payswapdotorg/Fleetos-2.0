@@ -1582,6 +1582,15 @@ importers:
 
   packages/security:
     devDependencies:
+      '@fleetos/actions':
+        specifier: workspace:*
+        version: link:../actions
+      '@fleetos/evidence':
+        specifier: workspace:*
+        version: link:../evidence
+      '@fleetos/policy':
+        specifier: workspace:*
+        version: link:../policy
       typescript:
         specifier: ^6.0.2
         version: 6.0.2

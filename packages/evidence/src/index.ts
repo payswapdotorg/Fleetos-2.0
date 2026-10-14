@@ -281,3 +281,7 @@ export * from "./traceability.ts";
 // ---------- Wave 2 (F220B) operational extensions ----------
 
 export * from "./canonical-bundle.ts";
+
+// ---------- Wave 17 (F361B) marketplace evidence-retention contract ----------
+
+export * from "./marketplace-evidence.ts";

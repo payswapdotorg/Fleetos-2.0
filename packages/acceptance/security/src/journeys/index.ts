@@ -1,8 +1,8 @@
 /**
  * @fleetos/acceptance/security — the journey corpus (F270B + F300B + F321B
- * + F341B).
+ * + F341B + F361B).
  *
- * 29 journeys over the REAL lane packages: the 13 F270B journeys (one per
+ * 31 journeys over the REAL lane packages: the 13 F270B journeys (one per
  * acceptance capability of the F270B deliverable list plus the tenant-
  * isolation cross-cut), the 4 F300B extensions (the Guardian journey
  * end-to-end, mission replay on real package outputs, predictive honesty
@@ -17,8 +17,12 @@
  * journeys (Wave 14 lane B: the evidence artifact-store completeness and
  * the world-context windowing families per the F340 census — both
  * single-epoch invariant; the artifact-store family is driven at module
- * evaluation via top-level await, its documented async-API law). Every
- * journey is DATA + declarative assertions executed by the runner.
+ * evaluation via top-level await, its documented async-API law), plus the
+ * 2 F361B extensions (Wave 17 lane B: the F360 freeze §3.6 marketplace
+ * trust controls — the Guardian approval discipline and the evidence
+ * dedup discipline; both census-invariant, the evidence family driven at
+ * module evaluation via top-level await per the F341B async-API law).
+ * Every journey is DATA + declarative assertions executed by the runner.
  * Identical reruns never count — each journey drives genuinely distinct
  * REAL surfaces.
  */
@@ -55,6 +59,9 @@ import { postureFoldJourney } from "./posture-fold.ts";
 // ---- F341B extensions (Wave 14 lane B; the F340 census remainders) ----
 import { artifactStoreCompletenessJourney } from "./artifact-store-completeness.ts";
 import { worldContextWindowingJourney } from "./world-windowing.ts";
+// ---- F361B extensions (Wave 17 lane B; the F360 freeze §3.6 marketplace trust controls) ----
+import { marketplaceOrderApprovalJourney } from "./marketplace-order-approval.ts";
+import { marketplaceEvidenceDedupJourney } from "./marketplace-evidence-dedup.ts";
 
 /** The full security/action/intelligence acceptance corpus, in declared order. */
 export const SECURITY_JOURNEYS: readonly AcceptanceJourney[] = [
@@ -90,6 +97,9 @@ export const SECURITY_JOURNEYS: readonly AcceptanceJourney[] = [
   // ---- F341B extensions (Wave 14 lane B; the F340 census remainders) ----
   artifactStoreCompletenessJourney,
   worldContextWindowingJourney,
+  // ---- F361B extensions (Wave 17 lane B; the F360 freeze §3.6) ----
+  marketplaceOrderApprovalJourney,
+  marketplaceEvidenceDedupJourney,
 ];
 
 export {
@@ -122,4 +132,6 @@ export {
   postureFoldJourney,
   artifactStoreCompletenessJourney,
   worldContextWindowingJourney,
+  marketplaceOrderApprovalJourney,
+  marketplaceEvidenceDedupJourney,
 };

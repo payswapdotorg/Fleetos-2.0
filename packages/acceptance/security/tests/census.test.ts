@@ -73,18 +73,45 @@ describe("F341B — the two remainder additions are census-invariant (machine-me
   });
 });
 
+describe("F361B — the two marketplace-trust additions are census-invariant (machine-measured)", () => {
+  const F361B_JOURNEYS = [
+    "security.marketplace-order-approval-discipline",
+    "security.marketplace-evidence-dedup-discipline",
+  ];
+
+  it("both F361B additions are declared non-responders with census citations", () => {
+    for (const id of F361B_JOURNEYS) {
+      const declared = SECURITY_CENSUS.find((e) => e.journeyId === id);
+      expect(declared, `missing census row for ${id}`).toBeDefined();
+      expect(declared?.responder).toBe(false);
+      expect(declared?.censusClass).toBeNull();
+      expect(declared?.citation.startsWith("F361B census:")).toBe(true);
+    }
+  });
+
+  it("both F361B additions pass at the T0 baseline and are byte-identical across the whole census grid", () => {
+    for (const id of F361B_JOURNEYS) {
+      const m = measuredById.get(id);
+      expect(m, `missing measurement for ${id}`).toBeDefined();
+      expect(m?.baselinePass, `${id} fails at the T0 baseline`).toBe(true);
+      expect(m?.byteIdenticalAcrossGrid, `${id} is not byte-identical across the grid`).toBe(true);
+      expect(m?.respondingDeltas).toEqual([]);
+    }
+  });
+});
+
 describe("F331B — the security time census (D12, machine-measured)", () => {
-  it("the declared table covers exactly the 29-journey corpus, no duplicates", () => {
+  it("the declared table covers exactly the 31-journey corpus, no duplicates", () => {
     expect(SECURITY_CENSUS.length).toBe(SECURITY_JOURNEYS.length);
     expect(new Set(SECURITY_CENSUS.map((e) => e.journeyId)).size).toBe(SECURITY_CENSUS.length);
     for (const e of SECURITY_CENSUS) expect(byId.has(e.journeyId), `unknown journey ${e.journeyId}`).toBe(true);
     for (const j of SECURITY_JOURNEYS) expect(SECURITY_CENSUS.some((e) => e.journeyId === j.journeyId)).toBe(true);
   });
 
-  it("the T0 baseline: 21/29 pass, 8 fail (echo pins in the adoption-anchored regime; the two F341B additions pass)", () => {
+  it("the T0 baseline: 23/31 pass, 8 fail (echo pins in the adoption-anchored regime; the F341B + F361B additions pass)", () => {
     const passing = measured.filter((m) => m.baselinePass);
     const failing = measured.filter((m) => !m.baselinePass);
-    expect(passing.length).toBe(21);
+    expect(passing.length).toBe(23);
     expect(failing.length).toBe(8);
     expect(failing.map((m) => m.journeyId).sort()).toEqual([
       "security.action-compensation-rollback",
