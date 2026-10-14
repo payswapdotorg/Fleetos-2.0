@@ -80,3 +80,40 @@ This is a compact navigation/status pointer, not a second source of truth. The r
 
 ### Canonical current handoff
 `docs/tech-lead/FINAL-RELEASE-HANDOFF.md`; the wave-15 close record is `docs/evidence/F352/report.md`.
+
+## Execution state — final TL takeover review (2026-10-14; Wave 16 is not yet converged)
+
+**Current canonical handoff:** `docs/tech-lead/FINAL-RELEASE-HANDOFF.md`.  
+**Current product mission:** `docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md`.  
+**Current next packets:** `docs/tech-lead/packets/f353.md` then `docs/tech-lead/packets/f354.md`.  
+The Wave-15 section above is history. It does not supersede this latest state.
+
+### Source-of-truth audit
+
+- Repository rules, worker ownership, concurrency protocol, current Wave-16 catalog, architecture lock and risk register are present.
+- The earlier `docs/tech-lead/FINAL-RELEASE-HANDOFF.md` was stale (Wave 12 / NOT READY on 2026-10-11). It has been replaced with the current, evidence-scoped handoff, including active branch state, exact integration order, qualifications, mission brief and post-Wave-16 roadmap.
+- Added the missing standalone convergence packets `docs/tech-lead/packets/f353.md` and `f354.md`; each names read order, exact branch-ref checks, scope, re-counting/re-pinning duties, verification commands, evidence path, documentation updates and exit criteria.
+- Added the canonical product-intent brief `docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md`. It spells out the neutral equipment/service marketplace loop, participant roles, pilot boundaries, state/evidence laws, security, measurement, and F360→F371 roadmap. This is future intent, not a claim that the marketplace is implemented.
+- `spec/work-items/WORK-ITEM-CATALOG.md` remains the authoritative work backlog; do not infer current status from this historical continuation prose if it differs from the catalog or latest handoff.
+
+### Wave-16 implementation status discovered on remote refs
+
+At the initial audit base, main was `cb572b89e2b41fe85b3c3c5fb8c779d12cbb7c5a` (the F351C packet/catalog freeze; subsequent changes in this review are documentation/setup commits). The last formally measured code candidate remains F352 at `88b8506`; implementation from Wave-16 worker branches has not yet been accepted on main.
+
+- **F351B / Worker A:** the remote branch `work/f351b` contains five field journeys and `docs/evidence/F351B/report.md`. Its report records field 107/107, corpus 35→40, typecheck clean, owned lint 0/0, deterministic measurements, and a lane-local ledger of 3,171 counted executions (field 1,323; commerce 1,017; security 831; 979 unique applicable). Mining small is reported 98→103 and construction small 97→102. Adoption is 104/120 due to 16 stale F342-era count pins, which are reserved for TL convergence. The branch was *diverged* from main at `cb572b8` (two lane-side commits, one main-side commit since merge base); reconcile intentionally and preserve the latest F351C catalog row.
+- **F351C / Worker C:** the remote branch `work/f351c` contains five commerce journeys and `docs/evidence/F351C/report.md`. Its report records commerce 133/133, corpus 36→41, typecheck clean, owned lint 0/0, deterministic measurements, and a lane-local ledger of 3,177 counted executions (field 1,179; commerce 1,167; security 831; 981 unique applicable). Telecommunications and water-waste small are reported 95→100. Adoption 103/120 and release 85/88 are reported stale count pins by design; TL-owned re-pinning belongs to F354. The branch is based on the earlier F351C freeze and must be reconciled on top of accepted F353 without losing F353's pins.
+- **Timestamp integrity:** F351C's inspected branch report says `Date: 2026-10-15`, while this review is dated 2026-10-14. F354 must reconcile this with actual commit timestamps/evidence before accepting the report; correct a typo transparently and never fabricate/backdate an execution.
+- These are worker-reported lane results, not integrated acceptance. Capture actual branch tips with `git fetch --prune origin` and `git rev-parse origin/main origin/work/f351b origin/work/f351c`. Read all changed paths and diffs; the report's content blob SHA is not the commit SHA. Never accept from a final chat message.
+- `docs/evidence/F351B/report.md` and `F351C/report.md` are not yet on main as of the audit, though each exists on its worker branch. Do not mark either implementation merged/converged until its actual evidence is merged and verified.
+
+### Required next sequence
+
+1. **F353:** integrate/reconcile F351B, independently recompute all 30 workspace results, re-pin TL-owned adoption/convergence/release expectations from measured data, preserve existing masks, run seven suites + typecheck/lint/architecture and full clean-checkout gates, and write `docs/evidence/F353/report.md`. Update catalog, residual risks and issue #3. The work contract is `docs/tech-lead/packets/f353.md`.
+2. **F354:** integrate F351C on accepted F353, reconcile its timestamp, adjudicate its applicability proposals and recompute all 30 workspaces with BOTH lanes present; re-pin only from that measured tree, run the complete gates and write `docs/evidence/F354/report.md`. Update the same canonical records. The work contract is `docs/tech-lead/packets/f354.md`.
+3. Treat any combined arithmetic published in packets as a sanity check only, never as pinned values. Recount on the integrated candidate.
+4. After Wave 16, F360 is the TL-owned product/transaction contract freeze described in `docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md`. F361A/B/C may dispatch only after F360 freezes contracts and a practical real-market pilot boundary. Then F362 convergence, F370 production hardening, F371 live pilot acceptance. Keep this roadmap as future work, not an assertion of current capability.
+
+### Verification limits of this takeover review
+
+This review examined GitHub main and the two remote Wave-16 branches, the current files, commit history, packet/corpus evidence, branch ancestry/diffs and the release reports. It did **not** run a fresh build or tests inside a clean checkout; repository-documentation commits are not test evidence. The TL must run the exact-candidate gates prescribed by F353/F354 before issuing a new release disposition.
+
