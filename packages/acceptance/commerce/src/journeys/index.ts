@@ -1,15 +1,21 @@
 /**
  * @fleetos/acceptance-commerce — the journey corpus (public `./journeys`).
  *
- * 36 journeys over the worker-C lane's REAL packages (F300C extended the
+ * 41 journeys over the worker-C lane's REAL packages (F300C extended the
  * Wave 7 corpus 15 → 21; F310C extended 21 → 31; F321C extends 31 → 34;
- * F331C extends 34 → 36: +1 marketplace-transaction-flow — the row-34
- * ordering/checkout state machine over published listings through the
- * REAL publication gate and the REAL procurement transaction API with
- * anchored absolute order windows; +1 tenant-billing-invoicing — the
- * row-35 seat/consumption billing over the REAL usage ledger
- * (appendUsage through the documented budget-port seam) and the REAL
- * software invoice-issuance module). The corpus is pure data;
+ * F331C extends 34 → 36; F351C extends 36 → 41: +1 procurement-order-
+ * authorization — the REAL ProcurementDirectory application service over
+ * the REAL in-memory repository (accepted-quote gate + law-A5 Guardian
+ * authorization + audit events + fail-closed cross-tenant reads); +1
+ * vendor-matching-discipline — the REAL matching engine through the REAL
+ * directory (score composition, matched tags, RECORDED tie-break rules,
+ * tenant fail-closed); +1 quote-comparison-discipline — the REAL
+ * commerce-math compareQuotes kernel (integer-bps decomposition, recorded
+ * tie-break rules, honest refusals); +1 vendor-fulfillment-kpi-rollup —
+ * the REAL rollupVendorKpis + capabilityCatalogSummary read models
+ * (on-time ratio + fill rate in integer bps, declared/verified counts);
+ * +1 procurement-idempotent-creation — the REAL createDocumentIdempotent
+ * + computeRequestDigest discipline. The corpus is pure data;
  * validation of its shape happens in tests (unique ids, vocabulary
  * membership, at least five assertions per journey).
  */
@@ -27,6 +33,8 @@ import { MARKETPLACE_JOURNEYS } from "./marketplace.js";
 import { ACTOR_JOBS_JOURNEYS } from "./actor-jobs.js";
 import { MARKETPLACE_TRANSACTION_JOURNEYS } from "./marketplace-transactions.js";
 import { TENANT_BILLING_JOURNEYS } from "./tenant-billing.js";
+import { F351C_PROCUREMENT_JOURNEYS } from "./f351c-procurement.js";
+import { F351C_VENDOR_JOURNEYS } from "./f351c-vendors.js";
 
 export const JOURNEYS: readonly AcceptanceJourney[] = [
   ...WORK_JOURNEYS,
@@ -41,6 +49,8 @@ export const JOURNEYS: readonly AcceptanceJourney[] = [
   ...ACTOR_JOBS_JOURNEYS,
   ...MARKETPLACE_TRANSACTION_JOURNEYS,
   ...TENANT_BILLING_JOURNEYS,
+  ...F351C_PROCUREMENT_JOURNEYS,
+  ...F351C_VENDOR_JOURNEYS,
 ];
 
 export {
@@ -56,4 +66,6 @@ export {
   ACTOR_JOBS_JOURNEYS,
   MARKETPLACE_TRANSACTION_JOURNEYS,
   TENANT_BILLING_JOURNEYS,
+  F351C_PROCUREMENT_JOURNEYS,
+  F351C_VENDOR_JOURNEYS,
 };

@@ -20,6 +20,13 @@
 import type { FinanceStep, LifecycleStep, ResilienceStep } from "./journey-contracts-f310c.js";
 import type { ActorJobStep, MarketplaceStep, VendorDirectoryStep } from "./journey-contracts-f321c.js";
 import type { MarketplaceTransactionStep, TenantBillingStep } from "./journey-contracts-f331c.js";
+import type {
+  IdempotentCreationStep,
+  ProcurementDirectoryStep,
+  QuoteComparisonStep,
+  VendorKpiStep,
+  VendorMatchingStep,
+} from "./journey-contracts-f351c.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabularies.
@@ -74,6 +81,14 @@ export const JOURNEY_CAPABILITIES: readonly string[] = [
   // (row 34) and tenant billing & invoicing (row 35).
   "marketplace-transactions",
   "tenant-billing",
+  // F351C extensions (Wave 15 lane C): the procurement-directory ordering
+  // discipline, the vendor matching engine, the quote-comparison kernel,
+  // the fulfillment-outcome KPI rollups, and idempotent document creation.
+  "procurement-ordering",
+  "vendor-matching",
+  "quote-comparison",
+  "vendor-performance",
+  "idempotent-creation",
 ] as const;
 
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
@@ -324,7 +339,12 @@ export type JourneyStep =
   | VendorDirectoryStep
   | ActorJobStep
   | MarketplaceTransactionStep
-  | TenantBillingStep;
+  | TenantBillingStep
+  | ProcurementDirectoryStep
+  | VendorMatchingStep
+  | QuoteComparisonStep
+  | VendorKpiStep
+  | IdempotentCreationStep;
 
 // The F310C step families live in journey-contracts-f310c.ts (file law):
 export type { LifecycleStep, FinanceStep, ResilienceStep } from "./journey-contracts-f310c.js";
@@ -332,6 +352,14 @@ export type { LifecycleStep, FinanceStep, ResilienceStep } from "./journey-contr
 export type { MarketplaceStep, VendorDirectoryStep, ActorJobStep } from "./journey-contracts-f321c.js";
 // The F331C step families live in journey-contracts-f331c.ts (file law):
 export type { MarketplaceTransactionStep, TenantBillingStep } from "./journey-contracts-f331c.js";
+// The F351C step families live in journey-contracts-f351c.ts (file law):
+export type {
+  IdempotentCreationStep,
+  ProcurementDirectoryStep,
+  QuoteComparisonStep,
+  VendorKpiStep,
+  VendorMatchingStep,
+} from "./journey-contracts-f351c.js";
 
 // ---------------------------------------------------------------------------
 // The journey.
