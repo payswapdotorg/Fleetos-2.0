@@ -21,17 +21,17 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(INDUSTRIES.length).toBe(10);
   });
 
-  it("executes 3321 COUNTED journeys over the REAL corpora (plus raw epoch re-runs, never counted)", () => {
+  it("executes 3441 COUNTED journeys over the REAL corpora (plus raw epoch re-runs, never counted)", () => {
     // F353 re-pin (machine-measured at the integrated tree, probe
     // f353-measure): 3027 + 144 = the 5 F351B journeys x the firms where
     // they apply (28 of 30 — transport+agriculture mask the closeout
     // journey); uniqueApplicable 931 -> 979; epochs unchanged (F351B
     // journeys declare no epochs).
-    expect(SIMULATION.aggregate.fieldExecutions).toBe(1323);
+    expect(SIMULATION.aggregate.fieldExecutions).toBe(1383);
     expect(SIMULATION.aggregate.commerceExecutions).toBe(1167);
-    expect(SIMULATION.aggregate.securityExecutions).toBe(831);
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(3321);
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1029);
+    expect(SIMULATION.aggregate.securityExecutions).toBe(891);
+    expect(SIMULATION.aggregate.journeyExecutions).toBe(3441);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1069);
     expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
     expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1047);
     // F332 ACTIVE (machine-measured, never copied): the INACTIVE gate counted
@@ -156,7 +156,7 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     }
   });
 
-  it("honest-counts ledger: exact shortfalls + structural reasons; 26 firms at 100+ (F354 measured)", () => {
+  it("honest-counts ledger: exact shortfalls + structural reasons; 28 firms at 100+ (F362 A+B measured)", () => {
     const { honestCounts } = REPORT;
     expect(honestCounts.targetPerFirm).toBe(100);
     expect(honestCounts.entries.length).toBe(30);
@@ -167,7 +167,7 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     // agriculture large crosses at 102); every other firm carries its
     // exact shortfall with reasons.
     const atOrAbove = honestCounts.entries.filter((e) => e.executed >= 100);
-    expect(atOrAbove.length).toBe(26);
+    expect(atOrAbove.length).toBe(28);
     for (const entry of atOrAbove) {
       expect(entry.shortfall).toBe(0);
     }
@@ -175,8 +175,8 @@ describe("full industry adoption simulation (REAL corpora)", () => {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
     }
     const maxExecuted = Math.max(...honestCounts.entries.map((e) => e.executed));
-    expect(maxExecuted).toBe(126); // manufacturing/energy large: 110 + 12 field epochs + 4 commerce epochs
-    expect(honestCounts.aggregateShortfall).toBe(19);
+    expect(maxExecuted).toBe(130); // manufacturing/energy large: 114 + 12 field epochs + 4 commerce epochs
+    expect(honestCounts.aggregateShortfall).toBe(6);
     for (const reason of honestCounts.structuralReasons) {
       expect(reason.length).toBeGreaterThan(30);
     }

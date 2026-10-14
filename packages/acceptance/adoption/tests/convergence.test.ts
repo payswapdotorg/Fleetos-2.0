@@ -22,7 +22,7 @@ describe("convergence expectation (honest parameterization)", () => {
   });
 
   it("records ALL lane extensions (Wave 10 + 12 + 13 + 14) with their branch tips", () => {
-    expect(LANE_EXTENSIONS.map((r) => r.workItem).sort()).toEqual(["F300A", "F300B", "F321A", "F321B", "F321C", "F331A", "F331C", "F341A", "F341B", "F351B", "F351C"]);
+    expect(LANE_EXTENSIONS.map((r) => r.workItem).sort()).toEqual(["F300A", "F300B", "F321A", "F321B", "F321C", "F331A", "F331C", "F341A", "F341B", "F351B", "F351C", "F361A", "F361B"]);
     expect(LANE_EXTENSIONS.every((r) => r.branchTipCommit.length > 0)).toBe(true);
     expect(LANE_EXTENSIONS.every((r) => r.branch.startsWith("work/"))).toBe(true);
   });
@@ -37,9 +37,9 @@ describe("convergence expectation (honest parameterization)", () => {
   });
 
   it("the convergence expectation EXCEEDS the closed 100/firm target for fully-applicable firms via sanctioned grow-only corpus growth (F353 — never weakened)", () => {
-    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(110);
+    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(114);
     expect(CONVERGENCE_EXPECTATION.targetPerFirm).toBe(100);
-    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(-10);
+    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(-14);
     // F342 closed B-3 at EXACTLY 100 (field 35 + commerce 36 + security 29).
     // F351B's 5 census-certified journeys (F350 §4 — the binding masked-
     // industry disposition) raise the cap to 105: grow-only corpus expansion

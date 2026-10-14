@@ -157,6 +157,33 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     journeysInThisTree: 36,
     delta: 5,
   },
+  {
+    // F362 partial re-pin (machine-measured at the A+B merge 87fb95b): the
+    // F361A marketplace receipt->enrollment lane — 2 fleet-universal D14
+    // journeys (receipt enrollment with the duplicate guard; receipt
+    // discrepancy with the un-enrolled-until-verified law).
+    workItem: "F361A",
+    lane: "worker-a (asset/field)",
+    branch: "work/f361a",
+    branchTipCommit: "ca298ec",
+    corpus: "field",
+    journeysAtTip: 42,
+    journeysInThisTree: 40,
+    delta: 2,
+  },
+  {
+    // F362 partial re-pin (machine-measured at the A+B merge 87fb95b): the
+    // F361B marketplace trust/Guardian/evidence lane — 2 fleet-universal
+    // D14 journeys (order approval discipline; evidence dedup discipline).
+    workItem: "F361B",
+    lane: "worker-b (safety/intel)",
+    branch: "work/f361b",
+    branchTipCommit: "c120ae4",
+    corpus: "security",
+    journeysAtTip: 31,
+    journeysInThisTree: 29,
+    delta: 2,
+  },
 ];
 
 /** This branch's machine-run corpus counts (the CURRENT tree). */
@@ -169,10 +196,10 @@ export interface CurrentCorpusCounts {
 }
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
-  field: 40,
+  field: 42,
   commerce: 41,
-  security: 29,
-  fullyApplicableFirmCap: 40 + 41 + 29,
+  security: 31,
+  fullyApplicableFirmCap: 42 + 41 + 31,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -193,12 +220,12 @@ export interface ConvergenceExpectation {
 }
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
-  field: 40,
+  field: 42,
   commerce: 41,
-  security: 29,
-  fullyApplicableFirmCap: 40 + 41 + 29,
+  security: 31,
+  fullyApplicableFirmCap: 42 + 41 + 31,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (40 + 41 + 29),
+  shortfallPerFullyApplicableFirm: 100 - (42 + 41 + 31),
 };
 
 /** Machine-check the parameterization's internal consistency. */
