@@ -48,7 +48,7 @@ Source: [F352](../evidence/F352/report.md), [F351A](../evidence/F351A/report.md)
 
 ## 3. Current main and Wave-16 branches
 
-At the initial repository audit on 2026-10-14, main was at `cb572b89e2b41fe85b3c3c5fb8c779d12cbb7c5a` (F351C freeze). The two latest main changes before this handoff were packet/catalog changes, not marketplace implementation. The implementation changes described below exist on worker branches and are **not accepted on main yet**. Re-read remote refs before executing; the SHAs can move.
+At the initial repository audit on 2026-10-14, main was at `cb572b89e2b41fe85b3c3c5fb8c779d12cbb7c5a` (F351C freeze). The Wave-16 freeze commits visible at that audit base changed packets/catalog, not marketplace implementation. The subsequent commits made during this takeover review are documentation/setup commits; the F351B/F351C implementation branches described below remain unaccepted on main. The implementation changes described below exist on worker branches and are **not accepted on main yet**. Re-read remote refs before executing; the SHAs can move.
 
 ### F351B — Worker A: field corpus; mining + construction
 
