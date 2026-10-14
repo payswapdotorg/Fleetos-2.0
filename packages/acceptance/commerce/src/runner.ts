@@ -42,8 +42,19 @@ import { runVendorDirectoryStep } from "./drivers-vendor-directory.js";
 import { runActorJobStep } from "./drivers-actor-jobs.js";
 import { runMarketplaceTransactionStep } from "./drivers-marketplace-transactions.js";
 import { runTenantBillingStep } from "./drivers-tenant-billing.js";
+import { runProcurementDirectoryStep, runVendorMatchingStep } from "./drivers-procurement-directory.js";
+import { runQuoteComparisonStep } from "./drivers-quote-comparison.js";
+import { runVendorKpiStep } from "./drivers-vendor-kpis.js";
+import { runIdempotentCreationStep } from "./drivers-procurement-idempotency.js";
 import type { ActorJobStep, AurumStep, CommerceStep, FinanceStep, GatewayStep, HostStep, LifecycleStep, MarketplaceStep, OrgStep, ResilienceStep, VendorDirectoryStep, WorkStep } from "./journey-contracts.js";
 import type { MarketplaceTransactionStep, TenantBillingStep } from "./journey-contracts-f331c.js";
+import type {
+  IdempotentCreationStep,
+  ProcurementDirectoryStep,
+  QuoteComparisonStep,
+  VendorKpiStep,
+  VendorMatchingStep,
+} from "./journey-contracts-f351c.js";
 
 const WORK_KINDS: ReadonlySet<string> = new Set([
   "work-create", "work-assign", "work-transition", "work-board",
@@ -122,8 +133,29 @@ const TENANT_BILLING_KINDS: ReadonlySet<string> = new Set([
   "billing-usage-seed", "billing-invoice-issue",
 ]);
 
+// F351C (Wave 15 lane C) step-kind families.
+const F351C_DIRECTORY_KINDS: ReadonlySet<string> = new Set([
+  "pdir-quote-seed", "pdir-quote-transition", "pdir-order-create", "pdir-order-read", "pdir-quote-read",
+]);
+
+const F351C_MATCHING_KINDS: ReadonlySet<string> = new Set([
+  "pdir-match-vendors",
+]);
+
+const F351C_COMPARISON_KINDS: ReadonlySet<string> = new Set([
+  "qcmp-compare",
+]);
+
+const F351C_KPI_KINDS: ReadonlySet<string> = new Set([
+  "vkpi-outcome-seed", "vkpi-rollup", "vkpi-catalog-summary",
+]);
+
+const F351C_IDEMPOTENCY_KINDS: ReadonlySet<string> = new Set([
+  "pidem-create", "pidem-digest",
+]);
+
 export async function executeStep(
-  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep,
+  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep | ProcurementDirectoryStep | VendorMatchingStep | QuoteComparisonStep | VendorKpiStep | IdempotentCreationStep,
   state: JourneyState,
 ): Promise<Record<string, FactValue>> {
   if (WORK_KINDS.has(step.kind)) return runWorkStep(step as WorkStep, state);
@@ -141,6 +173,11 @@ export async function executeStep(
   if (ACTOR_JOB_KINDS.has(step.kind)) return runActorJobStep(step as ActorJobStep, state);
   if (MARKETPLACE_TRANSACTION_KINDS.has(step.kind)) return runMarketplaceTransactionStep(step as MarketplaceTransactionStep, state);
   if (TENANT_BILLING_KINDS.has(step.kind)) return runTenantBillingStep(step as TenantBillingStep, state);
+  if (F351C_DIRECTORY_KINDS.has(step.kind)) return runProcurementDirectoryStep(step as ProcurementDirectoryStep, state);
+  if (F351C_MATCHING_KINDS.has(step.kind)) return runVendorMatchingStep(step as VendorMatchingStep, state);
+  if (F351C_COMPARISON_KINDS.has(step.kind)) return runQuoteComparisonStep(step as QuoteComparisonStep, state);
+  if (F351C_KPI_KINDS.has(step.kind)) return runVendorKpiStep(step as VendorKpiStep, state);
+  if (F351C_IDEMPOTENCY_KINDS.has(step.kind)) return runIdempotentCreationStep(step as IdempotentCreationStep, state);
   return runOrgStep(step as OrgStep, state);
 }
 

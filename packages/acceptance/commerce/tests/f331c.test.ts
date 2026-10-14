@@ -28,7 +28,6 @@ const EPOCHS = [T0, T0 + 2_592_000_000, T0 + 7_776_000_000] as const;
 const CENSUS_OFFSETS = [-3_600_000, 1_000, 3_600_000, 86_400_000, 2_592_000_000, 7_776_000_000, 31_536_000_000] as const;
 const PARAMETERIZED = ["marketplace-transaction-flow", "tenant-billing-invoicing"] as const;
 const BASE_34 = JOURNEYS.filter((j) => !PARAMETERIZED.includes(j.id as (typeof PARAMETERIZED)[number]));
-
 function byId(id: string) {
   const journey = JOURNEYS.find((j) => j.id === id);
   if (journey === undefined) throw new Error(`unknown journey ${id}`);
@@ -66,8 +65,12 @@ describe("F331C — the time seam (D12)", () => {
 });
 
 describe("F331C — census responder laws (machine checks of the recorded table)", () => {
-  it("the 34 pre-F331C journeys are INVARIANT at every census offset", async () => {
-    expect(BASE_34.length).toBe(34);
+  it("the table-less journeys are INVARIANT at every census offset (34 pre-F331C + 5 F351C = 39)", async () => {
+    // F351C grow-only: the five Wave-15 lane-C journeys carry no epoch
+    // tables (D13 single-epoch by construction), so the invariant set
+    // grows with the corpus — every table-less journey stays invariant
+    // at every census offset.
+    expect(BASE_34.length).toBe(39);
     const baseline = await runAllJourneys(BASE_34, { startedAt: T0 });
     expect(baseline.every((o) => o.passed)).toBe(true);
     for (const delta of CENSUS_OFFSETS) {
