@@ -19,11 +19,12 @@ When sources conflict, use this order:
 3. `spec/DEPENDENCY-GRAPH.md`
 4. `spec/worker-ownership.yaml`
 5. `spec/work-items/WORK-ITEM-CATALOG.md`
-6. applicable ADRs under `spec/ADR/`
-7. current source code and tests
-8. operational/runbook documents under `docs/`
-9. Git history and accepted PRs
-10. issue/PR comments that record implementation evidence
+6. `docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md` (product destination and live-pilot exit conditions)
+7. applicable ADRs under `spec/ADR/`
+8. current source code and tests
+9. operational/runbook documents under `docs/`
+10. Git history and accepted PRs
+11. issue/PR comments that record implementation evidence
 
 Issue/PR discussion can record evidence and decisions, but a decision is not canonical until reflected in the appropriate repository document.
 
