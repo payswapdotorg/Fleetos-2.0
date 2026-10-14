@@ -9,14 +9,14 @@
  *   - journey id `marketplace-receipt-enrollment` / `marketplace-receipt-
  *     discrepancy` — zero matches, all corpora (new);
  *   - op prefix `mre.*` — zero matches, all corpora (new);
- *   - recordReceiptEvidence — packages/assets/src/receipt-evidence.ts:118
- *   - verifyReceiptEvidence — packages/assets/src/receipt-evidence.ts:190
+ *   - recordReceiptEvidence — packages/assets/src/receipt-evidence.ts:99
+ *   - verifyReceiptEvidence — packages/assets/src/receipt-evidence.ts:179
  *   - ReceiptEnrollmentDirectory.recordReceipt/verifyReceipt —
- *     packages/assets/src/receipt-enrollment.ts:170/195
+ *     packages/assets/src/receipt-enrollment.ts:170/186
  *   - ReceiptEnrollmentDirectory.openEnrollment/completeEnrollment —
- *     packages/assets/src/receipt-enrollment.ts:223/283
+ *     packages/assets/src/receipt-enrollment.ts:214/269
  *   - findEnrollment/getReceipt (tenant fail-closed reads) —
- *     packages/assets/src/receipt-enrollment.ts:324/206
+ *     packages/assets/src/receipt-enrollment.ts:321/201
  * (which themselves consume the EXISTING registry public APIs —
  * AssetDirectory.admitAsset kernel-directory.ts:101, transitionAsset
  * :140, applyTwinRevision assets.ts:169 — never a second asset truth).
