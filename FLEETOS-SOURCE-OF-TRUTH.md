@@ -8,6 +8,8 @@ Canonical repository: https://github.com/payswapdotorg/Fleetos-2.0
 
 The conversational history that produced this architecture is not authoritative and must not be required to implement, review, test, deploy, or continue FleetOS.
 
+The canonical product-intent brief is [`docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md`](docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md). It defines the neutral company IT-equipment marketplace destination and the live-pilot acceptance gate; it does not claim those capabilities are already implemented. The current execution/disposition handoff is [`docs/tech-lead/FINAL-RELEASE-HANDOFF.md`](docs/tech-lead/FINAL-RELEASE-HANDOFF.md).
+
 ## Authority order
 
 When sources conflict, use this order:
