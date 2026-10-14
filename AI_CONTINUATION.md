@@ -171,3 +171,19 @@ These counts are point-in-time only. The issue tracker records a later compariso
   typecheck + lint clean on the changed packages.
 - **Next:** F360 (TL-owned equipment-marketplace contract freeze) — the
   roadmap after Wave 16 per FINAL-RELEASE-HANDOFF §6.
+
+## 2026-10-14 — F360 contract freeze executed; Wave-17 opened
+
+- **F360 DONE:** `docs/product/MARKETPLACE-MVP-FREEZE.md` — the Ghana/
+  Accra pilot intent with the live-pilot gate honestly BLOCKED on F369
+  (real customer/supplier acquisition); six frozen state machines over
+  the EXISTING bounded contexts (no new truth); PostgreSQL persistence
+  law; manual catalogue/ack seams plainly labelled; money boundary
+  (no payment simulation).
+- **F361A/B/C packets authored + dispatched** (workers w17a/w17b/w17c
+  via the replay delivery channel): receipt→enrollment (A), trust/
+  Guardian/evidence (B), supplier/catalogue/request/order (C) — disjoint
+  owned paths per `spec/worker-ownership.yaml`; the F354 census-at-
+  integration lesson embedded in every packet.
+- **Next:** F362 TL convergence after the three lanes land; F369
+  acquisition track in parallel.

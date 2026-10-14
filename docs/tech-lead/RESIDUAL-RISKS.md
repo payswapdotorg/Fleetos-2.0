@@ -104,3 +104,9 @@ TL's operational record.
 | ID | Risk | Mitigation / record |
 |---|---|---|
 | C22 | Wave-16 close residuals: 4 firms below 100 (agriculture small 91 −9 / medium 99 −1, healthcare-facilities small 95 −5, facilities-management small 96 −4; aggregate 19). The parallel-lane procurement id collision exposed a protocol gap: path-disjointness does not imply census-disjointness across corpora. | Future tranches follow the F350 §4 pattern with the F354 lesson: census proof re-ran at INTEGRATION against the merged tree before acceptance (the collision was caught and adjudicated there). `docs/evidence/F354/report.md` §4 |
+
+## P. Wave-17 freeze record (2026-10-14, F360)
+
+| ID | Risk | Mitigation / record |
+|---|---|---|
+| C23 | The marketplace live-pilot gate is BLOCKED: no real business-customer or independently verifiable supplier access is evidenced. Fixtures/contract tests must never be labelled live. | F369 acquisition track (catalog); the F361/F362 lanes are contract-backed and honestly fixture-labelled; mission §8 is the gate. `docs/product/MARKETPLACE-MVP-FREEZE.md` §1/§6 |

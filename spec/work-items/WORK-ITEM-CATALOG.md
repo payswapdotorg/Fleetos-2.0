@@ -531,19 +531,19 @@ Canonical product target: `docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md`. These
 ### Wave 17 — equipment marketplace contract and integration
 
 #### F360 — TL product/transaction contract freeze
-**Status: PLANNED; packet:** `docs/tech-lead/packets/f360.md`.  
+**Status: DONE (2026-10-14); packet:** `docs/tech-lead/packets/f360.md`; freeze decision `docs/product/MARKETPLACE-MVP-FREEZE.md`; evidence `docs/evidence/F360/report.md`.  
 Owner: TL. Dependency: Wave-16 disposition F354; contract discovery may overlap only if the TL records a non-conflicting scope. Freeze the one-market live-pilot boundary, real customer/supplier feasibility, supported equipment categories, participant roles, state machines, bounded-context ownership, authoritative persistence decision, provider/manual-ingestion seams, idempotency/reconciliation, Guardian/tenant rules, success metrics and exact end-to-end acceptance. Deliver `docs/product/MARKETPLACE-MVP-FREEZE.md`, evidence at `docs/evidence/F360/report.md`, standalone F361A/B/C packets and the full Wave-17 catalog detail. Do not invent suppliers, stock, availability, APIs, or payment capabilities. If real customer/supplier access cannot be evidenced, record the pilot blocker and onboarding actions. Follow explicit operator gates for architecture-lock, authentication/security invariant, new authoritative persistence, money movement/licensing or materially changed product contracts.
 
 #### F361A — receiving and asset lifecycle link
-**Status: PLANNED; Worker A; packet authored by F360.**  
+**Status: DISPATCHED 2026-10-14 (w17a); Worker A; packet:** `docs/tech-lead/packets/f361a.md` (the F360-authored standalone contract).  
 Implement equipment receiving/inspection, serial/tag and duplicate guards, tenant/site/custody, warranty/condition, enrollment/link into authoritative asset truth, discrepancies and lifecycle evidence. Own only A-authorized asset/device/observation/field paths and evidence. Acceptance includes deterministic domain tests, tenant/refusal cases, evidence-linked state changes, field-corpus extension where justified, and an end-to-end contract for TL composition. No fabricated physical delivery claim.
 
 #### F361B — marketplace trust, Guardian and evidence controls
-**Status: PLANNED; Worker B; packet authored by F360.**  
+**Status: DISPATCHED 2026-10-14 (w17b); Worker B; packet:** `docs/tech-lead/packets/f361b.md`.  
 Implement supplier/offer evidence requirements, verification status and freshness policy, authorization, budget/role gates, consequential-action approval/refusal, audit/evidence references, untrusted or duplicate provider-event handling and secure failure states. Own only B-authorized security/policy/action/evidence paths and security corpus. Guardian remains the sole consequential-action authority. Do not own supplier/order source-of-truth state or claim identity authentication until production auth is actually wired and tested.
 
 #### F361C — supplier catalogue, offers, procurement and fulfilment state
-**Status: PLANNED; Worker C; packet authored by F360.**  
+**Status: DISPATCHED 2026-10-14 (w17c); Worker C; packet:** `docs/tech-lead/packets/f361c.md`.  
 Implement supplier profiles/catalogue, source and freshness of availability, request/RFQ, offers/quotes, transparent comparison, purchase/rental/lease/service-order state, provider/manual acknowledgement, delivery/service milestones, reconciliation, cancellation/return/dispute for the frozen pilot. Own only C-authorized vendor/procurement/work/commerce paths and evidence. Start provider-neutral; Aurum/ADCOS/Arena remain `CONTRACT_ONLY` until separately evidenced.
 
 #### F362 — TL convergence: live-pilot transaction spine
