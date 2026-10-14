@@ -563,8 +563,9 @@ DONE — the F362 E2E re-pin at the merged tree (probe f362e2e-measure, every va
 ### Wave 18 — production and live-pilot evidence
 
 #### F370 — production pilot hardening
-**Status: PLANNED; Owner TL with work scoped to A/B/C ownership.**  
+**Status: IN FLIGHT (F370A dispatched 2026-10-14); Owner TL with work scoped to A/B/C ownership.**  
 Productionize the pilot's authoritative business persistence, identity/authentication and server-side tenant authorization, secret management, integration health, observability, idempotency/retries/reconciliation, backup/restore, incident/rollback runbooks and verified deployment. Any new authoritative store or material security/persistence change requires the Architecture Lock/operator-gate protocol. Do not use the F351A JSONL qualification service as blanket authorization for marketplace transaction state. Evidence: `docs/evidence/F370/report.md`.
+F370A DISPATCHED (2026-10-14, packet `docs/tech-lead/packets/f370a.md`): the authentication + server-side tenant authorization lane — real credential verification (scrypt, timing-safe, enumeration-resistant), signed session tokens (HMAC-SHA256, tamper/expiry/wrong-key refusals), the marketplace authorization gate (fail-closed, frozen reason codes), and the authenticated composition over the Wave-17 public APIs; >=4 census-certified D14 security journeys with refusals at every gate. Owned: packages/identity/** + acceptance/security/** + evidence. The fixture pilot key honestly labelled; real secret management recorded as the F370B-class follow-up.
 
 #### F371 — real customer + supplier pilot acceptance
 **Status: PLANNED; Owner TL.**  
