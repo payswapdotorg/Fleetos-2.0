@@ -11,10 +11,10 @@
 | `spec/BOUNDED-CONTEXTS.md` | The bounded contexts and their boundaries |
 | `spec/DEPENDENCY-GRAPH.md` + `spec/snapshots/fleetos-contracts.json` | The dependency graph + contract snapshot |
 | `spec/worker-ownership.yaml` | Worker A/B/C/TL ownership grants (the ONLY legal edit paths) |
-| `spec/work-items/WORK-ITEM-CATALOG.md` | The execution backlog (Waves 0–9) |
+| `spec/work-items/WORK-ITEM-CATALOG.md` | Authoritative execution backlog, current Wave-16 status and post-Wave-16 product roadmap |
 | `spec/ADR/` | Accepted architecture decision records (0001–0006) |
 | `docs/tech-lead/` | FINAL-HANDOFF, CONCURRENCY-PROTOCOL, packets, this runbook |
-| `docs/evidence/<work-item>/report.md` | Per-item delivery evidence (40 items) |
+| `docs/evidence/<work-item>/report.md` | Per-item delivery evidence; accept only reports merged and verified at the candidate SHA |
 | `packages/<context>` | 33 domain packages (pure deterministic TS) |
 | `packages/integrations/*`, `packages/experiences/*` | Adapter + experience packages |
 | `packages/acceptance/{field,security,commerce,adoption,release,convergence}` | The machine-run acceptance plane |
