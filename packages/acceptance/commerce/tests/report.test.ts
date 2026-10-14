@@ -37,7 +37,8 @@ describe("acceptance report", () => {
     const report = assembleJourneyReport(outcomes);
     expect(report.coverage.length).toBe(JOURNEY_PERSONAS.length * JOURNEY_CAPABILITIES.length);
     expect(JOURNEY_PERSONAS.length).toBe(7);
-    expect(JOURNEY_CAPABILITIES.length).toBe(30);
+    // F361C grow-only: 30 + 4 new marketplace capabilities (Wave 17 lane C).
+    expect(JOURNEY_CAPABILITIES.length).toBe(34);
   });
 
   it("zero-inflation: a persona/capability pair with no journey is NOT covered", async () => {

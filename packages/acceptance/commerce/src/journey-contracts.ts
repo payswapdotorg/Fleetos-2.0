@@ -27,6 +27,12 @@ import type {
   VendorKpiStep,
   VendorMatchingStep,
 } from "./journey-contracts-f351c.js";
+import type {
+  MarketplaceRequestStep,
+  MarketplaceOfferStep,
+  MarketplaceSupplierStep,
+  MarketplaceOrderAckStep,
+} from "./journey-contracts-f361c.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabularies.
@@ -89,6 +95,14 @@ export const JOURNEY_CAPABILITIES: readonly string[] = [
   "quote-comparison",
   "vendor-performance",
   "idempotent-creation",
+  // F361C extensions (Wave 17 lane C): the marketplace transaction chain —
+  // the §3.1 equipment-request lifecycle, the §3.2 offer freshness +
+  // comparison, the §3.3 supplier-verification gate, and the §3.4 order
+  // lifecycle with the manual provider-ack seam.
+  "marketplace-requests",
+  "marketplace-offers",
+  "marketplace-suppliers",
+  "marketplace-fulfilment",
 ] as const;
 
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
@@ -344,7 +358,11 @@ export type JourneyStep =
   | VendorMatchingStep
   | QuoteComparisonStep
   | VendorKpiStep
-  | IdempotentCreationStep;
+  | IdempotentCreationStep
+  | MarketplaceRequestStep
+  | MarketplaceOfferStep
+  | MarketplaceSupplierStep
+  | MarketplaceOrderAckStep;
 
 // The F310C step families live in journey-contracts-f310c.ts (file law):
 export type { LifecycleStep, FinanceStep, ResilienceStep } from "./journey-contracts-f310c.js";
@@ -360,6 +378,13 @@ export type {
   VendorKpiStep,
   VendorMatchingStep,
 } from "./journey-contracts-f351c.js";
+// The F361C step families live in journey-contracts-f361c.ts (file law):
+export type {
+  MarketplaceRequestStep,
+  MarketplaceOfferStep,
+  MarketplaceSupplierStep,
+  MarketplaceOrderAckStep,
+} from "./journey-contracts-f361c.js";
 
 // ---------------------------------------------------------------------------
 // The journey.

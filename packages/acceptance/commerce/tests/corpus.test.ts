@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { JOURNEYS, WORK_JOURNEYS, COMMERCE_JOURNEYS, ORG_JOURNEYS, HOST_JOURNEYS, GATEWAY_JOURNEYS, LIFECYCLE_JOURNEYS, FINANCE_JOURNEYS, RESILIENCE_JOURNEYS, MARKETPLACE_JOURNEYS, ACTOR_JOBS_JOURNEYS, MARKETPLACE_TRANSACTION_JOURNEYS, TENANT_BILLING_JOURNEYS, F351C_PROCUREMENT_JOURNEYS, F351C_VENDOR_JOURNEYS } from "../src/journeys/index.js";
+import { JOURNEYS, WORK_JOURNEYS, COMMERCE_JOURNEYS, ORG_JOURNEYS, HOST_JOURNEYS, GATEWAY_JOURNEYS, LIFECYCLE_JOURNEYS, FINANCE_JOURNEYS, RESILIENCE_JOURNEYS, MARKETPLACE_JOURNEYS, ACTOR_JOBS_JOURNEYS, MARKETPLACE_TRANSACTION_JOURNEYS, TENANT_BILLING_JOURNEYS, F351C_PROCUREMENT_JOURNEYS, F351C_VENDOR_JOURNEYS, F361C_PROCUREMENT_JOURNEYS, F361C_VENDOR_JOURNEYS, F361C_ORDER_JOURNEYS } from "../src/journeys/index.js";
 import {
   JOURNEY_PERSONAS,
   JOURNEY_CAPABILITIES,
@@ -19,17 +19,18 @@ const EPOCH_TABLE_JOURNEYS = new Set(["marketplace-transaction-flow", "tenant-bi
 describe("journey corpus shape", () => {
   it("has at least 12 distinct journeys", () => {
     expect(JOURNEYS.length).toBeGreaterThanOrEqual(12);
-    expect(JOURNEYS.length).toBe(41);
+    expect(JOURNEYS.length).toBe(45);
   });
 
-  it("is assembled from the fourteen journey files without loss", () => {
+  it("is assembled from the seventeen journey files without loss", () => {
     expect(JOURNEYS.length).toBe(
       WORK_JOURNEYS.length + COMMERCE_JOURNEYS.length + ORG_JOURNEYS.length +
       HOST_JOURNEYS.length + GATEWAY_JOURNEYS.length +
       LIFECYCLE_JOURNEYS.length + FINANCE_JOURNEYS.length + RESILIENCE_JOURNEYS.length +
       MARKETPLACE_JOURNEYS.length + ACTOR_JOBS_JOURNEYS.length +
       MARKETPLACE_TRANSACTION_JOURNEYS.length + TENANT_BILLING_JOURNEYS.length +
-      F351C_PROCUREMENT_JOURNEYS.length + F351C_VENDOR_JOURNEYS.length,
+      F351C_PROCUREMENT_JOURNEYS.length + F351C_VENDOR_JOURNEYS.length +
+      F361C_PROCUREMENT_JOURNEYS.length + F361C_VENDOR_JOURNEYS.length + F361C_ORDER_JOURNEYS.length,
     );
   });
 
@@ -66,6 +67,8 @@ describe("journey corpus shape", () => {
       // F351C (Wave 15 lane C): the five commerce-discipline capabilities.
       "procurement-ordering", "vendor-matching", "quote-comparison",
       "vendor-performance", "idempotent-creation",
+      // F361C (Wave 17 lane C): the marketplace transaction chain.
+      "marketplace-requests", "marketplace-offers", "marketplace-suppliers", "marketplace-fulfilment",
     ];
     for (const capability of required) {
       expect(covered.has(capability as (typeof JOURNEY_CAPABILITIES)[number])).toBe(true);

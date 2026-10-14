@@ -1,23 +1,25 @@
 /**
  * @fleetos/acceptance-commerce — the journey corpus (public `./journeys`).
  *
- * 41 journeys over the worker-C lane's REAL packages (F300C extended the
+ * 45 journeys over the worker-C lane's REAL packages (F300C extended the
  * Wave 7 corpus 15 → 21; F310C extended 21 → 31; F321C extends 31 → 34;
- * F331C extends 34 → 36; F351C extends 36 → 41: +1 procurement-order-
- * authorization — the REAL ProcurementDirectory application service over
- * the REAL in-memory repository (accepted-quote gate + law-A5 Guardian
- * authorization + audit events + fail-closed cross-tenant reads); +1
- * vendor-matching-discipline — the REAL matching engine through the REAL
- * directory (score composition, matched tags, RECORDED tie-break rules,
- * tenant fail-closed); +1 quote-comparison-discipline — the REAL
- * commerce-math compareQuotes kernel (integer-bps decomposition, recorded
- * tie-break rules, honest refusals); +1 vendor-fulfillment-kpi-rollup —
- * the REAL rollupVendorKpis + capabilityCatalogSummary read models
- * (on-time ratio + fill rate in integer bps, declared/verified counts);
- * +1 procurement-idempotent-creation — the REAL createDocumentIdempotent
- * + computeRequestDigest discipline. The corpus is pure data;
- * validation of its shape happens in tests (unique ids, vocabulary
- * membership, at least five assertions per journey).
+ * F331C extends 34 → 36; F351C extends 36 → 41 (the five commerce-
+ * discipline journeys); F361C extends 41 → 45: +1 marketplace-request-
+ * lifecycle — the REAL §3.1 equipment-request machine (idempotent
+ * create/submit keyed tenant+natural key, typed transitions, illegal-
+ * transition refusals, fail-closed reads); +1 marketplace-offer-
+ * freshness-discipline — the REAL §3.2 offer schema + THE FRESHNESS LAW
+ * (expired offers never silently appear current) + the comparison
+ * composing the EXISTING compareQuotes/matchVendors kernels with
+ * hard-constraint vs preference-weight separation; +1 marketplace-
+ * supplier-verification-gate — the REAL §3.3 machine (verified-only
+ * enter matching) + the PLAINLY-LABELLED manual catalogue import seam;
+ * +1 marketplace-order-ack-discipline — the REAL §3.4 order lifecycle
+ * with the manual provider-ack seam (idempotent, duplicate-event-
+ * refusing) composed with the REAL work package's service-completion
+ * accept gate. The corpus is pure data; validation of its shape
+ * happens in tests (unique ids, vocabulary membership, at least five
+ * assertions per journey).
  */
 
 import type { AcceptanceJourney } from "../journey-contracts.js";
@@ -35,6 +37,9 @@ import { MARKETPLACE_TRANSACTION_JOURNEYS } from "./marketplace-transactions.js"
 import { TENANT_BILLING_JOURNEYS } from "./tenant-billing.js";
 import { F351C_PROCUREMENT_JOURNEYS } from "./f351c-procurement.js";
 import { F351C_VENDOR_JOURNEYS } from "./f351c-vendors.js";
+import { F361C_PROCUREMENT_JOURNEYS } from "./f361c-procurement.js";
+import { F361C_VENDOR_JOURNEYS } from "./f361c-vendors.js";
+import { F361C_ORDER_JOURNEYS } from "./f361c-order.js";
 
 export const JOURNEYS: readonly AcceptanceJourney[] = [
   ...WORK_JOURNEYS,
@@ -51,6 +56,9 @@ export const JOURNEYS: readonly AcceptanceJourney[] = [
   ...TENANT_BILLING_JOURNEYS,
   ...F351C_PROCUREMENT_JOURNEYS,
   ...F351C_VENDOR_JOURNEYS,
+  ...F361C_PROCUREMENT_JOURNEYS,
+  ...F361C_VENDOR_JOURNEYS,
+  ...F361C_ORDER_JOURNEYS,
 ];
 
 export {
@@ -68,4 +76,7 @@ export {
   TENANT_BILLING_JOURNEYS,
   F351C_PROCUREMENT_JOURNEYS,
   F351C_VENDOR_JOURNEYS,
+  F361C_PROCUREMENT_JOURNEYS,
+  F361C_VENDOR_JOURNEYS,
+  F361C_ORDER_JOURNEYS,
 };

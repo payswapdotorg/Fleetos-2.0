@@ -21,3 +21,7 @@ export * from "./sla-credit.js";
 export * from "./cost-allocation.js";
 export * from "./reconciliation-batch.js";
 export * from "./marketplace-transactions.js";
+export * from "./marketplace-request.js";
+export * from "./marketplace-offer.js";
+export * from "./marketplace-offer-comparison.js";
+export * from "./marketplace-equipment-order.js";

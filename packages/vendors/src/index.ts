@@ -12,3 +12,5 @@ export * from "./vendor-lifecycle.js";
 export * from "./capability-catalog.js";
 export * from "./sla.js";
 export * from "./marketplace.js";
+export * from "./supplier-verification.js";
+export * from "./catalogue-import.js";
