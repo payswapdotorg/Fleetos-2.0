@@ -187,3 +187,32 @@ These counts are point-in-time only. The issue tracker records a later compariso
   integration lesson embedded in every packet.
 - **Next:** F362 TL convergence after the three lanes land; F369
   acquisition track in parallel.
+
+## Wave-17 final state (2026-10-14 ~23:50Z — WAVE 17 CLOSED)
+
+- **F362 E2E ACCEPTED+MERGED `b6d4411`** (lane tip 12392a6, dispatch session
+  w17x — chat 94d1b1bd): the deterministic transaction-spine journey through
+  the REAL public APIs of all three lanes; commerce corpus 45→46 (suite
+  171/171); the cross-lane bindings machine-proved as facts.
+- **The E2E re-pin at the merged tree** (probe f362e2e-measure, all values
+  machine-measured): 3591 counted executions (+30); commerce 1317 (+30);
+  uniqueApplicable 1119 (+10); commerceEpochReRuns 1197 (+30 raw, never
+  counted); **30/30 firms ≥100 — agriculture small crossed 99→100, the
+  honest last gap CLOSED (aggregateShortfall 0)**; max 135; cap 119
+  (42+46+31). Full battery 865/865 ALL GREEN (adoption 120, release 88,
+  convergence 82, field 111, security 194, commerce 171, maintenance 99);
+  typecheck 0 + oxlint 0w/0e on every re-pinned package.
+- **Standing qualifications (unchanged, honest):** the live-pilot gate
+  stays BLOCKED on F369/F371 (real supplier/customer acquisition — no
+  invented partners); fixture-labelled, never live; providers
+  CONTRACT_ONLY; the manual catalogue import + provider-ack seams plainly
+  labelled. B-3 holds for every firm with the masked-journey ledger intact.
+- **Operational record (the 18:25-22:05Z dead-ticket window):** root cause
+  was sandbox-slot saturation (3/3 stale workspaces — two dead E2E tickets
+  + the delivered w17j holder), NOT the suspected WAF/completions
+  degradation; releases + one clean single-send landed the lane. The
+  Task-28 lesson is now doctrine: ALWAYS check_workspaces + release stale
+  slots BEFORE any dispatch, and between retry rounds.
+- **Next (per the catalog):** Wave 18 — F370 production pilot hardening +
+  F371 real customer/supplier pilot acceptance (the live-pilot evidence
+  track); F369 acquisition remains the live-pilot blocker.

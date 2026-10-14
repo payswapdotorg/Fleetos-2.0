@@ -199,6 +199,23 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     journeysInThisTree: 41,
     delta: 4,
   },
+  {
+    // F362 E2E re-pin (machine-measured at the post-E2E merge b6d4411,
+    // probe f362e2e-measure): the TL-delegated deterministic transaction-
+    // spine journey — 1 fleet-universal D14 journey composing the REAL
+    // public APIs of ALL THREE Wave-17 lanes (F361C request->catalogue->
+    // offers->comparison->order->ack; F361B Guardian approval with the
+    // advisory law; F361A receipt->enrollment with the duplicate-serial
+    // guard) — commerce 45 -> 46; ZERO industries.ts motion.
+    workItem: "F362",
+    lane: "worker-e2e (the TL-delegated §2 grant)",
+    branch: "work/f362e2e",
+    branchTipCommit: "12392a6",
+    corpus: "commerce",
+    journeysAtTip: 46,
+    journeysInThisTree: 45,
+    delta: 1,
+  },
 ];
 
 /** This branch's machine-run corpus counts (the CURRENT tree). */
@@ -212,9 +229,9 @@ export interface CurrentCorpusCounts {
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
   field: 42,
-  commerce: 45,
+  commerce: 46,
   security: 31,
-  fullyApplicableFirmCap: 42 + 45 + 31,
+  fullyApplicableFirmCap: 42 + 46 + 31,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -236,11 +253,11 @@ export interface ConvergenceExpectation {
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
   field: 42,
-  commerce: 45,
+  commerce: 46,
   security: 31,
-  fullyApplicableFirmCap: 42 + 45 + 31,
+  fullyApplicableFirmCap: 42 + 46 + 31,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (42 + 45 + 31),
+  shortfallPerFullyApplicableFirm: 100 - (42 + 46 + 31),
 };
 
 /** Machine-check the parameterization's internal consistency. */

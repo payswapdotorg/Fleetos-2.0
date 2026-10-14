@@ -34,8 +34,8 @@ describe("adoption report (2-industry simulation)", () => {
     // MAIN-INTERFACE record is resolved by the fix, never silently
     // flipped).
     expect(manufacturing?.verdict).toBe("SWITCH-ONLY");
-    expect(manufacturing?.coverageTotal).toBe(118);
-    expect(manufacturing?.coveragePassed).toBe(118);
+    expect(manufacturing?.coverageTotal).toBe(119);
+    expect(manufacturing?.coveragePassed).toBe(119);
     expect(manufacturing?.coverageRatio).toBe(1);
     expect(manufacturing?.failingJourneys).toHaveLength(0);
     expect(manufacturing?.unmappedCapabilities).toHaveLength(0);
@@ -89,12 +89,16 @@ describe("adoption report (2-industry simulation)", () => {
     // manufacturing's firms all EXCEED 100 honestly (109/117/125 at the
     // first-half; +4 each on the 4 F361C commerce journeys); agriculture's
     // firms stay below (90/98) with large at 106 (19 masked).
+    // F362 E2E re-pin (probe f362e2e-measure at the post-E2E merge):
+    // the universal spine +1 every firm — agriculture small crosses to
+    // 100; every firm now meets the target (max 135 manufacturing/energy
+    // large; manufacturing-medium 127).
     for (const entry of REPORT.honestCounts.entries) {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
-      expect(entry.executed).toBeLessThanOrEqual(134);
+      expect(entry.executed).toBeLessThanOrEqual(135);
     }
     const manufacturingMedium = REPORT.honestCounts.entries.find((e) => e.firmId === "firm-manufacturing-medium");
-    expect(manufacturingMedium?.executed).toBe(126);
+    expect(manufacturingMedium?.executed).toBe(127);
     expect(manufacturingMedium?.shortfall).toBe(0);
     expect(REPORT.honestCounts.structuralReasons.length).toBe(5);
     expect(REPORT.honestCounts.aggregateShortfall).toBe(
@@ -128,7 +132,7 @@ describe("adoption report (2-industry simulation)", () => {
     tamperPopulation.population[0] = { ...tamperPopulation.population[0]!, totalExecutions: 999 };
     expect(verifyAdoptionReport(tamperPopulation)).toBe(false);
 
-    const tamperLedger = { ...REPORT, honestCounts: { ...REPORT.honestCounts, aggregateShortfall: 0 } };
+    const tamperLedger = { ...REPORT, honestCounts: { ...REPORT.honestCounts, aggregateShortfall: 3 } };
     expect(verifyAdoptionReport(tamperLedger)).toBe(false);
 
     const tamperAggregate = { ...REPORT, aggregate: { ...REPORT.aggregate, journeyExecutions: 9999 } };

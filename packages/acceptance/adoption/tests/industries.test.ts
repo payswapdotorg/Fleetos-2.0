@@ -100,9 +100,9 @@ describe("industries", () => {
     }
   });
 
-  it("HONEST SUBSET law: not every industry is the full set — and the corpora are 42+45+31 (converged Wave 17 final at F362)", () => {
+  it("HONEST SUBSET law: not every industry is the full set — and the corpora are 42+46+31 (converged Wave 17 final at F362 + the E2E spine)", () => {
     expect(FIELD_JOURNEYS.length).toBe(42);
-    expect(COMMERCE_JOURNEYS.length).toBe(45);
+    expect(COMMERCE_JOURNEYS.length).toBe(46);
     expect(SECURITY_JOURNEYS.length).toBe(31);
     const applicableCounts = INDUSTRIES.map(
       (i) => applicableFieldJourneys(i).length + applicableCommerceJourneys(i).length + applicableSecurityJourneys(i).length,
@@ -110,10 +110,17 @@ describe("industries", () => {
     // F353: the fully-applicable cap is 105 post-F351B (sanctioned grow-only
     // corpus expansion per F350 §4); the B-3 law is now "at or above the 100
     // target" — never below.
-    const fullSet = applicableCounts.filter((c) => c >= 100).length;
+    // F362 E2E re-pin: the cap is 119 (42+46+31); agriculture's applicable
+    // set crossed to EXACTLY 100 on the universal spine — every industry
+    // now meets the 100 target, while the masked subset law HOLDS (not
+    // every industry spans the full cap).
+    const cap = Math.max(...applicableCounts);
+    const fullSet = applicableCounts.filter((c) => c === cap).length;
+    const belowCap = applicableCounts.filter((c) => c < cap).length;
     const belowTarget = applicableCounts.filter((c) => c < 100).length;
-    expect(fullSet).toBeGreaterThan(0); // manufacturing + energy-utilities legitimately span everything (the F342 B-3 closure, now at 105)
-    expect(belowTarget).toBeGreaterThan(0); // the honest subset law: masked industries remain below the cap
+    expect(fullSet).toBeGreaterThan(0); // manufacturing + energy-utilities legitimately span everything
+    expect(belowCap).toBeGreaterThan(0); // the honest subset law: masked industries remain below the cap
+    expect(belowTarget).toBe(0); // the E2E spine closed the last applicable-target gap (agriculture 99 -> 100)
   });
 
   it("every industry keeps at least one applicable journey per corpus", () => {

@@ -110,3 +110,9 @@ TL's operational record.
 | ID | Risk | Mitigation / record |
 |---|---|---|
 | C23 | The marketplace live-pilot gate is BLOCKED: no real business-customer or independently verifiable supplier access is evidenced. Fixtures/contract tests must never be labelled live. | F369 acquisition track (catalog); the F361/F362 lanes are contract-backed and honestly fixture-labelled; mission §8 is the gate. `docs/product/MARKETPLACE-MVP-FREEZE.md` §1/§6 |
+
+## Q. Wave-17 close record (2026-10-14, F362 E2E + re-pin)
+
+| ID | Risk | Mitigation / record |
+|---|---|---|
+| C24 | The E2E transaction-spine journey is fixture-labelled, contract-backed composition — it must never be cited as live-pilot evidence. The manual catalogue import + provider-ack seams remain operator-mediated. | `docs/evidence/F362/report.md` (fixture-labelled throughout); the live-pilot gate stays BLOCKED on F369/F371; the seams plainly labelled in the F361C/F362 surfaces. B-3 now 30/30 firms with the masked-journey ledger intact — the applicable-target closure is a corpus-count fact, never a coverage-quality claim. |

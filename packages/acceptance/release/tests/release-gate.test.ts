@@ -181,13 +181,13 @@ describe("release gate — the REAL-stack verdict path", () => {
     expect(verifyReleaseGateVerdict(verdict)).toBe(true);
   });
 
-  it("the REAL baseline counts the gate verified: field 42, security 31, commerce 45, adoption 30 workspaces (converged Wave 17 final at F362)", () => {
+  it("the REAL baseline counts the gate verified: field 42, security 31, commerce 46, adoption 30 workspaces (converged Wave 17 final at F362 + the E2E spine)", () => {
     expect(FIELD_JOURNEYS.length).toBe(42);
     expect(SECURITY_JOURNEYS.length).toBe(31);
-    expect(COMMERCE_JOURNEYS.length).toBe(45);
+    expect(COMMERCE_JOURNEYS.length).toBe(46);
     expect(fieldReport.aggregate.journeys).toBe(42);
     expect(securityReport.totalJourneys).toBe(31);
-    expect(commerceReport.totals.journeyCount).toBe(45);
+    expect(commerceReport.totals.journeyCount).toBe(46);
     expect(adoptionReport.aggregate.workspaces).toBe(30);
     // F343 re-pin (machine-measured at the fixed tree): true — the ka6
     // tenant pin is regime-honest (zero failing facts; counts unchanged).
@@ -490,7 +490,7 @@ describe("release gate — acceptance baselines (present, green, count-exact, un
     const subset = await subsetCommerceReport();
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: fieldReport, security: securityReport, commerce: subset, adoption: adoptionReport } });
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 45");
+    expect(blocker!.detail).toContain("expected 46");
     expect(blocker!.detail).toContain("report carries 33");
   });
 
