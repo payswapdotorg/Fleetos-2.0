@@ -13,7 +13,8 @@
 | `spec/worker-ownership.yaml` | Worker A/B/C/TL ownership grants (the ONLY legal edit paths) |
 | `spec/work-items/WORK-ITEM-CATALOG.md` | Authoritative execution backlog, current Wave-16 status and post-Wave-16 product roadmap |
 | `spec/ADR/` | Accepted architecture decision records (0001–0006) |
-| `docs/tech-lead/` | FINAL-HANDOFF, CONCURRENCY-PROTOCOL, packets, this runbook |
+| `docs/tech-lead/` | FINAL-RELEASE-HANDOFF (current state), FINAL-HANDOFF rubric, concurrency protocol, packets, this runbook |
+| `docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md` | canonical equipment marketplace mission and live-pilot acceptance gate |
 | `docs/evidence/<work-item>/report.md` | Per-item delivery evidence; accept only reports merged and verified at the candidate SHA |
 | `packages/<context>` | 33 domain packages (pure deterministic TS) |
 | `packages/integrations/*`, `packages/experiences/*` | Adapter + experience packages |
