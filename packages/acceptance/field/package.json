@@ -27,7 +27,10 @@
     "@fleetos/connectivity": "workspace:*",
     "@fleetos/adcos": "workspace:*",
     "@fleetos/sim-worlds": "workspace:*",
-    "@fleetos/experience-asset-field": "workspace:*"
+    "@fleetos/experience-asset-field": "workspace:*",
+    "@fleetos/work": "workspace:*",
+    "@fleetos/projects": "workspace:*",
+    "@fleetos/procurement": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^6.0.2",

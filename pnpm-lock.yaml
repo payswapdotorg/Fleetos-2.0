@@ -749,6 +749,12 @@ importers:
       '@fleetos/observations':
         specifier: workspace:*
         version: link:../../observations
+      '@fleetos/procurement':
+        specifier: workspace:*
+        version: link:../../procurement
+      '@fleetos/projects':
+        specifier: workspace:*
+        version: link:../../projects
       '@fleetos/recovery':
         specifier: workspace:*
         version: link:../../recovery
@@ -758,6 +764,9 @@ importers:
       '@fleetos/tenancy':
         specifier: workspace:*
         version: link:../../tenancy
+      '@fleetos/work':
+        specifier: workspace:*
+        version: link:../../work
     devDependencies:
       typescript:
         specifier: ^6.0.2

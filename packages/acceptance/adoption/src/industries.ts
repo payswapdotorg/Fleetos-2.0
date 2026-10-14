@@ -119,6 +119,8 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
           "Network simulation and route modeling live in the incumbent TMS planning suite; FleetOS is not the dispatch-planning system.",
         "mission-replay-resume":
           "Transport operations are real-time dispatch, not durable multi-stage missions; the incumbent TMS owns the route lifecycle.",
+        "project-closeout-archival":
+          "Project closeout and archival mirror the stage-gated capital-project family: terminal/dock builds run in the incumbent PMO and logistics operations are continuous, so FleetOS does not own the project closeout lifecycle (mirrors the stage-gated-project rationale).",
       },
       commerce: {
         "stage-gated-project":
@@ -148,6 +150,8 @@ export const INDUSTRIES: readonly IndustryDefinition[] = [
           "Crop/field modeling lives in the incumbent agronomy platform; FleetOS is not the agronomy simulation system.",
         "mission-replay-resume":
           "Operations are seasonal and episodic (sowing/harvest windows), not durable multi-stage missions.",
+        "project-closeout-archival":
+          "Farm infrastructure projects are small and contractor-run; the incumbent farm-management suite tracks project closeout and archival (mirrors the stage-gated-project rationale).",
       },
       commerce: {
         "stage-gated-project":
