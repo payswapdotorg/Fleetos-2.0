@@ -46,6 +46,10 @@ import { runProcurementDirectoryStep, runVendorMatchingStep } from "./drivers-pr
 import { runQuoteComparisonStep } from "./drivers-quote-comparison.js";
 import { runVendorKpiStep } from "./drivers-vendor-kpis.js";
 import { runIdempotentCreationStep } from "./drivers-procurement-idempotency.js";
+import { runMarketplaceRequestStep } from "./drivers-marketplace-request.js";
+import { runMarketplaceOfferStep } from "./drivers-marketplace-offer.js";
+import { runMarketplaceSupplierStep } from "./drivers-marketplace-suppliers.js";
+import { runMarketplaceOrderStep } from "./drivers-marketplace-order.js";
 import type { ActorJobStep, AurumStep, CommerceStep, FinanceStep, GatewayStep, HostStep, LifecycleStep, MarketplaceStep, OrgStep, ResilienceStep, VendorDirectoryStep, WorkStep } from "./journey-contracts.js";
 import type { MarketplaceTransactionStep, TenantBillingStep } from "./journey-contracts-f331c.js";
 import type {
@@ -55,6 +59,12 @@ import type {
   VendorKpiStep,
   VendorMatchingStep,
 } from "./journey-contracts-f351c.js";
+import type {
+  MarketplaceOfferStep,
+  MarketplaceOrderAckStep,
+  MarketplaceRequestStep,
+  MarketplaceSupplierStep,
+} from "./journey-contracts-f361c.js";
 
 const WORK_KINDS: ReadonlySet<string> = new Set([
   "work-create", "work-assign", "work-transition", "work-board",
@@ -154,8 +164,26 @@ const F351C_IDEMPOTENCY_KINDS: ReadonlySet<string> = new Set([
   "pidem-create", "pidem-digest",
 ]);
 
+// F361C (Wave 17 lane C) step-kind families — the marketplace chain.
+const F361C_REQUEST_KINDS: ReadonlySet<string> = new Set([
+  "mreq-submit", "mreq-transition", "mreq-read", "mreq-board",
+]);
+
+const F361C_OFFER_KINDS: ReadonlySet<string> = new Set([
+  "moff-capture", "moff-sheet", "moff-compare",
+]);
+
+const F361C_SUPPLIER_KINDS: ReadonlySet<string> = new Set([
+  "mver-open", "mver-verify", "mver-suspend", "mver-expire", "mver-gate", "mver-read", "mver-catalogue-import",
+]);
+
+const F361C_ORDER_KINDS: ReadonlySet<string> = new Set([
+  "mord-draft", "mord-place", "mord-ack", "mord-transition", "mord-read", "mord-board",
+  "mord-work-create", "mord-work-assign", "mord-work-transition", "mord-work-link", "mord-work-gate", "mord-accept",
+]);
+
 export async function executeStep(
-  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep | ProcurementDirectoryStep | VendorMatchingStep | QuoteComparisonStep | VendorKpiStep | IdempotentCreationStep,
+  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep | ProcurementDirectoryStep | VendorMatchingStep | QuoteComparisonStep | VendorKpiStep | IdempotentCreationStep | MarketplaceRequestStep | MarketplaceOfferStep | MarketplaceSupplierStep | MarketplaceOrderAckStep,
   state: JourneyState,
 ): Promise<Record<string, FactValue>> {
   if (WORK_KINDS.has(step.kind)) return runWorkStep(step as WorkStep, state);
@@ -178,6 +206,10 @@ export async function executeStep(
   if (F351C_COMPARISON_KINDS.has(step.kind)) return runQuoteComparisonStep(step as QuoteComparisonStep, state);
   if (F351C_KPI_KINDS.has(step.kind)) return runVendorKpiStep(step as VendorKpiStep, state);
   if (F351C_IDEMPOTENCY_KINDS.has(step.kind)) return runIdempotentCreationStep(step as IdempotentCreationStep, state);
+  if (F361C_REQUEST_KINDS.has(step.kind)) return runMarketplaceRequestStep(step as MarketplaceRequestStep, state);
+  if (F361C_OFFER_KINDS.has(step.kind)) return runMarketplaceOfferStep(step as MarketplaceOfferStep, state);
+  if (F361C_SUPPLIER_KINDS.has(step.kind)) return runMarketplaceSupplierStep(step as MarketplaceSupplierStep, state);
+  if (F361C_ORDER_KINDS.has(step.kind)) return runMarketplaceOrderStep(step as MarketplaceOrderAckStep, state);
   return runOrgStep(step as OrgStep, state);
 }
 
