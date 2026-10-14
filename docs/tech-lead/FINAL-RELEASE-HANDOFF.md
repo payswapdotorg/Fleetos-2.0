@@ -98,7 +98,7 @@ F354's packet includes an arithmetic sanity check based on lane reports: 3,321 e
 Read [`docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md`](../product/UBER-FOR-COMPANY-IT-EQUIPMENT.md). This was added as a canonical mission document so the TL does not need the originating chat. FleetOS must become a neutral operating and transaction network for companies and verified equipment/service suppliers, not merely an asset dashboard.
 
 The next roadmap sequence is:
-- **F360:** TL-owned product/transaction contract freeze: choose a realistic market, categories, real customer/supplier access, state machines, source-of-truth ownership, persistence, provider seams, tenant/authentication and Guardian rules, and end-to-end acceptance before dispatching parallel implementation.
+- **F360:** TL-owned product/transaction contract freeze ([standalone packet](packets/f360.md)): choose a realistic market, categories, real customer/supplier access, state machines, source-of-truth ownership, persistence, provider seams, tenant/authentication and Guardian rules, and end-to-end acceptance before dispatching parallel implementation.
 - **F361A/B/C:** independent asset/receiving, trust/Guardian/security, and supplier/catalogue/quotes/procurement lanes after contracts freeze.
 - **F362:** TL integration and exact-tree end-to-end proof of real request → offers → permitted approval → real order/service commitment → fulfilment/receipt → asset enrollment.
 - **F370:** production hardening for authoritative transaction persistence, authentication/authorization, supplier verification, secrets, observability, reconciliation, deployment and rollback.
