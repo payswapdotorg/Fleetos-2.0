@@ -65,12 +65,12 @@ describe("F331C — the time seam (D12)", () => {
 });
 
 describe("F331C — census responder laws (machine checks of the recorded table)", () => {
-  it("the table-less journeys are INVARIANT at every census offset (34 pre-F331C + 5 F351C + 4 F361C = 43)", async () => {
-    // F351C/F361C grow-only: the five Wave-15 and four Wave-17 lane-C
-    // journeys carry no epoch tables (D13 single-epoch by construction),
-    // so the invariant set grows with the corpus — every table-less
-    // journey stays invariant at every census offset.
-    expect(BASE_34.length).toBe(43);
+  it("the table-less journeys are INVARIANT at every census offset (34 pre-F331C + 5 F351C + 4 F361C + 1 F362 = 44)", async () => {
+    // F351C/F361C/F362 grow-only: the five Wave-15, four Wave-17 lane-C and
+    // one Wave-17 E2E journeys carry no epoch tables (D13 single-epoch by
+    // construction), so the invariant set grows with the corpus — every
+    // table-less journey stays invariant at every census offset.
+    expect(BASE_34.length).toBe(44);
     const baseline = await runAllJourneys(BASE_34, { startedAt: T0 });
     expect(baseline.every((o) => o.passed)).toBe(true);
     for (const delta of CENSUS_OFFSETS) {

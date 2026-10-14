@@ -642,9 +642,15 @@ importers:
       '@fleetos/apify':
         specifier: workspace:*
         version: link:../../integrations/apify
+      '@fleetos/assets':
+        specifier: workspace:*
+        version: link:../../assets
       '@fleetos/aurum':
         specifier: workspace:*
         version: link:../../integrations/aurum
+      '@fleetos/evidence':
+        specifier: workspace:*
+        version: link:../../evidence
       '@fleetos/experience-work-commerce':
         specifier: workspace:*
         version: link:../../experiences/work-commerce
@@ -654,6 +660,9 @@ importers:
       '@fleetos/model-gateway':
         specifier: workspace:*
         version: link:../../model-gateway
+      '@fleetos/policy':
+        specifier: workspace:*
+        version: link:../../policy
       '@fleetos/procurement':
         specifier: workspace:*
         version: link:../../procurement

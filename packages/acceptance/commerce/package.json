@@ -29,7 +29,10 @@
     "@fleetos/experience-work-commerce": "workspace:*",
     "@fleetos/external-vendors": "workspace:*",
     "@fleetos/apify": "workspace:*",
-    "@fleetos/aurum": "workspace:*"
+    "@fleetos/aurum": "workspace:*",
+    "@fleetos/policy": "workspace:*",
+    "@fleetos/evidence": "workspace:*",
+    "@fleetos/assets": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^6.0.2",
