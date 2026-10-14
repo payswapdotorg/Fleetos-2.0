@@ -98,3 +98,9 @@ TL's operational record.
 |---|---|---|
 | C20 | Masked-industry coverage NARROWED but not eliminated by F351B/F353: remaining below-100 firms are agriculture small −14 / medium −6, healthcare-facilities small −10 / medium −3, facilities-management small −9 / medium −2, transportation-logistics small −3 (aggregate 47). Mining + construction B-3 closed (98→103, 97→102); telecom + water-waste small landed AT 100 as the measured field-journey bonus. | Grow-only future tranches over census-certified unexercised surface (the F350 §4 pattern); never broaden/remove masks without evidence; F354 recounts with both Wave-16 lanes present. `docs/evidence/F353/report.md` §3/§6 |
 | C21 | The convergence anti-inflation tripwire changed form at F353 (the F342 "negative shortfall = inflation" check became "the cap may never regress below the 100 target + cap == corpus sum"). This is the F350 §4 sanctioned post-closure growth path, not a weakening — but any future corpus shrink below 100 now trips the regression check loudly. | The evolved check + the D14 census admission law (every corpus member machine-verified by the suites) are the guard; recorded transparently in `docs/evidence/F353/report.md` §4/§7 and the convergence-delta source comments. |
+
+## O. Wave-16 close update (2026-10-14, F354 @ `1033be5`)
+
+| ID | Risk | Mitigation / record |
+|---|---|---|
+| C22 | Wave-16 close residuals: 4 firms below 100 (agriculture small 91 −9 / medium 99 −1, healthcare-facilities small 95 −5, facilities-management small 96 −4; aggregate 19). The parallel-lane procurement id collision exposed a protocol gap: path-disjointness does not imply census-disjointness across corpora. | Future tranches follow the F350 §4 pattern with the F354 lesson: census proof re-ran at INTEGRATION against the merged tree before acceptance (the collision was caught and adjudicated there). `docs/evidence/F354/report.md` §4 |

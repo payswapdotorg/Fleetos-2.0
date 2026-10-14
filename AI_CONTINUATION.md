@@ -150,3 +150,24 @@ These counts are point-in-time only. The issue tracker records a later compariso
   the combined recount) per `docs/tech-lead/packets/f354.md`; then F360.
 - **Evidence:** `docs/evidence/F353/report.md` (SHAs, battery, 30-firm table,
   mask proofs, deviations, residuals).
+
+## 2026-10-14 — F354 convergence executed; WAVE 16 CLOSED
+
+- **Converged candidate:** `1033be5` (merge `678c7bf`: F353-accepted `673cdaa`
+  + work/f351c `0207559`).
+- **F351C ACCEPTED:** commerce 133/133 grow-only, corpus 36→41, zero
+  industries.ts motion, boundary clean; the report date typo (2026-10-15 →
+  2026-10-14) corrected transparently per the commit timestamp.
+- **Combined measured ledger:** 3321 counted (field 1323 / commerce 1167 /
+  security 831), 1029 unique applicable, 26/30 firms ≥ 100, aggregate
+  shortfall 19 (the packet's 18 projection corrected by measurement —
+  agriculture medium at 99). B-3 holds for all four Wave-16 industries.
+- **Parallel-lane id collision adjudicated:** both lanes delivered
+  `procurement-order-authorization` over the shared createOrder/A5 surface;
+  the commerce journey renamed to `procurement-quote-to-order-authorization`
+  (distinct quote-acceptance/audit/cross-tenant angle). Protocol lesson:
+  census proof must re-run at integration against the merged tree.
+- **Battery at `1033be5`:** all seven suites green (107/179/133/82/99/120/88);
+  typecheck + lint clean on the changed packages.
+- **Next:** F360 (TL-owned equipment-marketplace contract freeze) — the
+  roadmap after Wave 16 per FINAL-RELEASE-HANDOFF §6.
