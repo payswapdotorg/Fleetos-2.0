@@ -62,6 +62,9 @@ export const BASE_CORPUS_DIGESTS = [
   // ---- F341B additions (harvested on the F341B lane tree, grow-only) ----
   { journeyId: "security.evidence-artifact-store-completeness", digest: "43f7fa34", pass: true },
   { journeyId: "security.world-context-windowing", digest: "e1792e6d", pass: true },
+  // ---- F361B additions (harvested on the F361B lane tree, grow-only) ----
+  { journeyId: "security.marketplace-order-approval-discipline", digest: "061289bb", pass: true },
+  { journeyId: "security.marketplace-evidence-dedup-discipline", digest: "609cb56c", pass: true },
 ] as const;
 
 describe("F331B — the startedAt time seam (zero behavior change at the corpus anchor)", () => {

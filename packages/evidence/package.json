@@ -8,7 +8,8 @@
     ".": "./src/index.ts",
     "./artifact-store": "./src/artifact-store.ts",
     "./traceability": "./src/traceability.ts",
-    "./canonical-bundle": "./src/canonical-bundle.ts"
+    "./canonical-bundle": "./src/canonical-bundle.ts",
+    "./marketplace-evidence": "./src/marketplace-evidence.ts"
   },
   "scripts": {
     "lint": "oxlint src",

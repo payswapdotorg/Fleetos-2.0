@@ -31,3 +31,7 @@ export * from "./grant-chain.ts";
 
 export * from "./capability-store.ts";
 export * from "./capability-store-dr.ts";
+
+// ---------- Wave 17 (F361B) marketplace Guardian approval contract ----------
+
+export * from "./marketplace-approval.ts";

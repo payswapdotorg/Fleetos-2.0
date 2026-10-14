@@ -21,6 +21,9 @@
     "build": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
+    "@fleetos/actions": "workspace:*",
+    "@fleetos/evidence": "workspace:*",
+    "@fleetos/policy": "workspace:*",
     "typescript": "^6.0.2",
     "vitest": "^2.1.9"
   }

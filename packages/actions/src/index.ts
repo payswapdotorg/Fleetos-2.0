@@ -277,3 +277,7 @@ export * from "./compensation.ts";
 // ---------- Wave 2 (F220B) operational extensions ----------
 
 export * from "./plan.ts";
+
+// ---------- Wave 17 (F361B) marketplace-order action composition ----------
+
+export * from "./marketplace-action.ts";
