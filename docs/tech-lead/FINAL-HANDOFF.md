@@ -41,9 +41,9 @@ Do not serialize independent bounded contexts.
 
 Do not compromise architecture to gain parallelism.
 
-## First phase: repository conversion
+## Original first phase: repository conversion (historical; do not restart)
 
-Execute Wave 0 before feature work:
+This section records the completed origin sequence only. Current work is selected from the catalog and current release handoff; do not replay Wave 0 unless a new evidence-backed regression specifically requires it.
 
 - F200A;
 - F200B;
