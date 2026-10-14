@@ -67,7 +67,9 @@ At the initial repository audit on 2026-10-14, main was at `cb572b89e2b41fe85b3c
 - **Date-integrity check:** the currently inspected F351C branch report says `2026-10-15`, one day after this handoff review (2026-10-14). Reconcile this with actual Git commit timestamps and worker evidence before acceptance. Correct a typo transparently; do not backdate or invent execution times.
 - F351C may not edit `industries.ts`; adjudicate any mask/applicability proposals from its report in F354.
 
-The branch reports are evidence to examine, not accepted work. Capture the actual branch refs/commit SHAs with `git fetch --prune origin`, `git rev-parse origin/main origin/work/f351b origin/work/f351c`, inspect merge bases, changed paths, logs and full diffs. Verify all lane changes against ownership before integrating.
+**Final ref comparison after this takeover's documentation commits:** main was `759c6439b386c2dba8b4c6e9f45dacf79911ec40`; `work/f351b` was diverged, 2 commits ahead / 21 behind, merge base `4f59ffed4cf3299da6bbd99ae3b51a4988755ea8`; `work/f351c` was diverged, 1 commit ahead / 20 behind, merge base `cb572b89e2b41fe85b3c3c5fb8c779d12cbb7c5a`. Later docs-only main commits widened this divergence. These are point-in-time counts, not instructions to merge the branches wholesale.
+
+The branch reports are evidence to examine, not accepted work. Capture the actual branch refs/commit SHAs with `git fetch --prune origin`, `git rev-parse origin/main origin/work/f351b origin/work/f351c`, inspect merge bases, changed paths, logs and full diffs. Use a reviewable rebase/cherry-pick/integration branch as necessary and explicitly preserve the current catalog and all main-side documentation. Verify all lane changes against ownership before integrating. The main-branch report paths `docs/evidence/F351B/report.md` and `docs/evidence/F351C/report.md` returned 404 at this review; their reports currently exist only on worker branches.
 
 ## 4. Required execution sequence — no re-planning from chat
 
