@@ -48,6 +48,11 @@ describe("F331A epoch declarations (D8's closed set)", () => {
     "observations-retention-projections", // F341A (candidate A2)
     "sim-worlds-checkpoint-determinism", // F341A (candidate A3)
     "observations-kernel-immutability-audit", // F341A D17 sixth slot (TL-adjudicated)
+    "asset-registry-lifecycle-audit", // F351B (census row A: assets registry lifecycle)
+    "work-order-shift-supersession", // F351B (census row W: work-order supersession)
+    "project-closeout-archival", // F351B (census row P: project closeout/archival)
+    "procurement-order-authorization", // F351B (census row M/O: procurement ordering)
+    "equipment-health-threshold-escalation", // F351B (census row H: health thresholds)
   ]);
   it("the census table covers the 30 census-era journeys with the frozen class law", () => {
     expect(FIELD_CENSUS.length).toBe(30);

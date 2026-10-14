@@ -42,10 +42,10 @@ function expectJourneyPasses(journeyId: string): JourneyOutcome {
 }
 
 describe("F270A device/field acceptance journeys", () => {
-  it("corpus shape: 35 journeys, fixed ids, no duplicates (14 + 6 F300A host-integration + 10 F321A + 1 F331A + 4 F341A incl. the TL-adjudicated D17 sixth slot)", () => {
-    expect(FIELD_JOURNEYS.length).toBe(35);
+  it("corpus shape: 40 journeys, fixed ids, no duplicates (14 + 6 F300A host-integration + 10 F321A + 1 F331A + 4 F341A incl. the TL-adjudicated D17 sixth slot + 5 F351B masked-industry coverage)", () => {
+    expect(FIELD_JOURNEYS.length).toBe(40);
     const ids = FIELD_JOURNEYS.map((j) => j.id);
-    expect(new Set(ids).size).toBe(35);
+    expect(new Set(ids).size).toBe(40);
     expect([...OUTCOMES.keys()].sort()).toEqual([...ids].sort());
   });
 

@@ -3,15 +3,17 @@
  * (Wave 7 lane A + F300A host-integration extension, Wave 10 lane A +
  * F321A edge/asset governance extension, Wave 12 lane A; F331A Wave 13
  * lane A — the edge firmware/OTA campaign journey + the D8 census-certified
- * epoch parameterizations, see epoch-schedule.ts).
+ * epoch parameterizations, see epoch-schedule.ts; F341A Wave 14 lane A —
+ * the three field remainder journeys + the TL-adjudicated D17 sixth slot;
+ * F351B Wave 16 lane A — the five masked-industry coverage journeys).
  *
- * 35 journeys across the fixed 7-persona vocabulary (14 original + 6
+ * 40 journeys across the fixed 7-persona vocabulary (14 original + 6
  * genuinely distinct host-integration journeys added by F300A + 10 genuinely
  * distinct F321A journeys + 1 F331A edge firmware/OTA campaign journey + 3
  * F341A field remainder journeys + 1 TL-adjudicated F341A D17 sixth-slot
- * journey). Journeys are pure DATA (typed operations + declarative
- * assertions); the runner executes them against the REAL public APIs of
- * this lane's packages.
+ * journey + 5 F351B masked-industry coverage journeys). Journeys are pure
+ * DATA (typed operations + declarative assertions); the runner executes
+ * them against the REAL public APIs of this lane's packages.
  *
  * ORDER MATTERS: `handoff-field-to-operator-consume` declares
  * `consumesHandoff` — the corpus runner threads the publishing journey's
@@ -62,6 +64,11 @@ import {
   simWorldsCheckpointDeterminismJourney,
   observationsKernelImmutabilityAuditJourney,
 } from "./f341a-field-remainder.js";
+import { assetRegistryLifecycleAuditJourney } from "./f351b-asset-registry.js";
+import { workOrderShiftSupersessionJourney } from "./f351b-work-order.js";
+import { projectCloseoutArchivalJourney } from "./f351b-project-closeout.js";
+import { procurementOrderAuthorizationJourney } from "./f351b-procurement-order.js";
+import { equipmentHealthThresholdEscalationJourney } from "./f351b-health-thresholds.js";
 
 export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   enrollNewAssetJourney,
@@ -109,6 +116,16 @@ export const FIELD_JOURNEYS: readonly AcceptanceJourney[] = [
   observationsRetentionProjectionsJourney,
   simWorldsCheckpointDeterminismJourney,
   observationsKernelImmutabilityAuditJourney,
+  // F351B (Wave 16 lane A) — the five masked-industry coverage journeys
+  // (the F351B census over the persona-relevant unexercised surface:
+  // assets registry lifecycle, work-order supersession, project closeout,
+  // procurement ordering, health threshold escalation). No epochs
+  // declared (D14's single-epoch default; the F330 census set is closed).
+  assetRegistryLifecycleAuditJourney,
+  workOrderShiftSupersessionJourney,
+  projectCloseoutArchivalJourney,
+  procurementOrderAuthorizationJourney,
+  equipmentHealthThresholdEscalationJourney,
 ];
 
 export {
@@ -147,4 +164,9 @@ export {
   observationsRetentionProjectionsJourney,
   simWorldsCheckpointDeterminismJourney,
   observationsKernelImmutabilityAuditJourney,
+  assetRegistryLifecycleAuditJourney,
+  workOrderShiftSupersessionJourney,
+  projectCloseoutArchivalJourney,
+  procurementOrderAuthorizationJourney,
+  equipmentHealthThresholdEscalationJourney,
 };

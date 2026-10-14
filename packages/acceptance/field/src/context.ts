@@ -65,6 +65,14 @@ import type { FirmwareCampaign } from "@fleetos/maintenance";
 // (public types of @fleetos/sim-worlds). The context owns no domain logic.
 import type { BackpressurePolicy, InMemoryImmutableStore, QueueState, AdmittedObservationLog } from "@fleetos/observations";
 import type { FaultScenario, FleetWorld, WorldEngineState, WorldEvent, WorldRunCheckpoint } from "@fleetos/sim-worlds";
+// F351B (Wave 16 lane A) — REAL state structures for the five masked-industry
+// coverage journeys (public types of @fleetos/assets, @fleetos/work,
+// @fleetos/projects, @fleetos/procurement, @fleetos/health). The context owns
+// no domain logic of its own.
+import type { WorkItem, ProgressEvent } from "@fleetos/work";
+import type { Project, ProjectArchivalRecord } from "@fleetos/projects";
+import type { Order } from "@fleetos/procurement";
+import { emptyDiagnosisRegistry, type DiagnosisRegistry } from "@fleetos/health";
 
 /** A JSON-shaped reading value (assertions compare these canonically). */
 export type ReadingValue = string | number | boolean | null | ReadonlyArray<unknown> | { readonly [k: string]: unknown };
@@ -195,6 +203,24 @@ export interface JourneyContext {
   /** REAL kernel admitted-log records by id (admitToLog outputs — the
    * kernel's authoritative read side, append-only, D17 sixth slot). */
   admittedLogs: Map<string, AdmittedObservationLog>;
+  // -------------------------------------------------------------------------
+  // F351B (Wave 16 lane A) — caller-threaded state for the five masked-
+  // industry coverage journeys. Every field is a REAL public structure of
+  // the driven packages; the context owns no domain logic of its own.
+  // -------------------------------------------------------------------------
+  /** REAL device twins by device id (applyTwinRevision outputs, append-only). */
+  f351bTwins: Map<string, DeviceTwin>;
+  /** REAL work items by id (advanceWorkItem/assignTo/reassignTo outputs). */
+  f351bWorkItems: Map<string, WorkItem>;
+  /** REAL progress events emitted by the work kernels (append-only). */
+  f351bProgressEvents: ProgressEvent[];
+  /** REAL projects by id (transitionProject outputs) + archival records. */
+  f351bProjects: Map<string, Project>;
+  f351bProjectArchives: ProjectArchivalRecord[];
+  /** REAL procurement orders by id (createOrder/transitionOrder outputs). */
+  f351bOrders: Map<string, Order>;
+  /** REAL diagnosis registry (registerDiagnosis outputs, tenant-scoped). */
+  f351bDiagnosisRegistry: DiagnosisRegistry;
 }
 
 /** The caller-threaded sim-worlds run record (REAL engine outputs only). */
@@ -270,6 +296,14 @@ export function createJourneyContext(tenantId: string, startedAt: number): Journ
     firstSummaries: new Map(),
     worldCheckpointRuns: new Map(),
     admittedLogs: new Map(),
+    // F351B state — REAL empty structures (filled only by journey ops).
+    f351bTwins: new Map(),
+    f351bWorkItems: new Map(),
+    f351bProgressEvents: [],
+    f351bProjects: new Map(),
+    f351bProjectArchives: [],
+    f351bOrders: new Map(),
+    f351bDiagnosisRegistry: emptyDiagnosisRegistry(),
   };
 }
 

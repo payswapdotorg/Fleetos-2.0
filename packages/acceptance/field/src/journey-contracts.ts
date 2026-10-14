@@ -20,6 +20,7 @@ import { deepEquals, digestOf } from "./determinism.js";
 import type { F321AOperation } from "./journey-contracts-f321a.js";
 import type { F331AOperation } from "./journey-contracts-f331a.js";
 import type { F341AOperation } from "./journey-contracts-f341a.js";
+import type { F351BOperation } from "./journey-contracts-f351b.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabulary — personas (7) + capabilities.
@@ -198,7 +199,12 @@ export type JourneyOperation =
   // F341A (Wave 14 lane A) — the three field remainder journeys' operations
   // (the F340 §1 census candidates A1/A2/A3: observations backpressure,
   // retention/projections, sim-worlds checkpoint determinism).
-  | F341AOperation;
+  | F341AOperation
+  // F351B (Wave 16 lane A) — the masked-industry coverage journeys'
+  // operations (the F351B census: assets registry lifecycle, work-order
+  // supersession, project closeout, procurement ordering, health
+  // threshold escalation).
+  | F351BOperation;
 
 export interface JourneyStep {
   readonly id: string;
