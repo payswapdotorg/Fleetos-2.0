@@ -20,8 +20,10 @@ The repository is the only authoritative source.
 6. `spec/worker-ownership.yaml`
 7. `spec/work-items/WORK-ITEM-CATALOG.md`
 8. `docs/tech-lead/CONCURRENCY-PROTOCOL.md`
+9. `docs/tech-lead/FINAL-RELEASE-HANDOFF.md` (current state and next order)
+10. `docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md` (canonical product mission and live-pilot gate)
 
-Then inspect the actual source tree before implementing.
+Then inspect the actual source tree before implementing. The current catalog and release handoff override any historical wave ordering in this standing rubric.
 
 ## Non-negotiable execution model
 
