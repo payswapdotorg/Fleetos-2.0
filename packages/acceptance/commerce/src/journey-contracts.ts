@@ -33,6 +33,12 @@ import type {
   MarketplaceSupplierStep,
   MarketplaceOrderAckStep,
 } from "./journey-contracts-f361c.js";
+import type {
+  SpineEvidenceStep,
+  SpineGuardianApprovalStep,
+  SpineReceiptStep,
+  SpineEnrollmentStep,
+} from "./journey-contracts-f362.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabularies.
@@ -103,6 +109,11 @@ export const JOURNEY_CAPABILITIES: readonly string[] = [
   "marketplace-offers",
   "marketplace-suppliers",
   "marketplace-fulfilment",
+  // F362 extension (Wave 17, the TL-delegated E2E lane): the deterministic
+  // transaction-spine journey composing all three Wave-17 lanes' REAL public
+  // APIs (request → catalogue → offers → comparison → Guardian approval →
+  // order+ack → receipt → enrollment) in ONE journey.
+  "marketplace-transaction-spine",
 ] as const;
 
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
@@ -362,7 +373,11 @@ export type JourneyStep =
   | MarketplaceRequestStep
   | MarketplaceOfferStep
   | MarketplaceSupplierStep
-  | MarketplaceOrderAckStep;
+  | MarketplaceOrderAckStep
+  | SpineEvidenceStep
+  | SpineGuardianApprovalStep
+  | SpineReceiptStep
+  | SpineEnrollmentStep;
 
 // The F310C step families live in journey-contracts-f310c.ts (file law):
 export type { LifecycleStep, FinanceStep, ResilienceStep } from "./journey-contracts-f310c.js";
@@ -385,6 +400,13 @@ export type {
   MarketplaceSupplierStep,
   MarketplaceOrderAckStep,
 } from "./journey-contracts-f361c.js";
+// The F362 step families live in journey-contracts-f362.ts (file law):
+export type {
+  SpineEvidenceStep,
+  SpineGuardianApprovalStep,
+  SpineReceiptStep,
+  SpineEnrollmentStep,
+} from "./journey-contracts-f362.js";
 
 // ---------------------------------------------------------------------------
 // The journey.

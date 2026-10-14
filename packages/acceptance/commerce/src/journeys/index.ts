@@ -1,7 +1,7 @@
 /**
  * @fleetos/acceptance-commerce — the journey corpus (public `./journeys`).
  *
- * 45 journeys over the worker-C lane's REAL packages (F300C extended the
+ * 46 journeys over the worker-C lane's REAL packages (F300C extended the
  * Wave 7 corpus 15 → 21; F310C extended 21 → 31; F321C extends 31 → 34;
  * F331C extends 34 → 36; F351C extends 36 → 41 (the five commerce-
  * discipline journeys); F361C extends 41 → 45: +1 marketplace-request-
@@ -17,7 +17,13 @@
  * +1 marketplace-order-ack-discipline — the REAL §3.4 order lifecycle
  * with the manual provider-ack seam (idempotent, duplicate-event-
  * refusing) composed with the REAL work package's service-completion
- * accept gate. The corpus is pure data; validation of its shape
+ * accept gate. F362 (the TL-delegated E2E lane) extends 45 → 46: +1
+ * marketplace-transaction-spine — the deterministic transaction-spine
+ * journey through the REAL public APIs of ALL THREE Wave-17 lanes (the
+ * F361B approval/evidence surfaces + the F361A receipt/enrollment
+ * surfaces driven from the commerce corpus for the first time, composed
+ * over the F361C chain; a refusal asserted at every gate; fixture-
+ * labelled, never live). The corpus is pure data; validation of its shape
  * happens in tests (unique ids, vocabulary membership, at least five
  * assertions per journey).
  */
@@ -40,6 +46,7 @@ import { F351C_VENDOR_JOURNEYS } from "./f351c-vendors.js";
 import { F361C_PROCUREMENT_JOURNEYS } from "./f361c-procurement.js";
 import { F361C_VENDOR_JOURNEYS } from "./f361c-vendors.js";
 import { F361C_ORDER_JOURNEYS } from "./f361c-order.js";
+import { F362_SPINE_JOURNEYS } from "./f362-spine.js";
 
 export const JOURNEYS: readonly AcceptanceJourney[] = [
   ...WORK_JOURNEYS,
@@ -59,6 +66,7 @@ export const JOURNEYS: readonly AcceptanceJourney[] = [
   ...F361C_PROCUREMENT_JOURNEYS,
   ...F361C_VENDOR_JOURNEYS,
   ...F361C_ORDER_JOURNEYS,
+  ...F362_SPINE_JOURNEYS,
 ];
 
 export {
@@ -79,4 +87,5 @@ export {
   F361C_PROCUREMENT_JOURNEYS,
   F361C_VENDOR_JOURNEYS,
   F361C_ORDER_JOURNEYS,
+  F362_SPINE_JOURNEYS,
 };

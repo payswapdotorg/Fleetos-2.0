@@ -50,6 +50,8 @@ import { runMarketplaceRequestStep } from "./drivers-marketplace-request.js";
 import { runMarketplaceOfferStep } from "./drivers-marketplace-offer.js";
 import { runMarketplaceSupplierStep } from "./drivers-marketplace-suppliers.js";
 import { runMarketplaceOrderStep } from "./drivers-marketplace-order.js";
+import { runSpineGuardianStep } from "./drivers-spine-guardian.js";
+import { runSpineReceiptStep } from "./drivers-spine-receipt.js";
 import type { ActorJobStep, AurumStep, CommerceStep, FinanceStep, GatewayStep, HostStep, LifecycleStep, MarketplaceStep, OrgStep, ResilienceStep, VendorDirectoryStep, WorkStep } from "./journey-contracts.js";
 import type { MarketplaceTransactionStep, TenantBillingStep } from "./journey-contracts-f331c.js";
 import type {
@@ -65,6 +67,12 @@ import type {
   MarketplaceRequestStep,
   MarketplaceSupplierStep,
 } from "./journey-contracts-f361c.js";
+import type {
+  SpineEnrollmentStep,
+  SpineEvidenceStep,
+  SpineGuardianApprovalStep,
+  SpineReceiptStep,
+} from "./journey-contracts-f362.js";
 
 const WORK_KINDS: ReadonlySet<string> = new Set([
   "work-create", "work-assign", "work-transition", "work-board",
@@ -182,8 +190,20 @@ const F361C_ORDER_KINDS: ReadonlySet<string> = new Set([
   "mord-work-create", "mord-work-assign", "mord-work-transition", "mord-work-link", "mord-work-gate", "mord-accept",
 ]);
 
+// F362 (Wave 17, the TL-delegated E2E lane) step-kind families — the
+// transaction-spine surfaces composed from the OTHER two Wave-17 lanes.
+const F362_SPINE_EVIDENCE_KINDS: ReadonlySet<string> = new Set([
+  "spn-evidence-retain", "spn-evidence-read", "spn-guardian-approval",
+]);
+
+const F362_SPINE_ASSET_KINDS: ReadonlySet<string> = new Set([
+  "spn-receipt-record", "spn-receipt-verify", "spn-receipt-read",
+  "spn-enrollment-open", "spn-enrollment-complete", "spn-enrollment-read",
+  "spn-registry-read",
+]);
+
 export async function executeStep(
-  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep | ProcurementDirectoryStep | VendorMatchingStep | QuoteComparisonStep | VendorKpiStep | IdempotentCreationStep | MarketplaceRequestStep | MarketplaceOfferStep | MarketplaceSupplierStep | MarketplaceOrderAckStep,
+  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep | ProcurementDirectoryStep | VendorMatchingStep | QuoteComparisonStep | VendorKpiStep | IdempotentCreationStep | MarketplaceRequestStep | MarketplaceOfferStep | MarketplaceSupplierStep | MarketplaceOrderAckStep | SpineEvidenceStep | SpineGuardianApprovalStep | SpineReceiptStep | SpineEnrollmentStep,
   state: JourneyState,
 ): Promise<Record<string, FactValue>> {
   if (WORK_KINDS.has(step.kind)) return runWorkStep(step as WorkStep, state);
@@ -210,6 +230,8 @@ export async function executeStep(
   if (F361C_OFFER_KINDS.has(step.kind)) return runMarketplaceOfferStep(step as MarketplaceOfferStep, state);
   if (F361C_SUPPLIER_KINDS.has(step.kind)) return runMarketplaceSupplierStep(step as MarketplaceSupplierStep, state);
   if (F361C_ORDER_KINDS.has(step.kind)) return runMarketplaceOrderStep(step as MarketplaceOrderAckStep, state);
+  if (F362_SPINE_EVIDENCE_KINDS.has(step.kind)) return runSpineGuardianStep(step as SpineEvidenceStep | SpineGuardianApprovalStep, state);
+  if (F362_SPINE_ASSET_KINDS.has(step.kind)) return runSpineReceiptStep(step as SpineReceiptStep | SpineEnrollmentStep, state);
   return runOrgStep(step as OrgStep, state);
 }
 
