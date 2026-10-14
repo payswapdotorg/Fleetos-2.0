@@ -1,4 +1,6 @@
-# FleetOS 2.0 — Final TL Handoff
+# FleetOS 2.0 — Standing TL Handoff and Quality Rubric
+
+> **Current execution state is maintained in [`FINAL-RELEASE-HANDOFF.md`](FINAL-RELEASE-HANDOFF.md).** Start from that file and `spec/work-items/WORK-ITEM-CATALOG.md`; do not restart Wave 0. Product intent for the equipment marketplace is `docs/product/UBER-FOR-COMPANY-IT-EQUIPMENT.md`. This document defines the enduring TL role, ownership, execution discipline and acceptance rubric; its original wave sequence below is historical context, not current backlog status.
 
 ## Mission
 
@@ -186,7 +188,7 @@ When workers discover a contract problem:
 - update canonical contracts;
 - re-run dependent tests.
 
-## Implementation sequence
+## Original implementation sequence (historical context; current work is in the catalog)
 
 ### Wave 0
 
