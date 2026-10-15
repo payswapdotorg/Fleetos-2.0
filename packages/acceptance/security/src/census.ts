@@ -54,7 +54,7 @@
  *     family's asserted values are all relative to the run anchor; the
  *     two F361B additions are likewise census-invariant — fixed logical
  *     ISO fixtures and content-addressed digests, never the run anchor).
- *     The corpus now carries 31 journeys; the 8-journey echo-failure
+ *     The corpus now carries 39 journeys; the 8-journey echo-failure
  *     baseline is unchanged.
  *
  * Determinism: the census is a pure function of the corpus + the frozen
@@ -172,9 +172,10 @@ const ECHO_UNIFORM_CITATION =
   "F331B census: non-responder — absolute-timestamp equality pins (D13 echo family) fail IDENTICALLY at T0 and every Δ in the adoption-anchored regime (the security fixture clock BASE_MS 2026-10-12 is displaced ~206d from ADOPTION_T0 2026-04); digest moves with the anchor (machine-evidenced) but pass/fail never flips; single-counted";
 
 /**
- * The declared 36-row census table (the 27 F331B-era rows + the two F341B
+ * The declared 39-row census table (the 27 F331B-era rows + the two F341B
  * remainder additions + the two F361B marketplace-trust additions + the
- * five F370A authenticated-marketplace additions). The
+ * five F370A authenticated-marketplace additions + the three F370B
+ * secret-management additions). The
  * two responders are transition-class (D2(b) family) but their crossings
  * sit at Δ ≈ +206.4d — beyond the frozen D9 schedule [T0, T0+30d,
  * T0+90d] — so they are SCHEDULE-EXCLUDED: no per-epoch tables, no
@@ -278,6 +279,28 @@ export const SECURITY_CENSUS: readonly SecurityCensusEntry[] = [
     censusClass: null,
     citation:
       "F370A census: invariant — the authenticated Guardian-approval family evaluates the EXISTING approval contract over fixed logical fixtures with fixed keys and never reads the run anchor, so the outcome is byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  // ---- F370B additions (Wave 18 lane B — secret management) ----
+  {
+    journeyId: "security.keyring-rotation",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F370B census: invariant — the keyring-rotation family drives the rotating keyring over fixed logical epochs with a fixed injected SecureRandom stream (id first, then material — the frozen draw order), so tokens, verdicts and the rotated snapshot are pure functions of the fixtures and never read the run anchor; byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  {
+    journeyId: "security.session-revocation",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F370B census: invariant — the session-revocation family mints jti-carrying tokens over fixed logical epochs and one in-memory registry driven in a fixed order, so every verdict (REVOKED and its causes, the precedence seams) is a pure function of the fixtures and never reads the run anchor; byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  {
+    journeyId: "security.secure-random-no-leak",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F370B census: invariant — the randomness/no-leak family draws salts and key material from fixed injected streams and asserts equality/length/no-leak booleans only, so the outcome is a pure function of the fixtures and never reads the run anchor; byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
   },
 ];
 

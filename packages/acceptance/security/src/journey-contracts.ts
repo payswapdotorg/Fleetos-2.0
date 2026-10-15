@@ -18,9 +18,11 @@
  *     counterfactual/inspect/learning/benchmarks/agent-safety + the
  *     tenant-isolation cross-cut) EXTENDED at F300B with the Wave 10 lane B
  *     deliverables (Guardian journey end-to-end, mission replay, predictive
- *     honesty, host-surface integration) and at F370A with the Wave 18
- *     lane A deliverables (credential verification, session authorization,
- *     authenticated marketplace access) — 20 entries, grow-only;
+ *     honesty, host-surface integration), at F370A with the Wave 18 lane A
+ *     deliverables (credential verification, session authorization,
+ *     authenticated marketplace access), and at F370B with the Wave 18
+ *     lane B deliverables (the rotating keyring, session revocation,
+ *     host-boundary randomness) — 23 entries, grow-only;
  *   - a journey may only declare packages from THIS lane (verified by the
  *     boundary self-check in tests; the F370A additions bring the identity
  *     lane and the composed Wave-17 marketplace surfaces it gates).
@@ -72,6 +74,11 @@ export const JOURNEY_CAPABILITIES = [
   "credential-verification",
   "session-authorization",
   "authenticated-marketplace-access",
+  // ---- F370B extensions (Wave 18 lane B: secret management — the
+  // rotating keyring, session revocation, host-boundary randomness) ----
+  "rotating-keyring",
+  "session-revocation",
+  "host-boundary-randomness",
 ] as const;
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
 

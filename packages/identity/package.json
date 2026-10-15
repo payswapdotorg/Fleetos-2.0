@@ -8,7 +8,10 @@
     "./credentials": "./src/credentials.ts",
     "./session": "./src/session.ts",
     "./marketplace-gate": "./src/marketplace-gate.ts",
-    "./marketplace-authenticated": "./src/marketplace-authenticated.ts"
+    "./marketplace-authenticated": "./src/marketplace-authenticated.ts",
+    "./secure-random": "./src/secure-random.ts",
+    "./keyring": "./src/keyring.ts",
+    "./session-revocation": "./src/session-revocation.ts"
   },
   "scripts": {
     "lint": "oxlint",

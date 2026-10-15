@@ -1,8 +1,8 @@
 /**
  * @fleetos/acceptance/security — the journey corpus (F270B + F300B + F321B
- * + F341B + F361B).
+ * + F341B + F361B + F370A + F370B).
  *
- * 36 journeys over the REAL lane packages: the 13 F270B journeys (one per
+ * 39 journeys over the REAL lane packages: the 13 F270B journeys (one per
  * acceptance capability of the F270B deliverable list plus the tenant-
  * isolation cross-cut), the 4 F300B extensions (the Guardian journey
  * end-to-end, mission replay on real package outputs, predictive honesty
@@ -26,7 +26,17 @@
  * marketplace family — credential verification, signed sessions, and the
  * gated request/offer/order, receipt/enrollment and Guardian-approval
  * compositions over the REAL Wave-17 public APIs; all census-invariant,
- * fixed logical fixtures, never the run anchor).
+ * fixed logical fixtures, never the run anchor), plus the 3 F370B
+ * extensions (Wave 18 lane B: the secret-management family — the
+ * rotating keyring (issue under the current key, verify by the carried
+ * key id, grace to KEY_RETIRED, KEY_UNKNOWN / wrong-material /
+ * malformed refusals), session revocation (the jti claim, the registry
+ * with the jti + actor-sweep, signature/expiry-precedes-revocation at
+ * the exact seams), and host-boundary randomness (the injected
+ * SecureRandom port, deterministic-under-injection, generated-salt
+ * enumeration resistance, the no-secret-leak law); all census-invariant,
+ * fixed logical fixtures + fixed injected streams, never the run
+ * anchor).
  * Every journey is DATA + declarative assertions executed by the runner.
  * Identical reruns never count — each journey drives genuinely distinct
  * REAL surfaces.
@@ -73,6 +83,10 @@ import { authenticatedMarketplaceSessionsJourney } from "./f370a-sessions.ts";
 import { authenticatedMarketplaceRequestOrderJourney } from "./f370a-request-order.ts";
 import { authenticatedMarketplaceReceiptEnrollmentJourney } from "./f370a-receipt-enrollment.ts";
 import { authenticatedMarketplaceApprovalJourney } from "./f370a-approval.ts";
+// ---- F370B extensions (Wave 18 lane B; secret management — keyring, revocation, host-boundary randomness) ----
+import { keyringRotationJourney } from "./f370b-keyring-rotation.ts";
+import { sessionRevocationJourney } from "./f370b-session-revocation.ts";
+import { secureRandomNoLeakJourney } from "./f370b-secure-random-no-leak.ts";
 
 /** The full security/action/intelligence acceptance corpus, in declared order. */
 export const SECURITY_JOURNEYS: readonly AcceptanceJourney[] = [
@@ -117,6 +131,10 @@ export const SECURITY_JOURNEYS: readonly AcceptanceJourney[] = [
   authenticatedMarketplaceRequestOrderJourney,
   authenticatedMarketplaceReceiptEnrollmentJourney,
   authenticatedMarketplaceApprovalJourney,
+  // ---- F370B extensions (Wave 18 lane B: secret management) ----
+  keyringRotationJourney,
+  sessionRevocationJourney,
+  secureRandomNoLeakJourney,
 ];
 
 export {
@@ -156,4 +174,7 @@ export {
   authenticatedMarketplaceRequestOrderJourney,
   authenticatedMarketplaceReceiptEnrollmentJourney,
   authenticatedMarketplaceApprovalJourney,
+  keyringRotationJourney,
+  sessionRevocationJourney,
+  secureRandomNoLeakJourney,
 };

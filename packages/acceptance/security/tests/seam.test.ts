@@ -72,6 +72,11 @@ export const BASE_CORPUS_DIGESTS = [
   { journeyId: "security.authenticated-marketplace-request-order", digest: "3b2ead03", pass: true },
   { journeyId: "security.authenticated-marketplace-receipt-enrollment", digest: "5c25d946", pass: true },
   { journeyId: "security.authenticated-marketplace-approval", digest: "cc82587e", pass: true },
+  // ---- F370B additions (harvested on the F370B lane tree, grow-only;
+  //      the 36 prior entries are byte-identical and untouched) ----
+  { journeyId: "security.keyring-rotation", digest: "5b3ffa22", pass: true },
+  { journeyId: "security.session-revocation", digest: "17dfb058", pass: true },
+  { journeyId: "security.secure-random-no-leak", digest: "e87b694c", pass: true },
 ] as const;
 
 describe("F331B — the startedAt time seam (zero behavior change at the corpus anchor)", () => {
