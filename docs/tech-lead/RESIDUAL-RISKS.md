@@ -116,3 +116,9 @@ TL's operational record.
 | ID | Risk | Mitigation / record |
 |---|---|---|
 | C24 | The E2E transaction-spine journey is fixture-labelled, contract-backed composition — it must never be cited as live-pilot evidence. The manual catalogue import + provider-ack seams remain operator-mediated. | `docs/evidence/F362/report.md` (fixture-labelled throughout); the live-pilot gate stays BLOCKED on F369/F371; the seams plainly labelled in the F361C/F362 surfaces. B-3 now 30/30 firms with the masked-journey ledger intact — the applicable-target closure is a corpus-count fact, never a coverage-quality claim. |
+
+## R. Wave-18 close record (2026-10-15, F370 convergence)
+
+| ID | Risk | Mitigation / record |
+|---|---|---|
+| C25 | The production-persistence qualification is scoped honestly but narrowly: pglite (REAL PostgreSQL WASM, in-process) — no networked-PG-at-the-host-boundary claim; the keyring is file/env configuration-class — no real-KMS claim; the :3107 deployment service demonstrated at lane-gate on sandbox localhost only. The 2026-10-15 full-image rollback also exposed the gate-process fragility: two contention-diverged runs before the clean pass (the parens-regex pkill trap). | The MarketplaceStore port + swappable adapter seams + the recorded follow-up lanes (networked-PG, real KMS); SIGKILL crash-restart digests byte-identical machine-asserted; the kill-by-PID-tree + box-empty-before-gate-launch doctrine recorded in the F370 catalog close; `docs/evidence/F370C/report.md`; the recycle-proof backup branch pattern (`work/f370-re-pin-backup`). |
