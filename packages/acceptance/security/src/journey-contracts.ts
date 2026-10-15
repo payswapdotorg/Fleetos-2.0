@@ -1,6 +1,6 @@
 /**
  * @fleetos/acceptance/security — journey contracts (Wave 7 lane B, F270B;
- * extended Wave 10 lane B, F300B).
+ * extended Wave 10 lane B, F300B; extended Wave 18 lane A, F370A).
  *
  * A journey is DATA + assertions, never imperative glue that can hide
  * failures:
@@ -18,9 +18,12 @@
  *     counterfactual/inspect/learning/benchmarks/agent-safety + the
  *     tenant-isolation cross-cut) EXTENDED at F300B with the Wave 10 lane B
  *     deliverables (Guardian journey end-to-end, mission replay, predictive
- *     honesty, host-surface integration) — 17 entries, grow-only;
+ *     honesty, host-surface integration) and at F370A with the Wave 18
+ *     lane A deliverables (credential verification, session authorization,
+ *     authenticated marketplace access) — 20 entries, grow-only;
  *   - a journey may only declare packages from THIS lane (verified by the
- *     boundary self-check in tests).
+ *     boundary self-check in tests; the F370A additions bring the identity
+ *     lane and the composed Wave-17 marketplace surfaces it gates).
  *
  * Determinism: no Date.now(), no Math.random(), no network, no timers.
  * Logical `now` is caller-supplied everywhere (the corpus pins fixed epochs;
@@ -64,6 +67,11 @@ export const JOURNEY_CAPABILITIES = [
   "mission-replay",
   "predictive-honesty",
   "host-surface-integration",
+  // ---- F370A extensions (Wave 18 lane A: real authentication +
+  // server-side tenant authorization over the marketplace spine) ----
+  "credential-verification",
+  "session-authorization",
+  "authenticated-marketplace-access",
 ] as const;
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
 
@@ -81,6 +89,11 @@ export const JOURNEY_ALLOWED_PACKAGES = [
   "@fleetos/arena",
   "@fleetos/simulation",
   "@fleetos/experience-safety-intel",
+  // ---- F370A extensions (Wave 18 lane A: the identity lane + the
+  // composed Wave-17 marketplace surfaces driven behind the gate) ----
+  "@fleetos/identity",
+  "@fleetos/procurement",
+  "@fleetos/assets",
 ] as const;
 
 /** Typed step kinds — the closed vocabulary of domain operations. */
