@@ -5,7 +5,8 @@
  * census.
  *
  * Pinned machine facts (see src/census.ts module docs for the method):
- *   1. the declared table covers exactly the 27-journey corpus;
+ *   1. the declared table covers exactly the 27-journey corpus (36 after
+ *      the F341B/F361B/F370A grow-only additions);
  *   2. responder flags, classes and responding Δ sets match measurement;
  *   3. the 19 declared-invariant journeys are byte-identical across the
  *      whole census grid (same digest at T0 and every Δ);
@@ -100,18 +101,48 @@ describe("F361B — the two marketplace-trust additions are census-invariant (ma
   });
 });
 
+describe("F370A — the five authenticated-marketplace additions are census-invariant (machine-measured)", () => {
+  const F370A_JOURNEYS = [
+    "security.authenticated-marketplace-credentials",
+    "security.authenticated-marketplace-sessions",
+    "security.authenticated-marketplace-request-order",
+    "security.authenticated-marketplace-receipt-enrollment",
+    "security.authenticated-marketplace-approval",
+  ];
+
+  it("all five F370A additions are declared non-responders with census citations", () => {
+    for (const id of F370A_JOURNEYS) {
+      const declared = SECURITY_CENSUS.find((e) => e.journeyId === id);
+      expect(declared, `missing census row for ${id}`).toBeDefined();
+      expect(declared?.responder).toBe(false);
+      expect(declared?.censusClass).toBeNull();
+      expect(declared?.citation.startsWith("F370A census:")).toBe(true);
+    }
+  });
+
+  it("all five F370A additions pass at the T0 baseline and are byte-identical across the whole census grid", () => {
+    for (const id of F370A_JOURNEYS) {
+      const m = measuredById.get(id);
+      expect(m, `missing measurement for ${id}`).toBeDefined();
+      expect(m?.baselinePass, `${id} fails at the T0 baseline`).toBe(true);
+      expect(m?.byteIdenticalAcrossGrid, `${id} is not byte-identical across the grid`).toBe(true);
+      expect(m?.respondingDeltas).toEqual([]);
+    }
+  });
+});
+
 describe("F331B — the security time census (D12, machine-measured)", () => {
-  it("the declared table covers exactly the 31-journey corpus, no duplicates", () => {
+  it("the declared table covers exactly the 36-journey corpus, no duplicates", () => {
     expect(SECURITY_CENSUS.length).toBe(SECURITY_JOURNEYS.length);
     expect(new Set(SECURITY_CENSUS.map((e) => e.journeyId)).size).toBe(SECURITY_CENSUS.length);
     for (const e of SECURITY_CENSUS) expect(byId.has(e.journeyId), `unknown journey ${e.journeyId}`).toBe(true);
     for (const j of SECURITY_JOURNEYS) expect(SECURITY_CENSUS.some((e) => e.journeyId === j.journeyId)).toBe(true);
   });
 
-  it("the T0 baseline: 23/31 pass, 8 fail (echo pins in the adoption-anchored regime; the F341B + F361B additions pass)", () => {
+  it("the T0 baseline: 28/36 pass, 8 fail (echo pins in the adoption-anchored regime; the F341B + F361B + F370A additions pass)", () => {
     const passing = measured.filter((m) => m.baselinePass);
     const failing = measured.filter((m) => !m.baselinePass);
-    expect(passing.length).toBe(23);
+    expect(passing.length).toBe(28);
     expect(failing.length).toBe(8);
     expect(failing.map((m) => m.journeyId).sort()).toEqual([
       "security.action-compensation-rollback",

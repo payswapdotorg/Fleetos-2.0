@@ -19,9 +19,11 @@
   "dependencies": {
     "@fleetos/actions": "workspace:*",
     "@fleetos/arena": "workspace:*",
+    "@fleetos/assets": "workspace:*",
     "@fleetos/evidence": "workspace:*",
     "@fleetos/execution": "workspace:*",
     "@fleetos/experience-safety-intel": "workspace:*",
+    "@fleetos/identity": "workspace:*",
     "@fleetos/learning": "workspace:*",
     "@fleetos/policy": "workspace:*",
     "@fleetos/predictive": "workspace:*",

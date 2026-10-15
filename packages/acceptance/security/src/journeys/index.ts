@@ -2,7 +2,7 @@
  * @fleetos/acceptance/security — the journey corpus (F270B + F300B + F321B
  * + F341B + F361B).
  *
- * 31 journeys over the REAL lane packages: the 13 F270B journeys (one per
+ * 36 journeys over the REAL lane packages: the 13 F270B journeys (one per
  * acceptance capability of the F270B deliverable list plus the tenant-
  * isolation cross-cut), the 4 F300B extensions (the Guardian journey
  * end-to-end, mission replay on real package outputs, predictive honesty
@@ -21,7 +21,12 @@
  * 2 F361B extensions (Wave 17 lane B: the F360 freeze §3.6 marketplace
  * trust controls — the Guardian approval discipline and the evidence
  * dedup discipline; both census-invariant, the evidence family driven at
- * module evaluation via top-level await per the F341B async-API law).
+ * module evaluation via top-level await per the F341B async-API law),
+ * plus the 5 F370A extensions (Wave 18 lane A: the authenticated
+ * marketplace family — credential verification, signed sessions, and the
+ * gated request/offer/order, receipt/enrollment and Guardian-approval
+ * compositions over the REAL Wave-17 public APIs; all census-invariant,
+ * fixed logical fixtures, never the run anchor).
  * Every journey is DATA + declarative assertions executed by the runner.
  * Identical reruns never count — each journey drives genuinely distinct
  * REAL surfaces.
@@ -62,6 +67,12 @@ import { worldContextWindowingJourney } from "./world-windowing.ts";
 // ---- F361B extensions (Wave 17 lane B; the F360 freeze §3.6 marketplace trust controls) ----
 import { marketplaceOrderApprovalJourney } from "./marketplace-order-approval.ts";
 import { marketplaceEvidenceDedupJourney } from "./marketplace-evidence-dedup.ts";
+// ---- F370A extensions (Wave 18 lane A; real authentication + server-side tenant authorization) ----
+import { authenticatedMarketplaceCredentialsJourney } from "./f370a-credentials.ts";
+import { authenticatedMarketplaceSessionsJourney } from "./f370a-sessions.ts";
+import { authenticatedMarketplaceRequestOrderJourney } from "./f370a-request-order.ts";
+import { authenticatedMarketplaceReceiptEnrollmentJourney } from "./f370a-receipt-enrollment.ts";
+import { authenticatedMarketplaceApprovalJourney } from "./f370a-approval.ts";
 
 /** The full security/action/intelligence acceptance corpus, in declared order. */
 export const SECURITY_JOURNEYS: readonly AcceptanceJourney[] = [
@@ -100,6 +111,12 @@ export const SECURITY_JOURNEYS: readonly AcceptanceJourney[] = [
   // ---- F361B extensions (Wave 17 lane B; the F360 freeze §3.6) ----
   marketplaceOrderApprovalJourney,
   marketplaceEvidenceDedupJourney,
+  // ---- F370A extensions (Wave 18 lane A: real authentication + server-side tenant authorization) ----
+  authenticatedMarketplaceCredentialsJourney,
+  authenticatedMarketplaceSessionsJourney,
+  authenticatedMarketplaceRequestOrderJourney,
+  authenticatedMarketplaceReceiptEnrollmentJourney,
+  authenticatedMarketplaceApprovalJourney,
 ];
 
 export {
@@ -134,4 +151,9 @@ export {
   worldContextWindowingJourney,
   marketplaceOrderApprovalJourney,
   marketplaceEvidenceDedupJourney,
+  authenticatedMarketplaceCredentialsJourney,
+  authenticatedMarketplaceSessionsJourney,
+  authenticatedMarketplaceRequestOrderJourney,
+  authenticatedMarketplaceReceiptEnrollmentJourney,
+  authenticatedMarketplaceApprovalJourney,
 };

@@ -172,8 +172,9 @@ const ECHO_UNIFORM_CITATION =
   "F331B census: non-responder — absolute-timestamp equality pins (D13 echo family) fail IDENTICALLY at T0 and every Δ in the adoption-anchored regime (the security fixture clock BASE_MS 2026-10-12 is displaced ~206d from ADOPTION_T0 2026-04); digest moves with the anchor (machine-evidenced) but pass/fail never flips; single-counted";
 
 /**
- * The declared 31-row census table (the 27 F331B-era rows + the two F341B
- * remainder additions + the two F361B marketplace-trust additions). The
+ * The declared 36-row census table (the 27 F331B-era rows + the two F341B
+ * remainder additions + the two F361B marketplace-trust additions + the
+ * five F370A authenticated-marketplace additions). The
  * two responders are transition-class (D2(b) family) but their crossings
  * sit at Δ ≈ +206.4d — beyond the frozen D9 schedule [T0, T0+30d,
  * T0+90d] — so they are SCHEDULE-EXCLUDED: no per-epoch tables, no
@@ -241,6 +242,42 @@ export const SECURITY_CENSUS: readonly SecurityCensusEntry[] = [
     censusClass: null,
     citation:
       "F361B census: invariant — the evidence-dedup family is content-addressed with caller-supplied logical timestamps only (the F341B artifact-store precedent: the Promise-signature store is driven to completion at module evaluation via top-level await over the deterministic in-memory port, documented in the journey module) and never reads the run anchor; byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  // ---- F370A additions (Wave 18 lane A — real authentication + server-side tenant authorization) ----
+  {
+    journeyId: "security.authenticated-marketplace-credentials",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F370A census: invariant — the credentials family is pure fixture data over the sync identity scrypt APIs with the frozen deterministic parameter set and fixed logical inputs; the journey never reads the run anchor, so the outcome is byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  {
+    journeyId: "security.authenticated-marketplace-sessions",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F370A census: invariant — the signed-session family mints HMAC-SHA256 tokens over fixed logical epochs with fixed keys; token bytes and verdicts are pure functions of the fixtures and never read the run anchor, so the outcome is byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  {
+    journeyId: "security.authenticated-marketplace-request-order",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F370A census: invariant — the authenticated request/offer/order family drives the composed Wave-17 kernels behind the gate with fixed logical timestamps (caller-supplied epoch inputs, never the run anchor); every verdict is a pure function of the fixtures, so the outcome is byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  {
+    journeyId: "security.authenticated-marketplace-receipt-enrollment",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F370A census: invariant — the authenticated receipt/enrollment family drives the REAL F361A directory over one in-memory registry with fixed logical timestamps and never reads the run anchor, so the outcome is byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  {
+    journeyId: "security.authenticated-marketplace-approval",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F370A census: invariant — the authenticated Guardian-approval family evaluates the EXISTING approval contract over fixed logical fixtures with fixed keys and never reads the run anchor, so the outcome is byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
   },
 ];
 

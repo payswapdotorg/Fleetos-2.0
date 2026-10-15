@@ -4,13 +4,22 @@
   "license": "Apache-2.0",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./credentials": "./src/credentials.ts",
+    "./session": "./src/session.ts",
+    "./marketplace-gate": "./src/marketplace-gate.ts",
+    "./marketplace-authenticated": "./src/marketplace-authenticated.ts"
   },
   "scripts": {
     "lint": "oxlint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "build": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fleetos/assets": "workspace:*",
+    "@fleetos/policy": "workspace:*",
+    "@fleetos/procurement": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^6.0.2",
