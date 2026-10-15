@@ -1,7 +1,7 @@
 /**
  * @fleetos/acceptance-commerce — the journey corpus (public `./journeys`).
  *
- * 46 journeys over the worker-C lane's REAL packages (F300C extended the
+ * 49 journeys over the worker-C lane's REAL packages (F300C extended the
  * Wave 7 corpus 15 → 21; F310C extended 21 → 31; F321C extends 31 → 34;
  * F331C extends 34 → 36; F351C extends 36 → 41 (the five commerce-
  * discipline journeys); F361C extends 41 → 45: +1 marketplace-request-
@@ -47,6 +47,9 @@ import { F361C_PROCUREMENT_JOURNEYS } from "./f361c-procurement.js";
 import { F361C_VENDOR_JOURNEYS } from "./f361c-vendors.js";
 import { F361C_ORDER_JOURNEYS } from "./f361c-order.js";
 import { F362_SPINE_JOURNEYS } from "./f362-spine.js";
+import { F370C_PERSISTENCE_JOURNEYS } from "./f370c-persistence.js";
+import { F370C_AUTHORIZATION_JOURNEYS } from "./f370c-authorization.js";
+import { F370C_BACKUP_JOURNEYS } from "./f370c-backup-restore.js";
 
 export const JOURNEYS: readonly AcceptanceJourney[] = [
   ...WORK_JOURNEYS,
@@ -67,6 +70,9 @@ export const JOURNEYS: readonly AcceptanceJourney[] = [
   ...F361C_VENDOR_JOURNEYS,
   ...F361C_ORDER_JOURNEYS,
   ...F362_SPINE_JOURNEYS,
+  ...F370C_PERSISTENCE_JOURNEYS,
+  ...F370C_AUTHORIZATION_JOURNEYS,
+  ...F370C_BACKUP_JOURNEYS,
 ];
 
 export {
@@ -78,6 +84,9 @@ export {
   LIFECYCLE_JOURNEYS,
   FINANCE_JOURNEYS,
   RESILIENCE_JOURNEYS,
+  F370C_PERSISTENCE_JOURNEYS,
+  F370C_AUTHORIZATION_JOURNEYS,
+  F370C_BACKUP_JOURNEYS,
   MARKETPLACE_JOURNEYS,
   ACTOR_JOBS_JOURNEYS,
   MARKETPLACE_TRANSACTION_JOURNEYS,

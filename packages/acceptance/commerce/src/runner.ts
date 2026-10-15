@@ -73,6 +73,8 @@ import type {
   SpineGuardianApprovalStep,
   SpineReceiptStep,
 } from "./journey-contracts-f362.js";
+import { runMarketplaceServiceStep } from "./drivers-marketplace-service.js";
+import type { MpsStep } from "./journey-contracts-f370c.js";
 
 const WORK_KINDS: ReadonlySet<string> = new Set([
   "work-create", "work-assign", "work-transition", "work-board",
@@ -202,8 +204,22 @@ const F362_SPINE_ASSET_KINDS: ReadonlySet<string> = new Set([
   "spn-registry-read",
 ]);
 
+// F370C (Wave 18 lane C) step-kind family — the verified-deployment
+// surface (the REAL service over HTTP; the harness spawns it).
+const MPS_KINDS: ReadonlySet<string> = new Set([
+  "mps-boot", "mps-shutdown", "mps-restart",
+  "mps-provision", "mps-login", "mps-mint-keyed-token", "mps-token-surgery", "mps-revoke",
+  "mps-request-submit", "mps-request-transition",
+  "mps-offer-capture", "mps-offer-sheet", "mps-comparison",
+  "mps-evidence-retain", "mps-approval",
+  "mps-order-draft", "mps-order-place", "mps-order-ack", "mps-order-transition",
+  "mps-receipt-record", "mps-receipt-verify",
+  "mps-enrollment-open", "mps-enrollment-complete",
+  "mps-digest", "mps-backup", "mps-state",
+]);
+
 export async function executeStep(
-  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep | ProcurementDirectoryStep | VendorMatchingStep | QuoteComparisonStep | VendorKpiStep | IdempotentCreationStep | MarketplaceRequestStep | MarketplaceOfferStep | MarketplaceSupplierStep | MarketplaceOrderAckStep | SpineEvidenceStep | SpineGuardianApprovalStep | SpineReceiptStep | SpineEnrollmentStep,
+  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep | ProcurementDirectoryStep | VendorMatchingStep | QuoteComparisonStep | VendorKpiStep | IdempotentCreationStep | MarketplaceRequestStep | MarketplaceOfferStep | MarketplaceSupplierStep | MarketplaceOrderAckStep | SpineEvidenceStep | SpineGuardianApprovalStep | SpineReceiptStep | SpineEnrollmentStep | MpsStep,
   state: JourneyState,
 ): Promise<Record<string, FactValue>> {
   if (WORK_KINDS.has(step.kind)) return runWorkStep(step as WorkStep, state);
@@ -232,6 +248,7 @@ export async function executeStep(
   if (F361C_ORDER_KINDS.has(step.kind)) return runMarketplaceOrderStep(step as MarketplaceOrderAckStep, state);
   if (F362_SPINE_EVIDENCE_KINDS.has(step.kind)) return runSpineGuardianStep(step as SpineEvidenceStep | SpineGuardianApprovalStep, state);
   if (F362_SPINE_ASSET_KINDS.has(step.kind)) return runSpineReceiptStep(step as SpineReceiptStep | SpineEnrollmentStep, state);
+  if (MPS_KINDS.has(step.kind)) return runMarketplaceServiceStep(step as MpsStep, state);
   return runOrgStep(step as OrgStep, state);
 }
 

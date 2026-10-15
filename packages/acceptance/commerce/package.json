@@ -32,7 +32,8 @@
     "@fleetos/aurum": "workspace:*",
     "@fleetos/policy": "workspace:*",
     "@fleetos/evidence": "workspace:*",
-    "@fleetos/assets": "workspace:*"
+    "@fleetos/assets": "workspace:*",
+    "@fleetos/identity": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^6.0.2",

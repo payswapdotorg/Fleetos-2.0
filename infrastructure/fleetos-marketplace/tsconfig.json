@@ -1,0 +1,25 @@
+{
+  "//": "FleetOS marketplace deployment service dedicated typecheck project (F370C). The service lives outside the pnpm workspace package set (infrastructure/ is not a workspace root), so @fleetos/* resolution is pinned here with paths to the same sources the resolve hooks (hooks.mjs) load at runtime, and @electric-sql/pglite resolves from the repo root node_modules. allowImportingTsExtensions mirrors the durable service's precedent. Not a composite project (it checks the domain sources in place rather than listing them).",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "lib": ["es2024"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": ["node"],
+    "verbatimModuleSyntax": true,
+    "paths": {
+      "@fleetos/kernel": ["../../packages/kernel/src/index.ts"],
+      "@fleetos/identity": ["../../packages/identity/src/index.ts"],
+      "@fleetos/procurement": ["../../packages/procurement/src/index.ts"],
+      "@fleetos/assets": ["../../packages/assets/src/index.ts"],
+      "@fleetos/policy": ["../../packages/policy/src/index.ts"],
+      "@fleetos/evidence": ["../../packages/evidence/src/index.ts"]
+    }
+  },
+  "include": ["store.ts", "schema.ts", "pglite-tables.ts", "pglite-store.ts", "ports.ts", "auth.ts", "evidence-store.ts", "recovery.ts", "api.ts", "api-auth.ts", "api-verbs.ts", "api-orders.ts", "api-assets.ts", "api-ops.ts", "service.ts"]
+}

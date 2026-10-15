@@ -39,6 +39,7 @@ import type {
   SpineReceiptStep,
   SpineEnrollmentStep,
 } from "./journey-contracts-f362.js";
+import type { MpsStep } from "./journey-contracts-f370c.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabularies.
@@ -114,6 +115,12 @@ export const JOURNEY_CAPABILITIES: readonly string[] = [
   // APIs (request → catalogue → offers → comparison → Guardian approval →
   // order+ack → receipt → enrollment) in ONE journey.
   "marketplace-transaction-spine",
+  // F370C extensions (Wave 18 lane C): the verified-deployment surfaces —
+  // the PostgreSQL-authoritative spine with crash-restart, the authorization
+  // refusals at the HTTP boundary, and the backup/restore round-trip.
+  "marketplace-persistence",
+  "marketplace-boundary-authorization",
+  "marketplace-backup-restore",
 ] as const;
 
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
@@ -377,7 +384,8 @@ export type JourneyStep =
   | SpineEvidenceStep
   | SpineGuardianApprovalStep
   | SpineReceiptStep
-  | SpineEnrollmentStep;
+  | SpineEnrollmentStep
+  | MpsStep;
 
 // The F310C step families live in journey-contracts-f310c.ts (file law):
 export type { LifecycleStep, FinanceStep, ResilienceStep } from "./journey-contracts-f310c.js";
@@ -407,6 +415,8 @@ export type {
   SpineReceiptStep,
   SpineEnrollmentStep,
 } from "./journey-contracts-f362.js";
+// The F370C step family lives in journey-contracts-f370c.ts (file law):
+export type { MpsStep } from "./journey-contracts-f370c.js";
 
 // ---------------------------------------------------------------------------
 // The journey.
