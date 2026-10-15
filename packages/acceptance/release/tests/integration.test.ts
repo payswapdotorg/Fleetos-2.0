@@ -215,11 +215,12 @@ describe("REAL-run integration — the hardened surfaces feed the gate", () => {
     // tenant pin is regime-honest (zero failing facts; counts unchanged).
     expect(adoptionReport.aggregate.allJourneysPassed).toBe(true);
     expect(adoptionReport.aggregate.determinismVerified).toBe(true);
-    // F353 re-pin (machine-measured at the integrated tree, probe
-    // f353-measure): 3027 + 144 = the 5 F351B field journeys x the firms
-    // where they apply (28 of 30 — transport+agriculture mask the closeout
-    // journey); epochs unchanged (F351B journeys declare no epochs).
-    expect(adoptionReport.aggregate.journeyExecutions).toBe(3591);
+    // F370 re-pin (machine-measured at the merged tree a4f412c, probe
+    // f370-measure): 3921 = the 3591 at the F362 final + the 8 F370A/B
+    // security journeys x 30 firms (240) + the 3 F370C commerce journeys
+    // x 30 firms (90); the F370C journeys boot the REAL :3107 deployment
+    // service (pglite) inside the simulation.
+    expect(adoptionReport.aggregate.journeyExecutions).toBe(3921);
   });
 
   it("gate re-evaluation is byte-identical (determinism over the REAL stack)", () => {

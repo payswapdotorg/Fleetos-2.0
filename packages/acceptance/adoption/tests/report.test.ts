@@ -34,8 +34,8 @@ describe("adoption report (2-industry simulation)", () => {
     // MAIN-INTERFACE record is resolved by the fix, never silently
     // flipped).
     expect(manufacturing?.verdict).toBe("SWITCH-ONLY");
-    expect(manufacturing?.coverageTotal).toBe(119);
-    expect(manufacturing?.coveragePassed).toBe(119);
+    expect(manufacturing?.coverageTotal).toBe(130);
+    expect(manufacturing?.coveragePassed).toBe(130);
     expect(manufacturing?.coverageRatio).toBe(1);
     expect(manufacturing?.failingJourneys).toHaveLength(0);
     expect(manufacturing?.unmappedCapabilities).toHaveLength(0);
@@ -91,14 +91,14 @@ describe("adoption report (2-industry simulation)", () => {
     // firms stay below (90/98) with large at 106 (19 masked).
     // F362 E2E re-pin (probe f362e2e-measure at the post-E2E merge):
     // the universal spine +1 every firm — agriculture small crosses to
-    // 100; every firm now meets the target (max 135 manufacturing/energy
-    // large; manufacturing-medium 127).
+    // 100; every firm now meets the target (max 146 manufacturing/energy
+    // large; manufacturing-medium 138).
     for (const entry of REPORT.honestCounts.entries) {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
-      expect(entry.executed).toBeLessThanOrEqual(135);
+      expect(entry.executed).toBeLessThanOrEqual(146);
     }
     const manufacturingMedium = REPORT.honestCounts.entries.find((e) => e.firmId === "firm-manufacturing-medium");
-    expect(manufacturingMedium?.executed).toBe(127);
+    expect(manufacturingMedium?.executed).toBe(138);
     expect(manufacturingMedium?.shortfall).toBe(0);
     expect(REPORT.honestCounts.structuralReasons.length).toBe(5);
     expect(REPORT.honestCounts.aggregateShortfall).toBe(

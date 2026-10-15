@@ -100,10 +100,10 @@ describe("industries", () => {
     }
   });
 
-  it("HONEST SUBSET law: not every industry is the full set — and the corpora are 42+46+31 (converged Wave 17 final at F362 + the E2E spine)", () => {
+  it("HONEST SUBSET law: not every industry is the full set — and the corpora are 42+49+39 (converged Wave 18 final at F370)", () => {
     expect(FIELD_JOURNEYS.length).toBe(42);
-    expect(COMMERCE_JOURNEYS.length).toBe(46);
-    expect(SECURITY_JOURNEYS.length).toBe(31);
+    expect(COMMERCE_JOURNEYS.length).toBe(49);
+    expect(SECURITY_JOURNEYS.length).toBe(39);
     const applicableCounts = INDUSTRIES.map(
       (i) => applicableFieldJourneys(i).length + applicableCommerceJourneys(i).length + applicableSecurityJourneys(i).length,
     );
@@ -114,6 +114,9 @@ describe("industries", () => {
     // set crossed to EXACTLY 100 on the universal spine — every industry
     // now meets the 100 target, while the masked subset law HOLDS (not
     // every industry spans the full cap).
+    // F370 re-pin: the cap is 130 (42+49+39) — the 11 Wave-18 journeys are
+    // fleet-universal, so every industry grows +11 and the honest subset
+    // law holds unchanged.
     const cap = Math.max(...applicableCounts);
     const fullSet = applicableCounts.filter((c) => c === cap).length;
     const belowCap = applicableCounts.filter((c) => c < cap).length;
