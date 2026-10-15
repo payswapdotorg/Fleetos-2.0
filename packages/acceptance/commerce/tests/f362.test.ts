@@ -64,7 +64,7 @@ function byId(id: string) {
 
 describe("F362 — census bound + corpus laws", () => {
   it("the journey exists with a unique id in the corpus (45 -> 46, grow-only)", () => {
-    expect(JOURNEYS.length).toBe(46);
+    expect(JOURNEYS.length).toBe(49);
     const ids = JOURNEYS.map((j) => j.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toContain(F362_ID);
@@ -119,7 +119,7 @@ describe("F362 — census bound + corpus laws", () => {
     const second = await runAllJourneys(JOURNEYS);
     expect(canonicalJson(second)).toBe(canonicalJson(first));
     expect(first.every((o) => o.passed)).toBe(true);
-    expect(first.length).toBe(46);
+    expect(first.length).toBe(49);
   });
 
   it("D13 INVARIANCE: the journey is invariant at every census offset (no epoch ever counts)", async () => {
