@@ -228,7 +228,7 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
     const run = await runFirm(firm);
     const direct = await runAllJourneys(applicableCommerceJourneys(run.industry));
     expect(run.commerceOutcomes.map((o) => o.digest)).toEqual(direct.map((o) => o.digest));
-  }, 60_000);
+  }, 900_000);
 });
 
 // ---------------------------------------------------------------------------
@@ -296,7 +296,7 @@ describe("F332 gate 3 — non-frozen anchors refused (MISSING_EPOCH-style)", () 
       expect(outcome.passed).toBe(false);
       expect(outcome.assertionOutcomes.some((a) => a.expected === MISSING_EPOCH)).toBe(true);
     }
-  }, 60_000);
+  }, 900_000);
 
   it("the REAL field epoch capability refuses a non-frozen schedule (D9 anchors only)", () => {
     const journeys = applicableFieldJourneys(industryById("manufacturing")!);

@@ -35,12 +35,12 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     // 1167 -> 1197 (the spine journey declares one epoch — +30 raw
     // re-runs, never counted).
     expect(SIMULATION.aggregate.fieldExecutions).toBe(1383);
-    expect(SIMULATION.aggregate.commerceExecutions).toBe(1317);
-    expect(SIMULATION.aggregate.securityExecutions).toBe(891);
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(3591);
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1119);
+    expect(SIMULATION.aggregate.commerceExecutions).toBe(1407);
+    expect(SIMULATION.aggregate.securityExecutions).toBe(1131);
+    expect(SIMULATION.aggregate.journeyExecutions).toBe(3921);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1229);
     expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
-    expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1197);
+    expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1287);
     // F332 ACTIVE (machine-measured, never copied): the INACTIVE gate counted
     // 2613 (Wave-13 corpora: field 31 + commerce 36); activation adds the
     // D10-proof-passing epoch counts — 174 field (6 census-certified journeys
@@ -182,7 +182,7 @@ describe("full industry adoption simulation (REAL corpora)", () => {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
     }
     const maxExecuted = Math.max(...honestCounts.entries.map((e) => e.executed));
-    expect(maxExecuted).toBe(135); // manufacturing/energy large: 119 + 12 field epochs + 4 commerce epochs
+    expect(maxExecuted).toBe(146); // manufacturing/energy large: 130 + 12 field epochs + 4 commerce epochs
     expect(honestCounts.aggregateShortfall).toBe(0);
     for (const reason of honestCounts.structuralReasons) {
       expect(reason.length).toBeGreaterThan(30);

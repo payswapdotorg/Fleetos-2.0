@@ -181,13 +181,13 @@ describe("release gate — the REAL-stack verdict path", () => {
     expect(verifyReleaseGateVerdict(verdict)).toBe(true);
   });
 
-  it("the REAL baseline counts the gate verified: field 42, security 31, commerce 46, adoption 30 workspaces (converged Wave 17 final at F362 + the E2E spine)", () => {
+  it("the REAL baseline counts the gate verified: field 42, security 39, commerce 49, adoption 30 workspaces (converged Wave 18 final at F370)", () => {
     expect(FIELD_JOURNEYS.length).toBe(42);
-    expect(SECURITY_JOURNEYS.length).toBe(31);
-    expect(COMMERCE_JOURNEYS.length).toBe(46);
+    expect(SECURITY_JOURNEYS.length).toBe(39);
+    expect(COMMERCE_JOURNEYS.length).toBe(49);
     expect(fieldReport.aggregate.journeys).toBe(42);
-    expect(securityReport.totalJourneys).toBe(31);
-    expect(commerceReport.totals.journeyCount).toBe(46);
+    expect(securityReport.totalJourneys).toBe(39);
+    expect(commerceReport.totals.journeyCount).toBe(49);
     expect(adoptionReport.aggregate.workspaces).toBe(30);
     // F343 re-pin (machine-measured at the fixed tree): true — the ka6
     // tenant pin is regime-honest (zero failing facts; counts unchanged).

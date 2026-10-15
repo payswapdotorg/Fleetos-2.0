@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { runFirm, TARGET_JOURNEYS_PER_FIRM, runAdoptionSimulation } from "../src/adoption-run.js";
+import { runFirm, TARGET_JOURNEYS_PER_FIRM, runAdoptionSimulation, type FirmRunResult } from "../src/adoption-run.js";
 import { applicableCommerceJourneys, applicableFieldJourneys, applicableSecurityJourneys, industryById } from "../src/industries.js";
 import { firmById, firmsOfIndustry } from "../src/firms.js";
 
@@ -22,7 +22,7 @@ describe("adoption driver (per-firm)", () => {
       applicableFieldJourneys(industry).length + applicableCommerceJourneys(industry).length + applicableSecurityJourneys(industry).length,
     );
     expect(run.executionFacts.length).toBe(run.executionCounts.total);
-  }, 60_000);
+  }, 900_000);
 
   it("every counted execution PASSED (the F343 fix — the ka6 tenant pin is regime-honest in the adoption-composition regime too)", async () => {
     const run = await runFirm(firmById("firm-healthcare-facilities-medium")!);
@@ -38,7 +38,7 @@ describe("adoption driver (per-firm)", () => {
     for (const fact of run.executionFacts) {
       expect(fact.failureNote).toBeNull();
     }
-  }, 60_000);
+  }, 900_000);
 
   it("COUNT HONESTY (F332 ACTIVE): epoch 1 + D10-proof-passing epochs count — non-certified journeys never earn epochs", async () => {
     const firm = firmById("firm-agriculture-large")!; // 3 declared epochs
@@ -68,7 +68,7 @@ describe("adoption driver (per-firm)", () => {
       expect(decision.refusalReason).toBeNull();
       expect(decision.censusCitation).toContain("F330 §1.1");
     }
-  }, 60_000);
+  }, 900_000);
 
   it("COUNT HONESTY (F332 ACTIVE): commerce epochs count ONLY for the 2 certified responders; security stays once-per-workspace", async () => {
     const run = await runFirm(firmById("firm-manufacturing-large")!);
@@ -90,7 +90,7 @@ describe("adoption driver (per-firm)", () => {
     // TODO-F332-SECURITY: security never earns epochs (F331B platform-blocked).
     expect(run.executionCounts.security).toBe(applicableSecurityJourneys(industry).length);
     expect(run.securityOutcomes.length).toBe(run.executionCounts.security);
-  }, 60_000);
+  }, 900_000);
 
   it("DETERMINISM PROOF (large firm): the ACTIVE laws hold (D10 proofs + D13 evidence + full-set re-runs)", async () => {
     const run = await runFirm(firmById("firm-construction-large")!);
@@ -102,7 +102,7 @@ describe("adoption driver (per-firm)", () => {
     expect(run.determinismProof.commerceByteIdentical).toBe(true); // the full-set T0 re-run
     expect(run.determinismProof.securityByteIdentical).toBe(true);
     expect(run.determinismProof.runDigest).toMatch(/^[0-9a-f]{8}$/);
-  }, 60_000);
+  }, 900_000);
 
   it("medium firms carry one epoch-dimension vector; small firms carry the epoch-0 proof only", async () => {
     const medium = await runFirm(firmById("firm-mining-medium")!);
@@ -119,7 +119,7 @@ describe("adoption driver (per-firm)", () => {
     expect(small.fieldEpochDigests.length).toBe(1); // epoch 0 only — no epoch dimension
     expect(small.epochDecisions).toEqual([]);
     expect(small.determinismProof.verified).toBe(true);
-  }, 60_000);
+  }, 900_000);
 
   it("the REAL tenant dimension is threaded (tenant-scoped journeys digest per firm)", async () => {
     const a = await runFirm(firmById("firm-telecommunications-small")!);
@@ -129,7 +129,7 @@ describe("adoption driver (per-firm)", () => {
     // Machine-verified: edge-command-lifecycle digests are tenant-scoped.
     expect(digestOfJourney(a, "edge-command-lifecycle")).not.toBe(digestOfJourney(b, "edge-command-lifecycle"));
     expect(a.firm.tenantId).not.toBe(b.firm.tenantId);
-  }, 60_000);
+  }, 900_000);
 
   it("honest-counts ledger: every firm records its exact shortfall with the ACTIVE structural reasons", async () => {
     const simulation = await runAdoptionSimulation({ industryIds: ["agriculture"] });
@@ -161,7 +161,7 @@ describe("adoption driver (per-firm)", () => {
     expect(simulation.honestCounts.aggregateShortfall).toBe(
       simulation.honestCounts.entries.reduce((acc, e) => acc + e.shortfall, 0),
     );
-  }, 120_000);
+  }, 900_000);
 
   it("aggregate counts never include re-runs (raw re-runs reported separately)", async () => {
     const simulation = await runAdoptionSimulation({ industryIds: ["construction", "mining"] });
@@ -175,30 +175,45 @@ describe("adoption driver (per-firm)", () => {
     // F362 E2E re-pin (probe f362e2e-measure at the post-E2E merge):
     // construction 103/111/119 + mining 104/112/120 (the universal E2E
     // transaction-spine journey +1 per firm).
-    expect(aggregate.journeyExecutions).toBe(372 + 375);
+    // F370 re-pin (probe f370-measure at the merged tree a4f412c): the 11
+    // fleet-universal Wave-18 journeys (8 F370A/B security + 3 F370C
+    // commerce) +11 per firm — construction 114/122/130 + mining
+    // 115/123/131 (no construction/mining masks on the Wave-18 ids).
+    expect(aggregate.journeyExecutions).toBe(405 + 408);
     expect(aggregate.fieldEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.commerceEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.determinismVerified).toBe(true);
     // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
     // is regime-honest — zero failing facts, allJourneysPassed=true.
     expect(aggregate.allJourneysPassed).toBe(true);
-    expect(aggregate.uniqueApplicableJourneys).toBe(233); // journey-level (journey x industry pairs): 215 + the 4 F361A/B + 4 F361C universal ids x 2 industries + the E2E spine x 2
-  }, 120_000);
+    expect(aggregate.uniqueApplicableJourneys).toBe(255); // journey-level (journey x industry pairs): 233 at the F362 final + the 8 F370A/F370B security ids x 2 industries + the 3 F370C commerce ids x 2
+  }, 900_000);
 
   it("firms of an industry share the verdict inputs (per-industry consistency)", async () => {
-    const runs = await Promise.all(firmsOfIndustry("water-waste").map((f) => runFirm(f)));
+    // F370 re-pin law (observed live at run 4, 2026-10-15): the firms run
+    // SEQUENTIALLY — the F370C commerce journeys boot the REAL :3107
+    // deployment service (pglite) per firm, and the previous Promise.all
+    // form ran 3 firms x 3 service-driving journeys concurrently, exhausting
+    // sockets/memory (the ErrnoError-51 class) — a resource failure the
+    // journeys honestly record as a failing execution. runAdoptionSimulation
+    // has always been sequential (the same doctrine); this test now matches.
+    const runs: FirmRunResult[] = [];
+    for (const firm of firmsOfIndustry("water-waste")) {
+      runs.push(await runFirm(firm));
+    }
     const counted = runs.map((r) => r.executionCounts.total);
-    // All three sizes share the SAME epoch-0 counted set (114 epoch-0
-    // facts — the 113 at the F361C final + the universal E2E spine, all
-    // applicable to water-waste); the epoch dimension grows counted
+    // All three sizes share the SAME epoch-0 counted set (125 epoch-0
+    // facts — the 114 at the F362 E2E final + the 8 F370A/F370B security
+    // journeys + the 3 F370C commerce journeys, all applicable to
+    // water-waste); the epoch dimension grows counted
     // executions by size only — the certified responders' D9 epochs
     // (never the verdict denominator).
-    expect(counted).toEqual([114, 114 + 8, 114 + 16]);
+    expect(counted).toEqual([125, 125 + 8, 125 + 16]);
     for (const run of runs) {
-      expect(run.executionFacts.filter((f) => f.epoch === 0).length).toBe(114);
+      expect(run.executionFacts.filter((f) => f.epoch === 0).length).toBe(125);
       // F343 re-pin (machine-measured at the fixed tree): zero failing
       // facts per firm (the ka6 tenant pin resolved by the fix).
       expect(run.executionFacts.filter((f) => !f.passed)).toHaveLength(0);
     }
-  }, 120_000);
+  }, 900_000);
 });

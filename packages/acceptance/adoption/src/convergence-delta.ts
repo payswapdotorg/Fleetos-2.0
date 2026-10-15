@@ -216,6 +216,49 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     journeysInThisTree: 45,
     delta: 1,
   },
+  {
+    // F370 re-pin (machine-measured at the merged tree a4f412c, probe
+    // f370-measure): the Wave-18 production-hardening lanes. F370A —
+    // authentication + server-side tenant authorization: 5 census-
+    // certified D14 security journeys (credentials; sessions; request-
+    // order; approval; receipt-enrollment) — security 31 -> 36.
+    workItem: "F370A",
+    lane: "worker-a (identity boundary)",
+    branch: "work/f370a",
+    branchTipCommit: "0d7630d",
+    corpus: "security",
+    journeysAtTip: 36,
+    journeysInThisTree: 31,
+    delta: 5,
+  },
+  {
+    // F370B — secret management: 3 census-certified D14 security journeys
+    // (keyring rotation; session revocation; secure-random no-leak) —
+    // security 36 -> 39. ZERO industries.ts motion.
+    workItem: "F370B",
+    lane: "worker-b (secret management)",
+    branch: "work/f370b",
+    branchTipCommit: "1cf51eb",
+    corpus: "security",
+    journeysAtTip: 39,
+    journeysInThisTree: 36,
+    delta: 3,
+  },
+  {
+    // F370C — authoritative persistence + verified deployment: 3 census-
+    // certified D14 commerce journeys (persistence+crash-restart;
+    // authorization at the boundary; backup/restore round-trip) driving
+    // the REAL :3107 service over HTTP — commerce 46 -> 49. ZERO
+    // industries.ts motion.
+    workItem: "F370C",
+    lane: "worker-c (persistence + deployment)",
+    branch: "work/f370c",
+    branchTipCommit: "ca8b22c",
+    corpus: "commerce",
+    journeysAtTip: 49,
+    journeysInThisTree: 46,
+    delta: 3,
+  },
 ];
 
 /** This branch's machine-run corpus counts (the CURRENT tree). */
@@ -229,9 +272,9 @@ export interface CurrentCorpusCounts {
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
   field: 42,
-  commerce: 46,
-  security: 31,
-  fullyApplicableFirmCap: 42 + 46 + 31,
+  commerce: 49,
+  security: 39,
+  fullyApplicableFirmCap: 42 + 49 + 39,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -253,11 +296,11 @@ export interface ConvergenceExpectation {
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
   field: 42,
-  commerce: 46,
-  security: 31,
-  fullyApplicableFirmCap: 42 + 46 + 31,
+  commerce: 49,
+  security: 39,
+  fullyApplicableFirmCap: 42 + 49 + 39,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (42 + 46 + 31),
+  shortfallPerFullyApplicableFirm: 100 - (42 + 49 + 39),
 };
 
 /** Machine-check the parameterization's internal consistency. */
