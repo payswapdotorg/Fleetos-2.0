@@ -483,14 +483,14 @@ describe("release gate — acceptance baselines (present, green, count-exact, un
   it("short security corpus → ACCEPTANCE_COUNT_MISMATCH", () => {
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: fieldReport, security: subsetSecurityReport(), commerce: commerceReport, adoption: adoptionReport } });
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 31");
+    expect(blocker!.detail).toContain("expected 39");
   });
 
   it("short commerce corpus → ACCEPTANCE_COUNT_MISMATCH", async () => {
     const subset = await subsetCommerceReport();
     const verdict = evaluateReleaseGate({ ...greenInputs(), acceptance: { field: fieldReport, security: securityReport, commerce: subset, adoption: adoptionReport } });
     const blocker = blockerOf(verdict, "ACCEPTANCE_COUNT_MISMATCH");
-    expect(blocker!.detail).toContain("expected 46");
+    expect(blocker!.detail).toContain("expected 49");
     expect(blocker!.detail).toContain("report carries 33");
   });
 
