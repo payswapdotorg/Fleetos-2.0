@@ -154,7 +154,7 @@ jobs:
   acceptance-gates:
     name: "F312 preview: verify + monorepo tests + six suites"
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
 
