@@ -197,3 +197,68 @@ describe("F370A verifySignedSession — the refusal laws + totality", () => {
     });
   });
 });
+
+describe("F370B — the sanctioned grow-only jti claim extension", () => {
+  const JTI = "jti-f370b-alpha-0001";
+
+  it("GROW-ONLY: jti-less tokens keep the exact frozen F370A canonical field order", () => {
+    const r = issue();
+    if (!r.ok) throw new Error("fixture");
+    const payload = JSON.parse(Buffer.from(r.token.split(".")[1]!, "base64url").toString("utf8")) as Record<string, unknown>;
+    // The F370A frozen order, unchanged — the grow-only law as a machine pin.
+    expect(Object.keys(payload)).toEqual(["v", "actorId", "tenantId", "scopes", "issuedAt", "expiresAt"]);
+  });
+
+  it("issues with a jti and verifies it back (the claim round-trips)", () => {
+    const r = issue({ jti: JTI });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.claims.jti).toBe(JTI);
+    const payload = JSON.parse(Buffer.from(r.token.split(".")[1]!, "base64url").toString("utf8")) as Record<string, unknown>;
+    // jti joins the canonical form LAST (the frozen F370B slot).
+    expect(Object.keys(payload)).toEqual(["v", "actorId", "tenantId", "scopes", "issuedAt", "expiresAt", "jti"]);
+    const v = verifySignedSession(r.token, { key: KEY, now: IAT + 1_000 });
+    expect(v.ok).toBe(true);
+    if (v.ok) expect(v.claims.jti).toBe(JTI);
+  });
+
+  it("the jti changes the signed bytes; a mutated jti refuses SIGNATURE_INVALID", () => {
+    const withJti = issue({ jti: JTI });
+    const withoutJti = issue();
+    if (!withJti.ok || !withoutJti.ok) throw new Error("fixture");
+    expect(withJti.token).not.toBe(withoutJti.token);
+    const parts = withJti.token.split(".");
+    const payload = JSON.parse(Buffer.from(parts[1]!, "base64url").toString("utf8")) as Record<string, unknown>;
+    payload["jti"] = "jti-forged-9999";
+    const forged = `fss1.${Buffer.from(JSON.stringify(payload), "utf8").toString("base64url")}.${parts[2]}`;
+    expect(verifySignedSession(forged, { key: KEY, now: IAT + 1_000 })).toEqual({
+      ok: false,
+      reason: "SIGNATURE_INVALID",
+    });
+  });
+
+  it("REFUSAL: a malformed jti refuses issuance fail-closed (never silently dropped)", () => {
+    expect(issue({ jti: "" }).ok).toBe(false);
+    expect(issue({ jti: "bad jti!" })).toEqual({ ok: false, reason: "malformed-jti" });
+    expect(issue({ jti: "x".repeat(129) }).ok).toBe(false);
+    const tooLong = issue({ jti: "x".repeat(128) });
+    expect(tooLong.ok).toBe(true);
+  });
+
+  it("REFUSAL: a well-formed envelope carrying a malformed jti refuses MALFORMED_TOKEN", () => {
+    const payload = Buffer.from(
+      JSON.stringify({ v: 1, actorId: ACTOR, tenantId: TENANT, scopes: [], issuedAt: IAT, expiresAt: EXP, jti: "bad jti!" }),
+      "utf8",
+    ).toString("base64url");
+    expect(verifySignedSession(`fss1.${payload}.aaaa`, { key: KEY, now: IAT })).toEqual({
+      ok: false,
+      reason: "MALFORMED_TOKEN",
+    });
+  });
+
+  it("is deterministic: the same jti re-issues the same token", () => {
+    const a = issue({ jti: JTI });
+    const b = issue({ jti: JTI });
+    if (a.ok && b.ok) expect(a.token).toBe(b.token);
+  });
+});

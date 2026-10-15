@@ -29,6 +29,18 @@
  * Key policy (honest): the signing key is CALLER-SUPPLIED. The pilot key
  * used by the acceptance corpus is a plainly-labelled FIXTURE; real
  * secret management is F370B-class work, recorded as a limitation.
+ *
+ * F370B (Wave 18 lane B) — THE SANCTIONED GROW-ONLY jti CLAIM EXTENSION,
+ * the one edit to this frozen kernel the F370B packet grants: the signed
+ * claims MAY carry a `jti` (token id) so sessions become individually
+ * revocable (the revocation registry composes in session-revocation.ts).
+ * Grow-only laws, machine-pinned by tests:
+ *   - jti is OPTIONAL: tokens issued without it serialize BYTE-IDENTICALLY
+ *     to the frozen F370A form (the canonical field order is unchanged and
+ *     jti joins LAST, only when present);
+ *   - the jti charset is the envelope-safe `[A-Za-z0-9_-]{1,128}`;
+ *   - a malformed jti refuses issuance (`malformed-jti`) and verification
+ *     (`MALFORMED_TOKEN`) fail-closed — never silently dropped.
  */
 
 import { createHmac, timingSafeEqual } from "node:crypto";
@@ -78,13 +90,17 @@ export interface SessionSigningKey {
   readonly secretHex: string;
 }
 
-/** The frozen signed claims — exactly these five, nothing else. */
+/** The frozen signed claims — the F370A five, plus the F370B-sanctioned
+ * OPTIONAL `jti` (token id — the grow-only extension; absent => the frozen
+ * F370A byte form, byte-identical). */
 export interface SignedSessionClaims {
   readonly actorId: string;
   readonly tenantId: string;
   readonly scopes: readonly MarketplaceSessionScope[];
   readonly issuedAt: number;
   readonly expiresAt: number;
+  /** The F370B token id — present iff the issuer supplied one. */
+  readonly jti?: string;
 }
 
 /** A signed session token: `fss1.<payload b64url>.<signature b64url>`. */
@@ -98,7 +114,8 @@ export type SignedSessionIssueRefusalReason =
   | "malformed-scope"
   | "invalid-issued-at"
   | "invalid-expiry"
-  | "key-invalid";
+  | "key-invalid"
+  | "malformed-jti";
 
 export type SignedSessionIssueResult =
   | { readonly ok: true; readonly token: SignedSessionToken; readonly claims: SignedSessionClaims }
@@ -108,21 +125,32 @@ function isHex(value: string): boolean {
   return value.length > 0 && value.length % 2 === 0 && /^[0-9a-fA-F]+$/.test(value);
 }
 
+/** The F370B jti law — envelope-safe token id charset (frozen). */
+const SESSION_JTI_PATTERN = /^[A-Za-z0-9_-]{1,128}$/;
+
+function isTokenId(value: string): boolean {
+  return SESSION_JTI_PATTERN.test(value);
+}
+
 // ---------------------------------------------------------------------------
 // Canonical claim serialization (deterministic bytes)
 // ---------------------------------------------------------------------------
 
-/** Canonical claims JSON: scopes deduplicated + sorted, fixed field order. */
+/** Canonical claims JSON: scopes deduplicated + sorted, fixed field order,
+ * jti LAST and only when present (the F370B grow-only slot — jti-less
+ * claims serialize byte-identically to the frozen F370A form). */
 function canonicalClaimsJson(claims: SignedSessionClaims): string {
   const scopes = [...new Set(claims.scopes)].sort();
-  return JSON.stringify({
+  const payload: Record<string, unknown> = {
     v: 1,
     actorId: claims.actorId,
     tenantId: claims.tenantId,
     scopes,
     issuedAt: claims.issuedAt,
     expiresAt: claims.expiresAt,
-  });
+  };
+  if (claims.jti !== undefined) payload["jti"] = claims.jti;
+  return JSON.stringify(payload);
 }
 
 // ---------------------------------------------------------------------------
@@ -139,6 +167,8 @@ export function issueSignedSession(input: {
   readonly scopes: readonly MarketplaceSessionScope[];
   readonly issuedAt: number;
   readonly expiresAt: number;
+  /** The F370B optional token id (grow-only; absent => the F370A byte form). */
+  readonly jti?: string;
   readonly key: SessionSigningKey;
 }): SignedSessionIssueResult {
   if (input.actorId.length === 0) return { ok: false, reason: "missing-actor-id" };
@@ -159,12 +189,16 @@ export function issueSignedSession(input: {
   if (input.key.algorithm !== "HMAC-SHA256" || !isHex(input.key.secretHex)) {
     return { ok: false, reason: "key-invalid" };
   }
+  if (input.jti !== undefined && !isTokenId(input.jti)) {
+    return { ok: false, reason: "malformed-jti" };
+  }
   const claims: SignedSessionClaims = {
     actorId: input.actorId,
     tenantId: input.tenantId,
     scopes: [...new Set(input.scopes)].sort(),
     issuedAt: input.issuedAt,
     expiresAt: input.expiresAt,
+    ...(input.jti !== undefined ? { jti: input.jti } : {}),
   };
   const payloadB64 = Buffer.from(canonicalClaimsJson(claims), "utf8").toString("base64url");
   const mac = createHmac("sha256", Buffer.from(input.key.secretHex, "hex"))
@@ -206,12 +240,15 @@ function parseClaims(raw: string): SignedSessionClaims | null {
   const expiresAt = c["expiresAt"];
   if (typeof issuedAt !== "number" || !Number.isFinite(issuedAt) || issuedAt <= 0) return null;
   if (typeof expiresAt !== "number" || !Number.isFinite(expiresAt) || expiresAt <= issuedAt) return null;
+  const jti = c["jti"];
+  if (jti !== undefined && (typeof jti !== "string" || !isTokenId(jti))) return null;
   return {
     actorId: c["actorId"],
     tenantId: c["tenantId"],
     scopes: [...new Set(c["scopes"] as MarketplaceSessionScope[])].sort(),
     issuedAt,
     expiresAt,
+    ...(jti !== undefined ? { jti } : {}),
   };
 }
 
