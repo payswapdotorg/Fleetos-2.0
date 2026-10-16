@@ -33,9 +33,11 @@ describe("adoption report (2-industry simulation)", () => {
     // SWITCH-ONLY (ratio 1.0, every capability replaced; the F342 0.99
     // MAIN-INTERFACE record is resolved by the fix, never silently
     // flipped).
+    // F374 re-pin: the applicable set 130 -> 136 (the 6 fleet-universal
+    // Wave-19 journeys); the verdict stays SWITCH-ONLY at ratio 1.0.
     expect(manufacturing?.verdict).toBe("SWITCH-ONLY");
-    expect(manufacturing?.coverageTotal).toBe(130);
-    expect(manufacturing?.coveragePassed).toBe(130);
+    expect(manufacturing?.coverageTotal).toBe(136);
+    expect(manufacturing?.coveragePassed).toBe(136);
     expect(manufacturing?.coverageRatio).toBe(1);
     expect(manufacturing?.failingJourneys).toHaveLength(0);
     expect(manufacturing?.unmappedCapabilities).toHaveLength(0);
@@ -91,14 +93,15 @@ describe("adoption report (2-industry simulation)", () => {
     // firms stay below (90/98) with large at 106 (19 masked).
     // F362 E2E re-pin (probe f362e2e-measure at the post-E2E merge):
     // the universal spine +1 every firm — agriculture small crosses to
-    // 100; every firm now meets the target (max 146 manufacturing/energy
-    // large; manufacturing-medium 138).
+    // 100; every firm now meets the target (max 152 manufacturing/energy
+    // large; manufacturing-medium 144). F374 re-pin: +6 every firm (the
+    // Wave-19 fleet-universal journeys).
     for (const entry of REPORT.honestCounts.entries) {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
-      expect(entry.executed).toBeLessThanOrEqual(146);
+      expect(entry.executed).toBeLessThanOrEqual(152);
     }
     const manufacturingMedium = REPORT.honestCounts.entries.find((e) => e.firmId === "firm-manufacturing-medium");
-    expect(manufacturingMedium?.executed).toBe(138);
+    expect(manufacturingMedium?.executed).toBe(144);
     expect(manufacturingMedium?.shortfall).toBe(0);
     expect(REPORT.honestCounts.structuralReasons.length).toBe(5);
     expect(REPORT.honestCounts.aggregateShortfall).toBe(

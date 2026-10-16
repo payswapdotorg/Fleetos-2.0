@@ -100,10 +100,10 @@ describe("industries", () => {
     }
   });
 
-  it("HONEST SUBSET law: not every industry is the full set — and the corpora are 42+49+39 (converged Wave 18 final at F370)", () => {
+  it("HONEST SUBSET law: not every industry is the full set — and the corpora are 42+52+42 (converged Wave 19 final at F374)", () => {
     expect(FIELD_JOURNEYS.length).toBe(42);
-    expect(COMMERCE_JOURNEYS.length).toBe(49);
-    expect(SECURITY_JOURNEYS.length).toBe(39);
+    expect(COMMERCE_JOURNEYS.length).toBe(52);
+    expect(SECURITY_JOURNEYS.length).toBe(42);
     const applicableCounts = INDUSTRIES.map(
       (i) => applicableFieldJourneys(i).length + applicableCommerceJourneys(i).length + applicableSecurityJourneys(i).length,
     );
@@ -117,6 +117,9 @@ describe("industries", () => {
     // F370 re-pin: the cap is 130 (42+49+39) — the 11 Wave-18 journeys are
     // fleet-universal, so every industry grows +11 and the honest subset
     // law holds unchanged.
+    // F374 re-pin: the cap is 136 (42+52+42) — the 6 Wave-19 journeys (3
+    // F372 networked-PG commerce + 3 F373 KMS security) are fleet-universal,
+    // so every industry grows +6 and the honest subset law holds unchanged.
     const cap = Math.max(...applicableCounts);
     const fullSet = applicableCounts.filter((c) => c === cap).length;
     const belowCap = applicableCounts.filter((c) => c < cap).length;

@@ -21,7 +21,7 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     expect(INDUSTRIES.length).toBe(10);
   });
 
-  it("executes 3591 COUNTED journeys over the REAL corpora (plus raw epoch re-runs, never counted)", () => {
+  it("executes 4101 COUNTED journeys over the REAL corpora (plus raw epoch re-runs, never counted)", () => {
     // F362 final re-pin (machine-measured at the integrated tree 2521cba,
     // probe f362-measure): 3441 + 120 = the 4 F361C commerce journeys x 30
     // firms (fleet-universal — every industry procures equipment);
@@ -34,11 +34,23 @@ describe("full industry adoption simulation (REAL corpora)", () => {
     // 1109 -> 1119 (+10 = 1 x 10 industries); commerceEpochReRuns
     // 1167 -> 1197 (the spine journey declares one epoch — +30 raw
     // re-runs, never counted).
+    // F370 re-pin (machine-measured at the merged tree a4f412c, probe
+    // f370-measure): +330 = the 11 Wave-18 fleet-universal journeys x 30
+    // firms (8 F370A/B security + 3 F370C commerce); uniqueApplicable
+    // 1119 -> 1229 (+110 = 11 x 10 industries); commerceEpochReRuns
+    // 1197 -> 1287 (the F370C journeys each declare one epoch — +90 raw
+    // re-runs, never counted).
+    // F374 re-pin (machine-measured at the converged tree 3495258, probe
+    // adoption-diag): +180 = the 6 Wave-19 fleet-universal journeys x 30
+    // firms (3 F372 networked-PG commerce + 3 F373 KMS security — +90 each
+    // corpus); commerceEpochReRuns UNCHANGED at 1287 (the F372 journeys are
+    // single-epoch T0 by construction — zero epoch re-runs); uniqueApplicable
+    // 1229 -> 1289 (+60 = 6 x 10 industries).
     expect(SIMULATION.aggregate.fieldExecutions).toBe(1383);
-    expect(SIMULATION.aggregate.commerceExecutions).toBe(1407);
-    expect(SIMULATION.aggregate.securityExecutions).toBe(1131);
-    expect(SIMULATION.aggregate.journeyExecutions).toBe(3921);
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1229);
+    expect(SIMULATION.aggregate.commerceExecutions).toBe(1497);
+    expect(SIMULATION.aggregate.securityExecutions).toBe(1221);
+    expect(SIMULATION.aggregate.journeyExecutions).toBe(4101);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1289);
     expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
     expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1287);
     // F332 ACTIVE (machine-measured, never copied): the INACTIVE gate counted
@@ -182,7 +194,7 @@ describe("full industry adoption simulation (REAL corpora)", () => {
       expect(entry.shortfall).toBe(Math.max(0, entry.target - entry.executed));
     }
     const maxExecuted = Math.max(...honestCounts.entries.map((e) => e.executed));
-    expect(maxExecuted).toBe(146); // manufacturing/energy large: 130 + 12 field epochs + 4 commerce epochs
+    expect(maxExecuted).toBe(152); // manufacturing/energy large: 136 + 12 field epochs + 4 commerce epochs (F374: +6 fleet-universal Wave-19 journeys)
     expect(honestCounts.aggregateShortfall).toBe(0);
     for (const reason of honestCounts.structuralReasons) {
       expect(reason.length).toBeGreaterThan(30);

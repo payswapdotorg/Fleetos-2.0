@@ -220,7 +220,10 @@ describe("REAL-run integration — the hardened surfaces feed the gate", () => {
     // security journeys x 30 firms (240) + the 3 F370C commerce journeys
     // x 30 firms (90); the F370C journeys boot the REAL :3107 deployment
     // service (pglite) inside the simulation.
-    expect(adoptionReport.aggregate.journeyExecutions).toBe(3921);
+    // F374 re-pin (machine-measured at the converged tree 3495258, probe
+    // adoption-diag): 4101 = 3921 + the 6 Wave-19 fleet-universal journeys
+    // x 30 firms (3 F372 networked-PG commerce + 3 F373 KMS security).
+    expect(adoptionReport.aggregate.journeyExecutions).toBe(4101);
   });
 
   it("gate re-evaluation is byte-identical (determinism over the REAL stack)", () => {

@@ -83,16 +83,20 @@ const INACTIVE_PER_FIRM: Record<string, number> = {
 };
 
 const ACTIVE_PER_FIRM: Record<string, [number, number, number]> = {
-  manufacturing: [130, 138, 146],
-  construction: [127, 135, 143],
-  "energy-utilities": [130, 138, 146],
-  "transportation-logistics": [122, 130, 138],
-  agriculture: [111, 119, 127],
-  "healthcare-facilities": [115, 122, 129],
-  "facilities-management": [116, 123, 130],
-  telecommunications: [125, 133, 141],
-  mining: [128, 136, 144],
-  "water-waste": [125, 133, 141],
+  // F374 re-pin (machine-measured at the converged tree 3495258, probe
+  // adoption-diag): the 6 fleet-universal Wave-19 journeys (3 F372 networked-PG
+  // commerce + 3 F373 KMS security) +6 every firm every size — the fleet-
+  // universal F370 pattern composed verbatim.
+  manufacturing: [136, 144, 152],
+  construction: [133, 141, 149],
+  "energy-utilities": [136, 144, 152],
+  "transportation-logistics": [128, 136, 144],
+  agriculture: [117, 125, 133],
+  "healthcare-facilities": [121, 128, 135],
+  "facilities-management": [122, 129, 136],
+  telecommunications: [131, 139, 147],
+  mining: [134, 142, 150],
+  "water-waste": [131, 139, 147],
 };
 
 const SIMULATION = await runAdoptionSimulation();
@@ -151,10 +155,16 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
       // deployment service (pglite) inside the simulation; uniqueApplicable
       // 1119 -> 1229; commerceEpochReRuns 1197 -> 1287 (each F370C commerce
       // journey declares one epoch — +90 raw re-runs, never counted).
-      expect(SIMULATION.aggregate.journeyExecutions).toBe(3921);
+      // F374 re-pin (machine-measured at the converged tree 3495258, probe
+      // adoption-diag): 4101 = 3921 + 180 = the 6 Wave-19 fleet-universal
+      // journeys x 30 firms (3 F372 networked-PG commerce + 3 F373 KMS
+      // security, +90 each); commerceEpochReRuns UNCHANGED at 1287 (the
+      // F372 journeys are single-epoch T0 by construction); uniqueApplicable
+      // 1229 -> 1289 (+60 = 6 x 10 industries).
+      expect(SIMULATION.aggregate.journeyExecutions).toBe(4101);
       expect(SIMULATION.aggregate.fieldExecutions).toBe(1383);
-      expect(SIMULATION.aggregate.commerceExecutions).toBe(1407);
-      expect(SIMULATION.aggregate.securityExecutions).toBe(1131);
+      expect(SIMULATION.aggregate.commerceExecutions).toBe(1497);
+      expect(SIMULATION.aggregate.securityExecutions).toBe(1221);
       expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
       expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1287);
     } else {
@@ -165,7 +175,7 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
       expect(SIMULATION.aggregate.securityExecutions).toBe(771);
       expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(885);
     }
-    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1229);
+    expect(SIMULATION.aggregate.uniqueApplicableJourneys).toBe(1289);
     expect(SIMULATION.aggregate.determinismVerified).toBe(true);
     // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
     // is regime-honest in BOTH regimes (the kern.admit readings now expose

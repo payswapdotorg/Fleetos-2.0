@@ -179,14 +179,18 @@ describe("adoption driver (per-firm)", () => {
     // fleet-universal Wave-18 journeys (8 F370A/B security + 3 F370C
     // commerce) +11 per firm — construction 114/122/130 + mining
     // 115/123/131 (no construction/mining masks on the Wave-18 ids).
-    expect(aggregate.journeyExecutions).toBe(405 + 408);
+    // F374 re-pin (probe adoption-diag at the converged tree 3495258): the
+    // 6 fleet-universal Wave-19 journeys (3 F372 networked-PG commerce +
+    // 3 F373 KMS security) +6 per firm — construction 120/128/136 + mining
+    // 121/129/137; the 2-industry aggregate 813 -> 849.
+    expect(aggregate.journeyExecutions).toBe(423 + 426);
     expect(aggregate.fieldEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.commerceEpochReRuns).toBeGreaterThan(0); // transparency, never counted
     expect(aggregate.determinismVerified).toBe(true);
     // F343 re-pin (machine-measured at the fixed tree): the ka6 tenant pin
     // is regime-honest — zero failing facts, allJourneysPassed=true.
     expect(aggregate.allJourneysPassed).toBe(true);
-    expect(aggregate.uniqueApplicableJourneys).toBe(255); // journey-level (journey x industry pairs): 233 at the F362 final + the 8 F370A/F370B security ids x 2 industries + the 3 F370C commerce ids x 2
+    expect(aggregate.uniqueApplicableJourneys).toBe(267); // journey-level (journey x industry pairs): 255 at the F370 final + the 6 Wave-19 fleet-universal ids x 2 industries (this 2-industry subset: construction + mining)
   }, 900_000);
 
   it("firms of an industry share the verdict inputs (per-industry consistency)", async () => {
@@ -202,15 +206,14 @@ describe("adoption driver (per-firm)", () => {
       runs.push(await runFirm(firm));
     }
     const counted = runs.map((r) => r.executionCounts.total);
-    // All three sizes share the SAME epoch-0 counted set (125 epoch-0
-    // facts — the 114 at the F362 E2E final + the 8 F370A/F370B security
-    // journeys + the 3 F370C commerce journeys, all applicable to
-    // water-waste); the epoch dimension grows counted
-    // executions by size only — the certified responders' D9 epochs
+    // All three sizes share the SAME epoch-0 counted set (131 epoch-0
+    // facts — the 125 at the F370 final + the 6 Wave-19 fleet-universal
+    // journeys, all applicable to water-waste); the epoch dimension grows
+    // counted executions by size only — the certified responders' D9 epochs
     // (never the verdict denominator).
-    expect(counted).toEqual([125, 125 + 8, 125 + 16]);
+    expect(counted).toEqual([131, 131 + 8, 131 + 16]);
     for (const run of runs) {
-      expect(run.executionFacts.filter((f) => f.epoch === 0).length).toBe(125);
+      expect(run.executionFacts.filter((f) => f.epoch === 0).length).toBe(131);
       // F343 re-pin (machine-measured at the fixed tree): zero failing
       // facts per firm (the ka6 tenant pin resolved by the fix).
       expect(run.executionFacts.filter((f) => !f.passed)).toHaveLength(0);

@@ -21,8 +21,8 @@ describe("convergence expectation (honest parameterization)", () => {
     expect(verifyConvergenceExpectation()).toEqual([]);
   });
 
-  it("records ALL lane extensions (Wave 10 + 12 + 13 + 14) with their branch tips", () => {
-    expect(LANE_EXTENSIONS.map((r) => r.workItem).sort()).toEqual(["F300A", "F300B", "F321A", "F321B", "F321C", "F331A", "F331C", "F341A", "F341B", "F351B", "F351C", "F361A", "F361B", "F361C", "F362", "F370A", "F370B", "F370C"]);
+  it("records ALL lane extensions (Wave 10 + 12 + 13 + 14 + 19) with their branch tips", () => {
+    expect(LANE_EXTENSIONS.map((r) => r.workItem).sort()).toEqual(["F300A", "F300B", "F321A", "F321B", "F321C", "F331A", "F331C", "F341A", "F341B", "F351B", "F351C", "F361A", "F361B", "F361C", "F362", "F370A", "F370B", "F370C", "F372", "F373"]);
     expect(LANE_EXTENSIONS.every((r) => r.branchTipCommit.length > 0)).toBe(true);
     expect(LANE_EXTENSIONS.every((r) => r.branch.startsWith("work/"))).toBe(true);
   });
@@ -37,9 +37,9 @@ describe("convergence expectation (honest parameterization)", () => {
   });
 
   it("the convergence expectation EXCEEDS the closed 100/firm target for fully-applicable firms via sanctioned grow-only corpus growth (F353 — never weakened)", () => {
-    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(130);
+    expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBe(136);
     expect(CONVERGENCE_EXPECTATION.targetPerFirm).toBe(100);
-    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(-30);
+    expect(CONVERGENCE_EXPECTATION.shortfallPerFullyApplicableFirm).toBe(-36);
     // F342 closed B-3 at EXACTLY 100 (field 35 + commerce 36 + security 29).
     // F351B's 5 census-certified journeys (F350 §4 — the binding masked-
     // industry disposition) raise the cap to 105: grow-only corpus expansion
@@ -51,8 +51,8 @@ describe("convergence expectation (honest parameterization)", () => {
     expect(CONVERGENCE_EXPECTATION.fullyApplicableFirmCap).toBeGreaterThanOrEqual(100);
   });
 
-  it("the commerce corpus in this tree is the Wave-18 converged extension (49 distinct journeys — 15 via F300C, 21 via F310C, 34 via F321C, 36 via F331C, 41 via F351C, 45 via F361C, 46 via the F362 E2E spine, 49 via the F370C persistence/authorization/backup trio)", () => {
-    expect(COMMERCE_JOURNEYS.length).toBe(49);
+  it("the commerce corpus in this tree is the Wave-19 converged extension (52 distinct journeys — 15 via F300C, 21 via F310C, 34 via F321C, 36 via F331C, 41 via F351C, 45 via F361C, 46 via the F362 E2E spine, 49 via the F370C persistence/authorization/backup trio, 52 via the F372 networked-PG trio)", () => {
+    expect(COMMERCE_JOURNEYS.length).toBe(52);
     const ids = COMMERCE_JOURNEYS.map((j) => j.id);
     for (const extension of ["host-surface", "host-intents", "host-tenant-edges", "gateway-routing", "role-assignment-handoff", "work-order-blocking"]) {
       expect(ids).toContain(extension);
@@ -71,6 +71,9 @@ describe("convergence expectation (honest parameterization)", () => {
     }
     for (const f370c of ["marketplace-persistence-spine", "marketplace-boundary-authorization", "marketplace-backup-restore"]) {
       expect(ids).toContain(f370c);
+    }
+    for (const f372 of ["marketplace-networked-persistence", "marketplace-networked-server-crash", "marketplace-networked-adapter-parity"]) {
+      expect(ids).toContain(f372);
     }
     expect(new Set(ids).size).toBe(ids.length);
   });

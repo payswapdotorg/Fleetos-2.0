@@ -259,6 +259,37 @@ export const LANE_EXTENSIONS: readonly LaneExtensionRecord[] = [
     journeysInThisTree: 46,
     delta: 3,
   },
+  {
+    // F372 — networked PostgreSQL at the host boundary: 3 census-
+    // certified D14 commerce journeys (networked-persistence; networked-
+    // server-crash x2 REAL SIGKILLs + WAL recovery; adapter-parity +
+    // backup/restore over the network boundary) driving a REAL postgres
+    // SERVER process over TCP (the pg adapter at the frozen port) —
+    // commerce 49 -> 52. ZERO industries.ts motion.
+    workItem: "F372",
+    lane: "worker-c (networked persistence)",
+    branch: "work/f372",
+    branchTipCommit: "54735dd",
+    corpus: "commerce",
+    journeysAtTip: 52,
+    journeysInThisTree: 49,
+    delta: 3,
+  },
+  {
+    // F373 — real KMS for the keyring: 3 census-certified D14 security
+    // journeys (kms-rotation across the process boundary; kms-boundary
+    // with the at-rest scan + the no-leak law; kms-crash-restart with
+    // SIGKILL envelope recovery) driving the REAL fleetos-kms daemon as
+    // a child process — security 39 -> 42. ZERO industries.ts motion.
+    workItem: "F373",
+    lane: "worker-b (secret management)",
+    branch: "work/f373",
+    branchTipCommit: "d6595ea",
+    corpus: "security",
+    journeysAtTip: 42,
+    journeysInThisTree: 39,
+    delta: 3,
+  },
 ];
 
 /** This branch's machine-run corpus counts (the CURRENT tree). */
@@ -272,9 +303,9 @@ export interface CurrentCorpusCounts {
 
 export const CURRENT_TREE_COUNTS: CurrentCorpusCounts = {
   field: 42,
-  commerce: 49,
-  security: 39,
-  fullyApplicableFirmCap: 42 + 49 + 39,
+  commerce: 52,
+  security: 42,
+  fullyApplicableFirmCap: 42 + 52 + 42,
 };
 
 /** The TL's recompute at convergence (all three lanes merged). */
@@ -296,11 +327,11 @@ export interface ConvergenceExpectation {
 
 export const CONVERGENCE_EXPECTATION: ConvergenceExpectation = {
   field: 42,
-  commerce: 49,
-  security: 39,
-  fullyApplicableFirmCap: 42 + 49 + 39,
+  commerce: 52,
+  security: 42,
+  fullyApplicableFirmCap: 42 + 52 + 42,
   targetPerFirm: 100,
-  shortfallPerFullyApplicableFirm: 100 - (42 + 49 + 39),
+  shortfallPerFullyApplicableFirm: 100 - (42 + 52 + 42),
 };
 
 /** Machine-check the parameterization's internal consistency. */

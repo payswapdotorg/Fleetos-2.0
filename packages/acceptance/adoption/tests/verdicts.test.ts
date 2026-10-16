@@ -85,23 +85,25 @@ function mapping(
 describe("coverage computation", () => {
   it("all-passing facts over a full industry give ratio 1.0 with the applicable denominator", () => {
     const coverage = computeCoverage(industryById("manufacturing")!, allPassingFacts("manufacturing"));
-    expect(coverage.total).toBe(130);
-    expect(coverage.passed).toBe(130);
+    // F374 re-pin: manufacturing's applicable set 130 -> 136 (the 6
+    // fleet-universal Wave-19 journeys — 3 F372 commerce + 3 F373 security).
+    expect(coverage.total).toBe(136);
+    expect(coverage.passed).toBe(136);
     expect(coverage.ratio).toBe(1);
     expect(coverage.failing).toHaveLength(0);
   });
 
   it("masked journeys are EXCLUDED from the denominator (never covered, never failed)", () => {
     const coverage = computeCoverage(industryById("agriculture")!, allPassingFacts("agriculture"));
-    expect(coverage.total).toBe(111); // 130 - 19 masked (field 3 + commerce 13 + security 3; F351B added the project-closeout-archival field mask; the F370 lanes are fleet-universal — +11)
-    expect(coverage.passed).toBe(111);
+    expect(coverage.total).toBe(117); // 136 - 19 masked (field 3 + commerce 13 + security 3; F351B added the project-closeout-archival field mask; the F370 lanes are fleet-universal — +11; the F374 Wave-19 lanes likewise — +6)
+    expect(coverage.passed).toBe(117);
     expect(coverage.ratio).toBe(1);
   });
 
   it("a failing journey is visible with its REAL failure note (never hidden)", () => {
     const facts = withFailing(allPassingFacts("manufacturing"), "maintain-asset-schedule");
     const coverage = computeCoverage(industryById("manufacturing")!, facts);
-    expect(coverage.passed).toBe(129);
+    expect(coverage.passed).toBe(135);
     expect(coverage.failed).toBe(1);
     const failing = coverage.failing[0];
     expect(failing?.journeyId).toBe("maintain-asset-schedule");
@@ -112,16 +114,16 @@ describe("coverage computation", () => {
   it("a journey with ZERO executions counts as not-passed but not as failed", () => {
     const facts = withoutJourney(allPassingFacts("construction"), "quote-scoring");
     const coverage = computeCoverage(industryById("construction")!, facts);
-    expect(coverage.total).toBe(127);
-    expect(coverage.passed).toBe(126);
+    expect(coverage.total).toBe(133);
+    expect(coverage.passed).toBe(132);
     expect(coverage.failed).toBe(0);
-    expect(coverage.ratio).toBeCloseTo(126 / 127, 10);
+    expect(coverage.ratio).toBeCloseTo(132 / 133, 10);
   });
 
   it("multiple executions of one journey: ANY failing execution fails the journey", () => {
     const facts = [...allPassingFacts("agriculture"), fact("field", "mobile-field-shape", false)];
     const coverage = computeCoverage(industryById("agriculture")!, facts);
-    expect(coverage.passed).toBe(110);
+    expect(coverage.passed).toBe(116);
     expect(coverage.failing[0]?.journeyId).toBe("mobile-field-shape");
   });
 });
