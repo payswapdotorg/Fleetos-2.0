@@ -78,9 +78,14 @@ export async function runMpsOpsStep(step: MpsStep, state: JourneyState): Promise
   const service = serviceOf(state);
   switch (step.kind) {
     case "mps-boot": {
+      // F372: the adapter selection travels with the boot step — absent =
+      // "pglite" (the F370C default; zero behavior motion for the existing
+      // journeys); "networked" boots the service over the REAL postgres
+      // server process provisioned by npg-server-boot.
+      service.storeMode = step.store ?? "pglite";
       await bootService(service);
-      logPush(state, "mps.log", "boot:ok");
-      return { [`mps.boot.${step.factKey}.ok`]: true, [`mps.boot.${step.factKey}.keyringSource`]: "env" };
+      logPush(state, "mps.log", `boot:ok:${service.storeMode}`);
+      return { [`mps.boot.${step.factKey}.ok`]: true, [`mps.boot.${step.factKey}.keyringSource`]: "env", [`mps.boot.${step.factKey}.store`]: service.storeMode };
     }
     case "mps-shutdown": {
       await shutdownService(service);

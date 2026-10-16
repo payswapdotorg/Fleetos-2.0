@@ -1,11 +1,17 @@
 /**
  * infrastructure/fleetos-marketplace/service.ts — the marketplace pilot's
- * VERIFIED DEPLOYMENT SERVICE (F370C, Wave 18 lane C).
+ * VERIFIED DEPLOYMENT SERVICE (F370C, Wave 18 lane C; F372 the adapter
+ * selection).
  *
  * ONE Node process, node:http only — no framework, no new top-level
  * dependencies beyond @electric-sql/pglite (the official WASM build of
- * REAL PostgreSQL, in-process; the store PORT stays swappable — a
- * networked-PG adapter at the host boundary is the recorded follow-up).
+ * REAL PostgreSQL, in-process) and pg (node-postgres — the F372 networked
+ * binding; the store PORT stays swappable):
+ *   - FLEETOS_MARKETPLACE_STORE=pglite (default) — the in-process mode
+ *     (pglite-store.ts; the F370C behavior, unchanged);
+ *   - FLEETOS_MARKETPLACE_STORE=networked — REAL PostgreSQL as a separate
+ *     SERVER PROCESS over TCP (pg-store.ts; the production shape; the
+ *     connection string comes from FLEETOS_MARKETPLACE_PG).
  * The F351A service laws, composed with the REAL Wave-17 kernels behind
  * the F370A gate + F370B keyring:
  *
@@ -43,13 +49,23 @@ import { handleBackup, handleState, restoreFromDump } from "./api-ops.js";
 import { handleComparison, handleOfferCapture, handleOfferSheet, handleRequestSubmit, handleRequestTransition } from "./api-verbs.js";
 import { PgMarketplaceEvidenceStore } from "./evidence-store.js";
 import { PgMarketplaceStore } from "./pglite-store.js";
+import { NetworkedPgMarketplaceStore } from "./pg-store.js";
 import { PgRegistryPorts } from "./ports.js";
 import { verifyOnStart } from "./recovery.js";
+import { isStoreUnreachableError, storeUnreachableOutcome } from "./store-unreachable.js";
+import type { MarketplaceStore } from "./store.js";
 
 const HERE = fileURLToPath(new URL(".", import.meta.url));
 const PORT = Number(process.env.FLEETOS_MARKETPLACE_PORT ?? 3107);
 const HOST = process.env.FLEETOS_MARKETPLACE_HOST ?? "127.0.0.1";
 const DATA_DIR = process.env.FLEETOS_MARKETPLACE_DATA ?? path.join(HERE, "data");
+/** The adapter selection (F372): "pglite" (default — the in-process mode,
+ *  zero behavior motion) or "networked" (the REAL server process over TCP). */
+const STORE_KIND = process.env.FLEETOS_MARKETPLACE_STORE ?? "pglite";
+/** The networked adapter's postgres:// connection string (fail-closed when
+ *  the networked mode is selected without one — a deployment MUST name its
+ *  database; the test/journey harness provisions the server). */
+const PG_CONNECTION = process.env.FLEETOS_MARKETPLACE_PG ?? "";
 
 /** The keyring: the REAL F370B providers (env first, then file). Neither
  *  configured => fail-closed refusal to boot (a deployment MUST carry its
@@ -69,9 +85,24 @@ function loadKeyring(): KeyringProvider {
   process.exit(2);
 }
 
+/** The MarketplaceStore adapter selection (F372): the default pglite
+ *  in-process mode (F370C behavior, UNCHANGED) or the networked-pg mode
+ *  (a REAL postgres server process over TCP — the production shape). The
+ *  service laws are identical through the frozen port either way. */
+async function openStore(): Promise<MarketplaceStore> {
+  if (STORE_KIND === "networked") {
+    if (PG_CONNECTION === "") {
+      console.error("[fleetos-marketplace] networked store selected but FLEETOS_MARKETPLACE_PG is unset — refusing to boot (fail-closed).");
+      process.exit(2);
+    }
+    return NetworkedPgMarketplaceStore.open(PG_CONNECTION);
+  }
+  return PgMarketplaceStore.open(DATA_DIR);
+}
+
 export async function buildService(): Promise<{ ctx: ServiceContext; close: () => Promise<void> }> {
   const provider = loadKeyring();
-  const store = await PgMarketplaceStore.open(DATA_DIR);
+  const store = await openStore();
   const ports = new PgRegistryPorts(store);
   const assets = new AssetDirectory(ports);
   const directory = new ReceiptEnrollmentDirectory(assets, ports, ports);
@@ -194,6 +225,19 @@ async function main(): Promise<void> {
         }
         sendJson(res, 404, { ok: false, error: "not-found", detail: `no such API route: ${route}` });
       } catch (error) {
+        // The F372 determinism law at the boundary: the crash-window pool
+        // error (the killed server's 57P01 / ECONNREFUSED / recovery class)
+        // NEVER crosses as a raw 500 — the verdict is FROZEN data (503 +
+        // STORE_UNREACHABLE, the same answer on any postgres version, any
+        // OS, any interleaving; the ECONNREFUSED text would even carry the
+        // port). Everything else keeps the fail-loud 500 internal path.
+        if (isStoreUnreachableError(error)) {
+          console.error("[fleetos-marketplace] store unreachable (STORE_UNREACHABLE — frozen verdict)");
+          const verdict = storeUnreachableOutcome();
+          if (!res.headersSent) sendJson(res, verdict.status, verdict.body);
+          else res.end();
+          return;
+        }
         console.error("[fleetos-marketplace] API error:", error);
         if (!res.headersSent) sendJson(res, 500, { ok: false, error: "internal", detail: String(error) });
         else res.end();

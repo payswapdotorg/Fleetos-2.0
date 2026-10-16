@@ -1,7 +1,7 @@
 /**
  * @fleetos/acceptance-commerce — the journey corpus (public `./journeys`).
  *
- * 49 journeys over the worker-C lane's REAL packages (F300C extended the
+ * 52 journeys over the worker-C lane's REAL packages (F300C extended the
  * Wave 7 corpus 15 → 21; F310C extended 21 → 31; F321C extends 31 → 34;
  * F331C extends 34 → 36; F351C extends 36 → 41 (the five commerce-
  * discipline journeys); F361C extends 41 → 45: +1 marketplace-request-
@@ -23,7 +23,15 @@
  * F361B approval/evidence surfaces + the F361A receipt/enrollment
  * surfaces driven from the commerce corpus for the first time, composed
  * over the F361C chain; a refusal asserted at every gate; fixture-
- * labelled, never live). The corpus is pure data; validation of its shape
+ * labelled, never live). F370C extends 46 → 49: +3 verified-deployment
+ * journeys (persistence+crash-restart, authorization-at-the-boundary,
+ * backup/restore round-trip). F372 (Wave 19 lane A) extends 49 → 52:
+ * +3 networked-PG journeys — the F362 spine shape END-TO-END over TCP
+ * into a REAL separate postgres SERVER process (networked-persistence),
+ * the postgres SERVER-process SIGKILL crash-restart with WAL recovery
+ * digests byte-identical (networked-server-crash), and the adapter-parity
+ * + dump-wipe-restore round-trip over the network boundary (networked-
+ * adapter-parity). The corpus is pure data; validation of its shape
  * happens in tests (unique ids, vocabulary membership, at least five
  * assertions per journey).
  */
@@ -50,6 +58,9 @@ import { F362_SPINE_JOURNEYS } from "./f362-spine.js";
 import { F370C_PERSISTENCE_JOURNEYS } from "./f370c-persistence.js";
 import { F370C_AUTHORIZATION_JOURNEYS } from "./f370c-authorization.js";
 import { F370C_BACKUP_JOURNEYS } from "./f370c-backup-restore.js";
+import { F372_NETWORKED_PERSISTENCE_JOURNEYS } from "./f372-networked-persistence.js";
+import { F372_NETWORKED_SERVER_CRASH_JOURNEYS } from "./f372-networked-server-crash.js";
+import { F372_NETWORKED_ADAPTER_PARITY_JOURNEYS } from "./f372-networked-adapter-parity.js";
 
 export const JOURNEYS: readonly AcceptanceJourney[] = [
   ...WORK_JOURNEYS,
@@ -73,6 +84,9 @@ export const JOURNEYS: readonly AcceptanceJourney[] = [
   ...F370C_PERSISTENCE_JOURNEYS,
   ...F370C_AUTHORIZATION_JOURNEYS,
   ...F370C_BACKUP_JOURNEYS,
+  ...F372_NETWORKED_PERSISTENCE_JOURNEYS,
+  ...F372_NETWORKED_SERVER_CRASH_JOURNEYS,
+  ...F372_NETWORKED_ADAPTER_PARITY_JOURNEYS,
 ];
 
 export {
@@ -87,6 +101,9 @@ export {
   F370C_PERSISTENCE_JOURNEYS,
   F370C_AUTHORIZATION_JOURNEYS,
   F370C_BACKUP_JOURNEYS,
+  F372_NETWORKED_PERSISTENCE_JOURNEYS,
+  F372_NETWORKED_SERVER_CRASH_JOURNEYS,
+  F372_NETWORKED_ADAPTER_PARITY_JOURNEYS,
   MARKETPLACE_JOURNEYS,
   ACTOR_JOBS_JOURNEYS,
   MARKETPLACE_TRANSACTION_JOURNEYS,

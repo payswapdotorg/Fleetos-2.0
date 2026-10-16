@@ -1,5 +1,5 @@
 /**
- * @fleetos/acceptance-commerce — the F370C deployment-service harness
+ * @fleetos/acceptance-commerce — the F370C/F372 deployment-service harness
  * (drivers-mps-harness.ts).
  *
  * Spawns the REAL marketplace deployment service as a REAL child process
@@ -9,6 +9,14 @@
  * durability assertion, not prose), and re-boots it — same data dir for a
  * crash restart, the --restore flag for the runbook's incident path.
  *
+ * F372: the harness also carries the NETWORKED mode — mps-boot's store
+ * selection ("pglite" | "networked") is held per service state, and the
+ * networked boots point the service at the REAL postgres SERVER process
+ * provisioned through the infrastructure harness (pg-server.ts —
+ * PostgresServerProcess; the npg-* steps own its lifecycle). The PGDATA
+ * dir is SEPARATE from the service's data dir (the pglite mode's home +
+ * the dump-file location), so the two adapters never share state.
+ *
  * The KEYRING is the driver's plainly-labelled TWO-KEY fixture (the F370A
  * fixture-key precedent): the current key issues every service session;
  * the OLD key is retired at a fixed logical instant — the journeys mint
@@ -16,10 +24,11 @@
  * (issueKeyedSession over keyringProviderFromData) to drive KEY_RETIRED /
  * verify-grace at the boundary.
  *
- * THE OUTPUT LAW: the ephemeral port, the data-dir path, child pids and
- * every wall-clock value NEVER enter journey facts — the harness state
- * holds them; the step interpreter surfaces only logical, deterministic
- * response fields (the fixture-clock law, byte-identical re-runs).
+ * THE OUTPUT LAW: the ephemeral ports (service AND postgres server), the
+ * data-dir/PGDATA paths, child pids and every wall-clock value NEVER enter
+ * journey facts — the harness state holds them; the step interpreter
+ * surfaces only logical, deterministic response fields (the fixture-clock
+ * law, byte-identical re-runs).
  */
 
 import { spawn, type ChildProcess } from "node:child_process";
@@ -30,6 +39,7 @@ import { fileURLToPath } from "node:url";
 import { issueSignedSession, keyringProviderFromData } from "@fleetos/identity";
 import type { KeyringData } from "@fleetos/identity";
 import type { JourneyState } from "./journey-world.js";
+import type { PostgresServerProcess } from "../../../../infrastructure/fleetos-marketplace/pg-server.js";
 
 const REPO_ROOT = path.resolve(fileURLToPath(new URL(".", import.meta.url)), "../../../..");
 const SERVICE_ENTRY = path.join(REPO_ROOT, "infrastructure", "fleetos-marketplace", "service.ts");
@@ -51,6 +61,17 @@ export interface MpsService {
   port: number;
   dataDir: string;
   dumpFile: string | null;
+  /** F372: the store adapter mode this service boots in ("pglite" = the
+   *  F370C default; "networked" = the REAL postgres server over TCP). */
+  storeMode: "pglite" | "networked";
+  /** F372: the provisioned postgres SERVER process (the npg-* steps own
+   *  its lifecycle; networked boots point the service at it). */
+  pgServer: PostgresServerProcess | null;
+  /** F372: the pre-kill digest captured by npg-server-kill (the WAL
+   *  recovery comparison baseline). */
+  pgCrashBaseline: string | null;
+  /** F372: the adapter-parity baseline digest (npg-digest-baseline). */
+  parityBaseline: string | null;
   /** sessionKey -> keyed token (never surfaced in facts). */
   readonly tokens: Map<string, string>;
   /** The last provider-ack evidence id (the ack seam's citation). */
@@ -72,6 +93,10 @@ export function serviceOf(state: JourneyState): MpsService {
       port: 0,
       dataDir: mkdtempSync(path.join(tmpdir(), "mps-journey-")),
       dumpFile: null,
+      storeMode: "pglite",
+      pgServer: null,
+      pgCrashBaseline: null,
+      parityBaseline: null,
       tokens: new Map(),
       lastProviderAckEvidenceId: null,
       lastSnapshotEvidenceId: null,
@@ -95,6 +120,12 @@ function bootChild(service: MpsService, extraArgs: readonly string[]): Promise<n
           FLEETOS_MARKETPLACE_PORT: "0",
           FLEETOS_MARKETPLACE_DATA: service.dataDir,
           FLEETOS_SESSION_KEYRING_JSON: JSON.stringify(MPS_KEYRING),
+          ...(service.storeMode === "networked"
+            ? {
+                FLEETOS_MARKETPLACE_STORE: "networked",
+                FLEETOS_MARKETPLACE_PG: service.pgServer?.connectionString ?? "",
+              }
+            : {}),
         },
         stdio: ["ignore", "pipe", "pipe"],
       },
@@ -143,8 +174,15 @@ async function waitHealthy(port: number): Promise<void> {
   throw new Error("the marketplace service never became healthy");
 }
 
-/** Boot (first start or a fresh restore boot). Returns the bound port. */
+/** Boot (first start, a re-boot after a kill, or a fresh restore boot).
+ *  Returns the bound port. A stale child from a previous phase of the
+ *  same journey is killed first (the parity journey re-boots the service
+ *  in different store modes over one harness state). */
 export async function bootService(service: MpsService, extraArgs: readonly string[] = []): Promise<number> {
+  if (service.child !== null) await killService(service);
+  if (service.storeMode === "networked" && (service.pgServer === null || !service.pgServer.running)) {
+    throw new Error("the networked store requires a running postgres server (run npg-server-boot first)");
+  }
   const port = await bootChild(service, extraArgs);
   await waitHealthy(port);
   service.port = port;
@@ -167,6 +205,10 @@ export function killService(service: MpsService): Promise<void> {
 
 export async function shutdownService(service: MpsService): Promise<void> {
   await killService(service);
+  if (service.pgServer !== null) {
+    await service.pgServer.teardown();
+    service.pgServer = null;
+  }
   try {
     rmSync(service.dataDir, { recursive: true, force: true });
   } catch {
@@ -184,7 +226,7 @@ export interface MpsResponse {
   readonly json: Record<string, unknown>;
 }
 
-export async function mpsCall(service: MpsService, method: "GET" | "POST", route: string, body?: unknown, sessionKey?: string | null): Promise<MpsResponse> {
+export async function mpsCall(service: MpsService, method: "GET" | "POST", route: string, body?: unknown, sessionKey?: string | null, signal?: AbortSignal): Promise<MpsResponse> {
   const token = sessionKey === undefined || sessionKey === null ? undefined : service.tokens.get(sessionKey);
   const res = await fetch(`http://127.0.0.1:${service.port}${route}`, {
     method,
@@ -193,6 +235,7 @@ export async function mpsCall(service: MpsService, method: "GET" | "POST", route
       ...(token !== undefined ? { authorization: `Bearer ${token}` } : {}),
     },
     ...(method === "POST" ? { body: JSON.stringify(body ?? {}) } : {}),
+    ...(signal !== undefined ? { signal } : {}),
   });
   const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
   return { status: res.status, json };

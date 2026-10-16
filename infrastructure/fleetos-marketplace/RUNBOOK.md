@@ -139,13 +139,23 @@ final transition).
 
 ## 5. Honest scope
 
-- pglite is the WASM build of REAL PostgreSQL **in-process**; a
-  networked-PG adapter at the host boundary is the recorded follow-up
-  (the store PORT stays swappable — `store.ts`).
+- pglite is the WASM build of REAL PostgreSQL **in-process**; the
+  networked-PG adapter at the host boundary (F372 — `pg-store.ts`, the
+  `pg` driver over a `postgres://` connection string, selected by
+  `FLEETOS_MARKETPLACE_STORE=networked` + `FLEETOS_MARKETPLACE_PG`) is
+  NOW DELIVERED — same store PORT, same DDL, same digest envelope, the
+  production shape. The networked server demonstrated in this sandbox is
+  localhost-only (trust auth, provisioned test clusters); production host
+  credentials / managed-PG are operator deployment class.
+- The procedures above are adapter-neutral: restart/backup/restore work
+  IDENTICALLY in either mode (the journeys assert the digest envelope
+  byte-identical across a server-process SIGKILL + WAL recovery, and
+  across the dump → wipe → restore round-trip over the network boundary).
 - The admin backup endpoint trusts the localhost boundary (the sandbox
   law); a network-fronted deployment needs an operator auth channel —
-  same follow-up class.
-- Single process, single connection, single writer (concurrent mutating
-  requests serialize); multi-replica is networked-PG-class.
+  operator deployment class.
+- Single process, single writer (concurrent mutating requests serialize);
+  the networked adapter's pool is small and explicit; multi-replica is a
+  follow-up class.
 - Nothing here is live: the F369/F371 pilot gate stays BLOCKED; provider
   seams stay manual and labelled.

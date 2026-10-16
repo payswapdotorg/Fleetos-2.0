@@ -52,7 +52,7 @@ const f361cJourneys = () => F361C_IDS.map((id) => byId(id));
 
 describe("F361C — census bound + corpus laws", () => {
   it("the four journeys exist with unique ids in the corpus (41 -> 45 at F361C, 46 after F362, grow-only)", () => {
-    expect(JOURNEYS.length).toBe(49);
+    expect(JOURNEYS.length).toBe(52);
     const ids = JOURNEYS.map((j) => j.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of F361C_IDS) expect(ids).toContain(id);
@@ -112,12 +112,12 @@ describe("F361C — census bound + corpus laws", () => {
     expect(first.every((o) => o.passed)).toBe(true);
   });
 
-  it("the FULL 46-journey corpus re-runs byte-identically (grow-only — nothing pre-existing disturbed)", async () => {
+  it("the FULL corpus re-runs byte-identically (grow-only — nothing pre-existing disturbed; 52 at F372)", async () => {
     const first = await runAllJourneys(JOURNEYS);
     const second = await runAllJourneys(JOURNEYS);
     expect(canonicalJson(second)).toBe(canonicalJson(first));
     expect(first.every((o) => o.passed)).toBe(true);
-    expect(first.length).toBe(49);
+    expect(first.length).toBe(52);
   });
 
   it("D13 INVARIANCE: the four journeys are invariant at every census offset (no epoch ever counts)", async () => {
