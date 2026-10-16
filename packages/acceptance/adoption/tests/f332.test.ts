@@ -156,17 +156,18 @@ describe("F332 gate 1 — mode parity (all 30 firms exactly the pinned numbers)"
       // 1119 -> 1229; commerceEpochReRuns 1197 -> 1287 (each F370C commerce
       // journey declares one epoch — +90 raw re-runs, never counted).
       // F374 re-pin (machine-measured at the converged tree 3495258, probe
-      // adoption-diag): 4101 = 3921 + 180 = the 6 Wave-19 fleet-universal
-      // journeys x 30 firms (3 F372 networked-PG commerce + 3 F373 KMS
-      // security, +90 each); commerceEpochReRuns UNCHANGED at 1287 (the
-      // F372 journeys are single-epoch T0 by construction); uniqueApplicable
+      // adoption-diag + the definitive run): 4101 = 3921 + 180 = the 6 Wave-19
+      // fleet-universal journeys x 30 firms (3 F372 networked-PG commerce +
+      // 3 F373 KMS security, +90 each); commerceEpochReRuns 1287 -> 1377 (the
+      // 3 F372 commerce journeys each declare one epoch — +90 raw re-runs,
+      // never counted; machine-measured in the definitive run); uniqueApplicable
       // 1229 -> 1289 (+60 = 6 x 10 industries).
       expect(SIMULATION.aggregate.journeyExecutions).toBe(4101);
       expect(SIMULATION.aggregate.fieldExecutions).toBe(1383);
       expect(SIMULATION.aggregate.commerceExecutions).toBe(1497);
       expect(SIMULATION.aggregate.securityExecutions).toBe(1221);
       expect(SIMULATION.aggregate.fieldEpochReRuns).toBe(406);
-      expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1287);
+      expect(SIMULATION.aggregate.commerceEpochReRuns).toBe(1377);
     } else {
       // The frozen Wave-13 INACTIVE record (unreachable while ACTIVE).
       expect(SIMULATION.aggregate.journeyExecutions).toBe(2613);
