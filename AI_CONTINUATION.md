@@ -236,3 +236,19 @@ These counts are point-in-time only. The issue tracker records a later compariso
 - **F369/F371 stay operator-blocked** (real acquisition — no invented partners; the live-pilot gate unchanged).
 - **CI run 38794728196** (the timeout-fixed release-gates dispatch @ `39ccb31`) remains in flight under the resident watch.
 - **Operational record:** the replay was redeployed brand-new from `payswapdotorg/replay2` @ `bfd0742` (the erroneous drifted checkout removed by PID-tree kill; durable ali20 login survived; the W8-harvest/D-033/R24 hardening included) before this wave opened — worklog Task 45.
+
+## Wave 20 (2026-10-16) — the operator's product order: the installable desktop app
+
+- **The order (operator live word, 2026-10-16 morning):** "Make sure there's a
+  downloadable desktop app my local agent can install on my Ubuntu desktop.
+  The app should be the product we're building and not zcode." The wave-freeze
+  decision is exercised by this word: Wave 20 opens with F375 as its lane.
+- **F375 — FleetOS Desktop for Ubuntu** (`docs/tech-lead/packets/f375.md`):
+  the Electron packaging of the product (the F301 FleetOS shell + the
+  composed durable service at :3106) as `fleetos_2.0.0_amd64.deb` +
+  `FleetOS-2.0.0.AppImage`, dispatched to worker w20a. The GitHub Release
+  (the operator's download URL) is the TL's step at the gate — the artifact
+  published is the one gated at the merged tree.
+- **Parallelism:** the F374 convergence (Wave 19 close) proceeds on the TL box
+  in parallel (disjoint paths: the adoption/release pins vs packages/desktop).
+- F369/F371 remain operator-blocked (real acquisition, no invented partners).
