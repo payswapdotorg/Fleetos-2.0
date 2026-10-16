@@ -11,6 +11,7 @@
     "./marketplace-authenticated": "./src/marketplace-authenticated.ts",
     "./secure-random": "./src/secure-random.ts",
     "./keyring": "./src/keyring.ts",
+    "./keyring-kms": "./src/keyring-kms.ts",
     "./session-revocation": "./src/session-revocation.ts"
   },
   "scripts": {

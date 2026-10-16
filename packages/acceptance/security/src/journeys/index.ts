@@ -1,8 +1,8 @@
 /**
  * @fleetos/acceptance/security — the journey corpus (F270B + F300B + F321B
- * + F341B + F361B + F370A + F370B).
+ * + F341B + F361B + F370A + F370B + F373).
  *
- * 39 journeys over the REAL lane packages: the 13 F270B journeys (one per
+ * 42 journeys over the REAL lane packages: the 13 F270B journeys (one per
  * acceptance capability of the F270B deliverable list plus the tenant-
  * isolation cross-cut), the 4 F300B extensions (the Guardian journey
  * end-to-end, mission replay on real package outputs, predictive honesty
@@ -36,7 +36,16 @@
  * SecureRandom port, deterministic-under-injection, generated-salt
  * enumeration resistance, the no-secret-leak law); all census-invariant,
  * fixed logical fixtures + fixed injected streams, never the run
- * anchor).
+ * anchor), plus the 3 F373 extensions (Wave 19 lane B: the real-KMS
+ * family over the REAL fleetos-kms service spawned as a REAL child
+ * process — the rotation lifecycle across the process boundary (create
+ * through the API, issue under the current key with material served
+ * over the authenticated API, grace to KEY_RETIRED), the trust boundary
+ * (the auth refusals with frozen codes, the at-rest scan, the no-leak
+ * law at the network boundary), and the crash-restart proof (SIGKILL
+ * mid-rotation-sequence, recovery from the at-rest envelope, identical
+ * digests and verdicts); all census-invariant, driven at module
+ * evaluation via top-level await per the F341B async-API law).
  * Every journey is DATA + declarative assertions executed by the runner.
  * Identical reruns never count — each journey drives genuinely distinct
  * REAL surfaces.
@@ -87,6 +96,12 @@ import { authenticatedMarketplaceApprovalJourney } from "./f370a-approval.ts";
 import { keyringRotationJourney } from "./f370b-keyring-rotation.ts";
 import { sessionRevocationJourney } from "./f370b-session-revocation.ts";
 import { secureRandomNoLeakJourney } from "./f370b-secure-random-no-leak.ts";
+// ---- F373 extensions (Wave 19 lane B; the real KMS for the keyring — the
+// service, the authenticated keyring adapter, rotation/boundary/crash
+// over a REAL child-process KMS) ----
+import { kmsRotationJourney } from "./f373-kms-rotation.ts";
+import { kmsBoundaryJourney } from "./f373-kms-boundary.ts";
+import { kmsCrashRestartJourney } from "./f373-kms-crash-restart.ts";
 
 /** The full security/action/intelligence acceptance corpus, in declared order. */
 export const SECURITY_JOURNEYS: readonly AcceptanceJourney[] = [
@@ -135,6 +150,10 @@ export const SECURITY_JOURNEYS: readonly AcceptanceJourney[] = [
   keyringRotationJourney,
   sessionRevocationJourney,
   secureRandomNoLeakJourney,
+  // ---- F373 extensions (Wave 19 lane B: the real KMS for the keyring) ----
+  kmsRotationJourney,
+  kmsBoundaryJourney,
+  kmsCrashRestartJourney,
 ];
 
 export {
@@ -177,4 +196,7 @@ export {
   keyringRotationJourney,
   sessionRevocationJourney,
   secureRandomNoLeakJourney,
+  kmsRotationJourney,
+  kmsBoundaryJourney,
+  kmsCrashRestartJourney,
 };

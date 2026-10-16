@@ -172,11 +172,12 @@ describe("F370B journey spot checks (REAL behaviors)", () => {
     }
   });
 
-  it("the corpus barrel grew grow-only: 39 journeys, unique, all passing, the 36 base entries untouched", () => {
-    expect(SECURITY_JOURNEYS.length).toBe(39);
+  it("the corpus barrel grew grow-only: 42 journeys, unique, all passing, the 36 base entries untouched (the count updated at F373 per the prior-lane precedent)", () => {
+    expect(SECURITY_JOURNEYS.length).toBe(42);
     const ids = SECURITY_JOURNEYS.map((j) => j.journeyId);
-    expect(new Set(ids).size).toBe(39);
-    const baseIds = ids.filter((id) => !F370B_IDS.includes(id as (typeof F370B_IDS)[number]));
+    expect(new Set(ids).size).toBe(42);
+    const F373_IDS = ["security.kms-rotation", "security.kms-boundary", "security.kms-crash-restart"] as const;
+    const baseIds = ids.filter((id) => !F370B_IDS.includes(id as (typeof F370B_IDS)[number]) && !F373_IDS.includes(id as (typeof F373_IDS)[number]));
     expect(baseIds.length).toBe(36);
     for (const id of baseIds) {
       const { outcome } = runJourney(journey(id));

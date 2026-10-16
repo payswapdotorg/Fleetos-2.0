@@ -79,6 +79,10 @@ export const JOURNEY_CAPABILITIES = [
   "rotating-keyring",
   "session-revocation",
   "host-boundary-randomness",
+  // ---- F373 extensions (Wave 19 lane B: the real KMS for the keyring —
+  // the fleetos-kms service + the authenticated keyring adapter at the
+  // existing KeyringProvider port) ----
+  "kms-key-management",
 ] as const;
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
 

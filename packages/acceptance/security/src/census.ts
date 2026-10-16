@@ -172,10 +172,10 @@ const ECHO_UNIFORM_CITATION =
   "F331B census: non-responder — absolute-timestamp equality pins (D13 echo family) fail IDENTICALLY at T0 and every Δ in the adoption-anchored regime (the security fixture clock BASE_MS 2026-10-12 is displaced ~206d from ADOPTION_T0 2026-04); digest moves with the anchor (machine-evidenced) but pass/fail never flips; single-counted";
 
 /**
- * The declared 39-row census table (the 27 F331B-era rows + the two F341B
+ * The declared 42-row census table (the 27 F331B-era rows + the two F341B
  * remainder additions + the two F361B marketplace-trust additions + the
  * five F370A authenticated-marketplace additions + the three F370B
- * secret-management additions). The
+ * secret-management additions + the three F373 real-KMS additions). The
  * two responders are transition-class (D2(b) family) but their crossings
  * sit at Δ ≈ +206.4d — beyond the frozen D9 schedule [T0, T0+30d,
  * T0+90d] — so they are SCHEDULE-EXCLUDED: no per-epoch tables, no
@@ -301,6 +301,28 @@ export const SECURITY_CENSUS: readonly SecurityCensusEntry[] = [
     censusClass: null,
     citation:
       "F370B census: invariant — the randomness/no-leak family draws salts and key material from fixed injected streams and asserts equality/length/no-leak booleans only, so the outcome is a pure function of the fixtures and never reads the run anchor; byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  // ---- F373 additions (Wave 19 lane B — the real KMS for the keyring) ----
+  {
+    journeyId: "security.kms-rotation",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F373 census: invariant — the kms-rotation family drives the REAL fleetos-kms service (a REAL child process) over fixed logical epochs with a fixed injected SecureRandom stream at the service boundary, so every key id, verdict and audit line is a pure function of the fixtures and never reads the run anchor; byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  {
+    journeyId: "security.kms-boundary",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F373 census: invariant — the kms-boundary family drives the REAL service's authentication plane and the at-rest scan over fixed logical epochs; every refusal is a frozen code and every scan a fixed-constant boolean, so the outcome never reads the run anchor; byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
+  },
+  {
+    journeyId: "security.kms-crash-restart",
+    responder: false,
+    censusClass: null,
+    citation:
+      "F373 census: invariant — the kms-crash-restart family SIGKILLs the REAL service mid-rotation-sequence and restarts it on the same data dir; the digests and verdicts are computed over logical metadata only (ids + deadlines, never material) under fixed logical epochs, so the outcome never reads the run anchor; byte-identical at any anchor by construction; single-counted, NO epochs (D2(d))",
   },
 ];
 

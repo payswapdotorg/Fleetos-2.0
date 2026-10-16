@@ -34,7 +34,7 @@ describe("F270B journey contracts", () => {
   });
 
   it("the capability vocabulary covers the F270B + F300B + F370A + F370B deliverable lists", () => {
-    expect(JOURNEY_CAPABILITIES.length).toBe(23);
+    expect(JOURNEY_CAPABILITIES.length).toBe(24);
     for (const capability of [
       "investigate-findings",
       "understand-evidence",
@@ -59,6 +59,7 @@ describe("F270B journey contracts", () => {
       "rotating-keyring",
       "session-revocation",
       "host-boundary-randomness",
+      "kms-key-management",
     ]) {
       expect(JOURNEY_CAPABILITIES).toContain(capability);
     }
@@ -122,9 +123,9 @@ describe("F270B journey contracts", () => {
     expect(used.size).toBe(7);
   });
 
-  it("the corpus covers all twenty-three capabilities", () => {
+  it("the corpus covers all twenty-four capabilities", () => {
     const used = new Set(SECURITY_JOURNEYS.flatMap((j) => [...j.capabilities]));
-    expect(used.size).toBe(23);
+    expect(used.size).toBe(24);
   });
 });
 
