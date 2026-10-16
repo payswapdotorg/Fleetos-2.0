@@ -75,6 +75,8 @@ import type {
 } from "./journey-contracts-f362.js";
 import { runMarketplaceServiceStep } from "./drivers-marketplace-service.js";
 import type { MpsStep } from "./journey-contracts-f370c.js";
+import { runNpgStep } from "./drivers-npg.js";
+import type { NpgStep } from "./journey-contracts-f372.js";
 
 const WORK_KINDS: ReadonlySet<string> = new Set([
   "work-create", "work-assign", "work-transition", "work-board",
@@ -218,8 +220,16 @@ const MPS_KINDS: ReadonlySet<string> = new Set([
   "mps-digest", "mps-backup", "mps-state",
 ]);
 
+// F372 (Wave 19 lane A) step-kind family — the networked-PG server
+// lifecycle (the REAL postgres server process) + the adapter-parity
+// proof surface.
+const NPG_KINDS: ReadonlySet<string> = new Set([
+  "npg-server-boot", "npg-server-kill", "npg-server-restart", "npg-server-stop",
+  "npg-digest-baseline", "npg-parity",
+]);
+
 export async function executeStep(
-  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep | ProcurementDirectoryStep | VendorMatchingStep | QuoteComparisonStep | VendorKpiStep | IdempotentCreationStep | MarketplaceRequestStep | MarketplaceOfferStep | MarketplaceSupplierStep | MarketplaceOrderAckStep | SpineEvidenceStep | SpineGuardianApprovalStep | SpineReceiptStep | SpineEnrollmentStep | MpsStep,
+  step: WorkStep | CommerceStep | OrgStep | AurumStep | HostStep | GatewayStep | LifecycleStep | FinanceStep | ResilienceStep | MarketplaceStep | VendorDirectoryStep | ActorJobStep | MarketplaceTransactionStep | TenantBillingStep | ProcurementDirectoryStep | VendorMatchingStep | QuoteComparisonStep | VendorKpiStep | IdempotentCreationStep | MarketplaceRequestStep | MarketplaceOfferStep | MarketplaceSupplierStep | MarketplaceOrderAckStep | SpineEvidenceStep | SpineGuardianApprovalStep | SpineReceiptStep | SpineEnrollmentStep | MpsStep | NpgStep,
   state: JourneyState,
 ): Promise<Record<string, FactValue>> {
   if (WORK_KINDS.has(step.kind)) return runWorkStep(step as WorkStep, state);
@@ -249,6 +259,7 @@ export async function executeStep(
   if (F362_SPINE_EVIDENCE_KINDS.has(step.kind)) return runSpineGuardianStep(step as SpineEvidenceStep | SpineGuardianApprovalStep, state);
   if (F362_SPINE_ASSET_KINDS.has(step.kind)) return runSpineReceiptStep(step as SpineReceiptStep | SpineEnrollmentStep, state);
   if (MPS_KINDS.has(step.kind)) return runMarketplaceServiceStep(step as MpsStep, state);
+  if (NPG_KINDS.has(step.kind)) return runNpgStep(step as NpgStep, state);
   return runOrgStep(step as OrgStep, state);
 }
 

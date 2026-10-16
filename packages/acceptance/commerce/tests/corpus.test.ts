@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { JOURNEYS, WORK_JOURNEYS, COMMERCE_JOURNEYS, ORG_JOURNEYS, HOST_JOURNEYS, GATEWAY_JOURNEYS, LIFECYCLE_JOURNEYS, FINANCE_JOURNEYS, RESILIENCE_JOURNEYS, MARKETPLACE_JOURNEYS, ACTOR_JOBS_JOURNEYS, MARKETPLACE_TRANSACTION_JOURNEYS, TENANT_BILLING_JOURNEYS, F351C_PROCUREMENT_JOURNEYS, F351C_VENDOR_JOURNEYS, F361C_PROCUREMENT_JOURNEYS, F361C_VENDOR_JOURNEYS, F361C_ORDER_JOURNEYS, F362_SPINE_JOURNEYS, F370C_PERSISTENCE_JOURNEYS, F370C_AUTHORIZATION_JOURNEYS, F370C_BACKUP_JOURNEYS } from "../src/journeys/index.js";
+import { JOURNEYS, WORK_JOURNEYS, COMMERCE_JOURNEYS, ORG_JOURNEYS, HOST_JOURNEYS, GATEWAY_JOURNEYS, LIFECYCLE_JOURNEYS, FINANCE_JOURNEYS, RESILIENCE_JOURNEYS, MARKETPLACE_JOURNEYS, ACTOR_JOBS_JOURNEYS, MARKETPLACE_TRANSACTION_JOURNEYS, TENANT_BILLING_JOURNEYS, F351C_PROCUREMENT_JOURNEYS, F351C_VENDOR_JOURNEYS, F361C_PROCUREMENT_JOURNEYS, F361C_VENDOR_JOURNEYS, F361C_ORDER_JOURNEYS, F362_SPINE_JOURNEYS, F370C_PERSISTENCE_JOURNEYS, F370C_AUTHORIZATION_JOURNEYS, F370C_BACKUP_JOURNEYS, F372_NETWORKED_PERSISTENCE_JOURNEYS, F372_NETWORKED_SERVER_CRASH_JOURNEYS, F372_NETWORKED_ADAPTER_PARITY_JOURNEYS } from "../src/journeys/index.js";
 import {
   JOURNEY_PERSONAS,
   JOURNEY_CAPABILITIES,
@@ -19,10 +19,10 @@ const EPOCH_TABLE_JOURNEYS = new Set(["marketplace-transaction-flow", "tenant-bi
 describe("journey corpus shape", () => {
   it("has at least 12 distinct journeys", () => {
     expect(JOURNEYS.length).toBeGreaterThanOrEqual(12);
-    expect(JOURNEYS.length).toBe(49);
+    expect(JOURNEYS.length).toBe(52);
   });
 
-  it("is assembled from the twenty-one journey files without loss", () => {
+  it("is assembled from the twenty-four journey files without loss", () => {
     expect(JOURNEYS.length).toBe(
       WORK_JOURNEYS.length + COMMERCE_JOURNEYS.length + ORG_JOURNEYS.length +
       HOST_JOURNEYS.length + GATEWAY_JOURNEYS.length +
@@ -32,7 +32,8 @@ describe("journey corpus shape", () => {
       F351C_PROCUREMENT_JOURNEYS.length + F351C_VENDOR_JOURNEYS.length +
       F361C_PROCUREMENT_JOURNEYS.length + F361C_VENDOR_JOURNEYS.length + F361C_ORDER_JOURNEYS.length +
       F362_SPINE_JOURNEYS.length +
-      F370C_PERSISTENCE_JOURNEYS.length + F370C_AUTHORIZATION_JOURNEYS.length + F370C_BACKUP_JOURNEYS.length,
+      F370C_PERSISTENCE_JOURNEYS.length + F370C_AUTHORIZATION_JOURNEYS.length + F370C_BACKUP_JOURNEYS.length +
+      F372_NETWORKED_PERSISTENCE_JOURNEYS.length + F372_NETWORKED_SERVER_CRASH_JOURNEYS.length + F372_NETWORKED_ADAPTER_PARITY_JOURNEYS.length,
     );
   });
 
@@ -75,6 +76,8 @@ describe("journey corpus shape", () => {
       "marketplace-transaction-spine",
       // F370C (Wave 18 lane C): the verified-deployment surfaces.
       "marketplace-persistence", "marketplace-boundary-authorization", "marketplace-backup-restore",
+      // F372 (Wave 19 lane A): the networked-PG surfaces.
+      "marketplace-networked-persistence", "marketplace-networked-server-crash", "marketplace-networked-adapter-parity",
     ];
     for (const capability of required) {
       expect(covered.has(capability as (typeof JOURNEY_CAPABILITIES)[number])).toBe(true);

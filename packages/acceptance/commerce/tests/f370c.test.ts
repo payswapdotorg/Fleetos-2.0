@@ -44,8 +44,8 @@ function byId(id: string) {
 }
 
 describe("F370C — census bound + corpus laws", () => {
-  it("the three journeys exist with unique ids in the corpus (46 -> 49, grow-only)", () => {
-    expect(JOURNEYS.length).toBe(49);
+  it("the three journeys exist with unique ids in the corpus (46 -> 49 at F370C; 52 at F372, grow-only)", () => {
+    expect(JOURNEYS.length).toBe(52);
     const ids = JOURNEYS.map((j) => j.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of F370C_IDS) expect(ids).toContain(id);

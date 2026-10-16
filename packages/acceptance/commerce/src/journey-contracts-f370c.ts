@@ -50,6 +50,11 @@ export type MpsStep =
   | (JourneyStepBase & {
       readonly kind: "mps-boot";
       readonly factKey: string;
+      /** F372: the MarketplaceStore adapter this service boots over —
+       *  "pglite" (default; the F370C in-process mode, zero motion when
+       *  absent) or "networked" (REAL PostgreSQL as a separate server
+       *  process over TCP — requires a provisioned npg-server first). */
+      readonly store?: "pglite" | "networked";
     })
   | (JourneyStepBase & {
       readonly kind: "mps-shutdown";

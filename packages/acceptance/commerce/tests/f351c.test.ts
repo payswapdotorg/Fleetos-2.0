@@ -47,7 +47,7 @@ const f351cJourneys = () => F351C_IDS.map((id) => byId(id));
 
 describe("F351C — census bound + corpus laws", () => {
   it("the five journeys exist with unique ids in the corpus (36 -> 41; 45 after F361C, 46 after F362)", () => {
-    expect(JOURNEYS.length).toBe(49);
+    expect(JOURNEYS.length).toBe(52);
     const ids = JOURNEYS.map((j) => j.id);
     expect(new Set(ids).size).toBe(ids.length);
     for (const id of F351C_IDS) expect(ids).toContain(id);

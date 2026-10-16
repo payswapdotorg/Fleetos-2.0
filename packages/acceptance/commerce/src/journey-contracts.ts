@@ -40,6 +40,7 @@ import type {
   SpineEnrollmentStep,
 } from "./journey-contracts-f362.js";
 import type { MpsStep } from "./journey-contracts-f370c.js";
+import type { NpgStep } from "./journey-contracts-f372.js";
 
 // ---------------------------------------------------------------------------
 // Fixed vocabularies.
@@ -121,6 +122,14 @@ export const JOURNEY_CAPABILITIES: readonly string[] = [
   "marketplace-persistence",
   "marketplace-boundary-authorization",
   "marketplace-backup-restore",
+  // F372 extensions (Wave 19 lane A): the networked-PG surfaces — REAL
+  // PostgreSQL as a separate server process over TCP (the F362 spine shape
+  // through the pg adapter at the MarketplaceStore port), the postgres
+  // SERVER-process crash-restart with WAL recovery, and the adapter-parity
+  // + backup/restore round-trip over the network boundary.
+  "marketplace-networked-persistence",
+  "marketplace-networked-server-crash",
+  "marketplace-networked-adapter-parity",
 ] as const;
 
 export type JourneyCapability = (typeof JOURNEY_CAPABILITIES)[number];
@@ -385,7 +394,8 @@ export type JourneyStep =
   | SpineGuardianApprovalStep
   | SpineReceiptStep
   | SpineEnrollmentStep
-  | MpsStep;
+  | MpsStep
+  | NpgStep;
 
 // The F310C step families live in journey-contracts-f310c.ts (file law):
 export type { LifecycleStep, FinanceStep, ResilienceStep } from "./journey-contracts-f310c.js";
@@ -417,6 +427,8 @@ export type {
 } from "./journey-contracts-f362.js";
 // The F370C step family lives in journey-contracts-f370c.ts (file law):
 export type { MpsStep } from "./journey-contracts-f370c.js";
+// The F372 step family lives in journey-contracts-f372.ts (file law):
+export type { NpgStep } from "./journey-contracts-f372.js";
 
 // ---------------------------------------------------------------------------
 // The journey.

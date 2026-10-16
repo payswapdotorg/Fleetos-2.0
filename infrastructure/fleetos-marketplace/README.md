@@ -1,8 +1,15 @@
-# fleetos-marketplace — the marketplace pilot's verified deployment service (F370C)
+# fleetos-marketplace — the marketplace pilot's verified deployment service (F370C; F372 the networked adapter)
 
 ONE Node process, `node:http` only (no framework), **REAL PostgreSQL**
-via [`@electric-sql/pglite`](https://pglite.dev) — the official WASM build
-of PostgreSQL, in-process — as the authoritative business truth (law A1).
+as the authoritative business truth (law A1) — TWO swappable adapters at
+the same frozen `MarketplaceStore` port:
+
+- **pglite** (default) — [`@electric-sql/pglite`](https://pglite.dev), the
+  official WASM build of PostgreSQL, **in-process** (the F370C mode);
+- **networked** (F372) — the [`pg`](https://node-postgres.com) (node-postgres)
+  driver over a `postgres://` connection string: **REAL PostgreSQL as a
+  separate server process reached over TCP** — the production shape.
+
 It composes the REAL Wave-17 kernels behind the F370A gate + the F370B
 keyring, on the F351A service laws: write-before-ack (one PostgreSQL
 transaction per request), verify-on-start (fail-closed), tenant
@@ -33,6 +40,18 @@ node --experimental-transform-types --no-warnings \
 # :3107 (bound to 127.0.0.1). FLEETOS_MARKETPLACE_DATA overrides the data
 # dir; FLEETOS_MARKETPLACE_PORT exists solely for the journeys' ephemeral
 # isolated instances.
+
+# NETWORKED mode (F372) — REAL PostgreSQL as a separate server process
+# over TCP (the same service laws through the same port):
+FLEETOS_MARKETPLACE_STORE=networked \
+FLEETOS_MARKETPLACE_PG='postgres://user:pass@host:5432/db' \
+node --experimental-transform-types --no-warnings \
+     --import ./infrastructure/fleetos-marketplace/runtime.mjs \
+     infrastructure/fleetos-marketplace/service.ts
+# Fail-closed: selecting networked without FLEETOS_MARKETPLACE_PG refuses
+# to boot. The test/journey class provisions its own server through
+# pg-server.ts (initdb a temp PGDATA, an ephemeral port) — never a
+# production host.
 ```
 
 See **RUNBOOK.md** for the restart/backup/restore procedures (the
@@ -72,9 +91,19 @@ domainRefusal}` (200 — the kernel's refusal as data).
 
 - `store.ts` — the **MarketplaceStore PORT** (the frozen operation set)
 - `schema.ts` — the PostgreSQL DDL (tenant-scoped tables, natural keys +
-  idempotency exactly as the in-process contracts)
+  idempotency exactly as the in-process contracts) — expressed ONCE,
+  consumed by BOTH adapters
 - `pglite-tables.ts` + `pglite-store.ts` — the pglite adapter (upserts,
   scoped reads, the digest envelope, dump/restore)
+- `pg-store.ts` — the networked adapter (F372): the `pg` driver over TCP,
+  the SAME DDL + table specs as the pglite adapter (identical table shapes
+  by construction), the same digest envelope + dump/restore — plus the
+  pool's transparent reconnect after a postgres server crash-restart
+- `pg-server.ts` — the postgres SERVER lifecycle harness (F372): resolves
+  a server distribution (FLEETOS_PG_BINDIR → PATH → the system layout),
+  `initdb` a temp PGDATA (locale C — deterministic collation), start/kill/
+  restart/stop the REAL server process on an ephemeral port (the test/
+  journey class only)
 - `ports.ts` — the REAL F361A kernel ports over the store (write-back
   mirror, one flush per request = write-before-ack)
 - `evidence-store.ts` — the F361B MarketplaceEvidenceStorePort over PG
@@ -86,12 +115,19 @@ domainRefusal}` (200 — the kernel's refusal as data).
 
 ## Honest scope
 
-pglite is the WASM build of PostgreSQL **in-process** — a networked-PG
-adapter at the host boundary is the recorded follow-up (the PORT stays
-swappable). Sandbox localhost only; the admin plane trusts that boundary;
-single process / single connection. Nothing is live: the F369/F371 gate
-stays BLOCKED; the provider seams stay manual and labelled. The journeys
-(`packages/acceptance/commerce`, ids `marketplace-persistence-spine` /
-`marketplace-boundary-authorization` / `marketplace-backup-restore`)
-drive THIS service as a real child process — ports and timestamps never
-in their output.
+The networked adapter (F372) gives the REAL host boundary — PostgreSQL as
+a separate server process over TCP, server-process SIGKILL crash-restart
+with WAL recovery digests byte-identical (machine-asserted) — **but the
+networked server demonstrated in this sandbox is localhost-only**: the
+provisioned test clusters use trust auth on 127.0.0.1; production host
+credentials / managed-PG (TLS, secrets, replication, failover) are
+**operator deployment class**, never claimed here. pglite remains the
+in-process mode (the default; its behavior unchanged). Sandbox localhost
+only; the admin plane trusts that boundary; the single-writer chain is
+one process (multi-replica is a follow-up class). Nothing is live: the
+F369/F371 gate stays BLOCKED; the provider seams stay manual and labelled.
+The journeys (`packages/acceptance/commerce`, ids `marketplace-persistence-
+spine` / `marketplace-boundary-authorization` / `marketplace-backup-
+restore` / `marketplace-networked-persistence` / `marketplace-networked-
+server-crash` / `marketplace-networked-adapter-parity`) drive THIS service
+as a real child process — ports and timestamps never in their output.
