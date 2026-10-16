@@ -77,6 +77,11 @@ export const BASE_CORPUS_DIGESTS = [
   { journeyId: "security.keyring-rotation", digest: "5b3ffa22", pass: true },
   { journeyId: "security.session-revocation", digest: "17dfb058", pass: true },
   { journeyId: "security.secure-random-no-leak", digest: "e87b694c", pass: true },
+  // ---- F373 additions (harvested on the F373 lane tree, grow-only;
+  //      the 39 prior entries are byte-identical and untouched) ----
+  { journeyId: "security.kms-rotation", digest: "ce94d673", pass: true },
+  { journeyId: "security.kms-boundary", digest: "ba99789d", pass: true },
+  { journeyId: "security.kms-crash-restart", digest: "21a42a8e", pass: true },
 ] as const;
 
 describe("F331B — the startedAt time seam (zero behavior change at the corpus anchor)", () => {

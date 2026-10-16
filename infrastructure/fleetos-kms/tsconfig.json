@@ -1,0 +1,32 @@
+{
+  "//": "FleetOS key-management service dedicated typecheck project (F373; the F351A/F370C precedent: infrastructure is not a workspace package, so @fleetos/* resolution is pinned here with paths to the same sources the resolve hooks load at runtime, and allowImportingTsExtensions mirrors the durable/marketplace services).",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "lib": [
+      "es2024"
+    ],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": [
+      "node"
+    ],
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "@fleetos/identity": [
+        "../../packages/identity/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "kms-core.ts",
+    "store.ts",
+    "service.ts"
+  ]
+}

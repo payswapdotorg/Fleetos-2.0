@@ -11,3 +11,5 @@ export * from "./marketplace-authenticated.js";
 export * from "./secure-random.js";
 export * from "./keyring.js";
 export * from "./session-revocation.js";
+// ---- F373 (Wave 19 lane B): the real-KMS keyring adapter at the same port ----
+export * from "./keyring-kms.js";

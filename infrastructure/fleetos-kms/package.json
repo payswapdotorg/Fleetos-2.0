@@ -1,0 +1,12 @@
+{
+  "name": "fleetos-kms",
+  "version": "2.0.0-alpha.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "//": "Infrastructure is not a pnpm workspace package (infrastructure/ is outside the workspace globs). This local package.json exists so `pnpm typecheck` / `pnpm lint` work from this directory (the F373 packet's prescription); its scripts reference the repo-pinned toolchain from the root node_modules (typescript + oxlint — the repo pin, never a local install; ZERO root lockfile motion).",
+  "scripts": {
+    "typecheck": "../../node_modules/.bin/tsc -p tsconfig.json",
+    "lint": "../../node_modules/.bin/oxlint ."
+  }
+}

@@ -2,11 +2,15 @@
  * @fleetos/identity — F370B the rotating keyring.
  *
  * The F370B packet deliverable 1: key lifecycle REAL at the boundary the
- * Architecture Lock allows. The keyring is CONFIGURATION-CLASS (file/env
- * providers over a JSON snapshot, plainly labelled; a labelled fixture
- * for the pilot) — a real KMS stays honestly BLOCKED and recorded as
- * F370C-class. NO new authoritative business store (the Architecture
- * Lock; the keyring snapshot is configuration, never business truth).
+ * Architecture Lock allows. The F370B-era keyring was CONFIGURATION-CLASS
+ * (file/env providers over a JSON snapshot, plainly labelled; a labelled
+ * fixture for the pilot) with the real KMS honestly BLOCKED and recorded —
+ * it LANDED at F373: the `kms` source (keyring-kms.ts) now fetches the
+ * material over the real KMS service's authenticated API, and this
+ * module's rotation kernel is exactly what that service runs (compose,
+ * never re-implement). NO new authoritative business store (the
+ * Architecture Lock; the keyring snapshot is configuration, never
+ * business truth).
  *
  * The composition (issue + verify + rotate over the `KeyringProvider`
  * port — "the rotating keyring"):
@@ -88,13 +92,19 @@ export interface KeyringKeyMaterial {
 
 // --- The provider port ----------------------------------------------------
 
-/** Where a provider's snapshot came from (the plain label — not an op). */
-export type KeyringProviderSource = "fixture" | "file" | "env" | "data";
+/** Where a provider's snapshot came from (the plain label — not an op).
+ * The file/env/data/fixture sources are CONFIGURATION-CLASS; `kms` is the
+ * KMS class (F373: material served over the real KMS's authenticated API
+ * by the keyring-kms.ts adapter — the file/env providers remain
+ * configuration-class fallbacks, labels unchanged). */
+export type KeyringProviderSource = "fixture" | "file" | "env" | "data" | "kms";
 
 /**
  * The keyring provider port (the packet's frozen three operations; the
- * `source` field is the labelling law made structural). Configuration-
- * class: real KMS is F370C-class, recorded — never pretended here.
+ * `source` field is the labelling law made structural). The F370B-era
+ * sources are configuration-class; the real KMS landed at F373 — the `kms`
+ * source (keyring-kms.ts) fetches the snapshot over the KMS's
+ * authenticated API, never a configuration snapshot.
  */
 export interface KeyringProvider {
   readonly source: KeyringProviderSource;
@@ -211,7 +221,9 @@ export function parseKeyringJson(text: string): KeyringLoadResult {
 
 /** Load a keyring snapshot from a host-supplied file path.
  * CONFIGURATION-CLASS (dev/staging): the path is host-supplied; the file's
- * CONTENTS are never read into errors or logs. A real KMS is F370C-class. */
+ * CONTENTS are never read into errors or logs. The real-KMS source is
+ * keyring-kms.ts (F373); this one remains the configuration-class
+ * fallback it has always been, label unchanged. */
 export function fileKeyringProvider(input: { readonly path: string }): KeyringProviderLoadResult {
   let text: string;
   try {
