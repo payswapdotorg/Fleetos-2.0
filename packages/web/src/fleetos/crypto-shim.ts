@@ -178,4 +178,43 @@ export function createHash(algorithm: string): Hash {
   return new Sha256();
 }
 
-export default { createHash };
+/**
+ * Link-time refusals for the identity package's auth surface (F375 gate,
+ * Finding F1 adjudication). Waves 18-19 added real `node:crypto` auth to
+ * `@fleetos/identity` (scryptSync/timingSafeEqual in credentials.ts,
+ * createHmac/timingSafeEqual in session.ts); the shell imports
+ * `makeTenantContext` from that barrel, so the browser graph LINKS these
+ * names against this shim. The browser shell never CALLS them — the
+ * operational path goes through the durable service (real `node:crypto`
+ * server-side, where the marketplace auth actually runs). Honest
+ * fail-closed refusals, never fake crypto: if a future browser surface
+ * ever reaches one, it fails loudly instead of silently degrading.
+ */
+
+function refuse(name: string): never {
+  throw new Error(
+    `fleetos browser crypto shim: ${name} is not available in the browser shell ` +
+      `(the operational path runs server-side in the durable service)`,
+  );
+}
+
+export function scryptSync(
+  _password: string | Uint8Array,
+  _salt: string | Uint8Array,
+  _keylen: number,
+): Uint8Array {
+  refuse("scryptSync");
+}
+
+export function createHmac(
+  _algorithm: string,
+  _key: string | Uint8Array,
+): { update(_data: string | Uint8Array): unknown; digest(_encoding: string): string } {
+  refuse("createHmac");
+}
+
+export function timingSafeEqual(_a: Uint8Array, _b: Uint8Array): boolean {
+  refuse("timingSafeEqual");
+}
+
+export default { createHash, scryptSync, createHmac, timingSafeEqual };

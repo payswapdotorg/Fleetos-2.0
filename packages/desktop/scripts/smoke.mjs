@@ -40,7 +40,13 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DESKTOP = path.resolve(HERE, "..");
 const REPO_ROOT = path.resolve(DESKTOP, "..", "..");
 const DEB = process.argv[2] ?? path.join(DESKTOP, "release", "fleetos_2.0.0_amd64.deb");
-const CDP_PORT = 9222;
+/** The app's CDP port for this harness. 9333, NOT 9222: a fixed-port
+ *  assumption on 9222 poisons any environment that already runs a
+ *  CDP-browser on 9222 (the TL station's replay Chrome holds it — the
+ *  gate run connected to the WRONG browser and never saw the app page).
+ *  9333 is free on the operator desktop, the worker sandbox, and the
+ *  station alike. */
+const CDP_PORT = 9333;
 const HEAD = execFileSync("git", ["rev-parse", "HEAD"], {
   cwd: REPO_ROOT,
   encoding: "utf-8",
@@ -99,8 +105,11 @@ function check(name, ok, detail = "") {
 }
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function textOf(locator) {
-  return (await locator.first().innerText({ timeout: 10000 })).trim();
+async function textOf(page, selector) {
+  // (page, selector) — the helper's original single-locator signature was
+  // never exercised (every caller passes page + selector; the F1 block hid
+  // this file's whole execution path).
+  return (await page.locator(selector).first().innerText({ timeout: 10000 })).trim();
 }
 
 /** Launch the packaged app on a fresh headless X display; resolves
@@ -154,7 +163,22 @@ function pgrepExtract(extractDir) {
 }
 
 async function cdpPage() {
-  const browser = await chromium.connectOverCDP(`http://127.0.0.1:${CDP_PORT}`);
+  // Connect WITH RETRY: the app's CDP endpoint opens ~1-2s after process
+  // spawn (Electron boot). A single connectOverCDP races it and dies on
+  // ECONNREFUSED — connect until the deadline, then poll for the page.
+  let browser = null;
+  const connectDeadline = Date.now() + 30000;
+  for (;;) {
+    try {
+      browser = await chromium.connectOverCDP(`http://127.0.0.1:${CDP_PORT}`);
+      break;
+    } catch {
+      if (Date.now() > connectDeadline) {
+        throw new Error("the app's CDP endpoint never appeared (is the app running?)");
+      }
+      await sleep(250);
+    }
+  }
   const deadline = Date.now() + 30000;
   for (;;) {
     const context = browser.contexts()[0];

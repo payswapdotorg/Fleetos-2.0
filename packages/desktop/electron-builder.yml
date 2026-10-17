@@ -38,8 +38,6 @@ linux:
   target:
     - deb
     - AppImage
-  arch:
-    - x64
   category: Office
   icon: branding/icon.png
   desktop:
@@ -49,7 +47,11 @@ linux:
       Comment: The FleetOS operational truth console — the durable local composition
       Categories: Office;Utility;
       Terminal: "false"
-  deb:
-    artifactName: fleetos_${version}_amd64.${ext}
-  AppImage:
-    artifactName: FleetOS-${version}.${ext}
+
+# Per-target options live at the root (electron-builder 26 schema — note
+# `appImage`, camelCase); amd64 is the default arch (x64) — the packet's
+# frozen target.
+deb:
+  artifactName: fleetos_${version}_amd64.${ext}
+appImage:
+  artifactName: FleetOS-${version}.${ext}

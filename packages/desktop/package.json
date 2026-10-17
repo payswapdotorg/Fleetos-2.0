@@ -4,7 +4,10 @@
   "private": true,
   "description": "FleetOS Desktop — the installable Ubuntu desktop app of the FleetOS product: the FleetOS shell (the F301 standalone build) over the composed durable deployment service at 127.0.0.1:3106.",
   "license": "Apache-2.0",
-  "author": "FleetOS",
+  "author": {
+    "name": "FleetOS",
+    "email": "fleetos@payswap.org"
+  },
   "type": "module",
   "main": "out/main.js",
   "scripts": {
@@ -26,5 +29,6 @@
     "electron-builder": "^26.8.1",
     "playwright-core": "1.59.1",
     "typescript": "^6.0.2"
-  }
+  },
+  "homepage": "https://github.com/payswapdotorg/Fleetos-2.0"
 }
