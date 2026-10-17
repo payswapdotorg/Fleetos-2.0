@@ -399,3 +399,85 @@ smoke) runs end-to-end as built.
   audit/DurablePanel shapes, `/api/health`'s replay fields).
 - The GitHub Release is the TL's step at the gate — the worker never
   publishes releases.
+
+## 7. The TL gate record (2026-10-17, gate worktree /home/z/gate-f375)
+
+The gate machine-ran the full battery at the lane tip + the adjudication
+motions (commit 1bc49b0 on work/f375):
+
+| Check | Result |
+| --- | --- |
+| frozen install (corepack pnpm@10.33.2) | GREEN |
+| desktop typecheck + lint | GREEN (file law max 364 ≤ 400) |
+| root typecheck gate | GREEN |
+| F1 reproduced at the gate tree BEFORE the fix | the exact 4 MISSING_EXPORT errors |
+| identity suite after the BURN_DIGEST lazy motion | 207/207 GREEN |
+| web fleetos typecheck after the shim motion | GREEN |
+| `build:shell` | GREEN — `__FLEETOS_COMMIT__` = HEAD proven (1149 assets) |
+| `dist:deb` → `fleetos_2.0.0_amd64.deb` | BUILT |
+| `dist:appimage` → `FleetOS-2.0.0.AppImage` | BUILT |
+| the packaged smoke | **ALL ASSERTIONS GREEN** (full transcript below) |
+
+**The F1 adjudication (GRANTED, with a live-caught revision).** The shim
+gained the three honest-refusal exports; but the worker's "the browser
+never calls them" proved WRONG for `scryptSync` — `credentials.ts:101`
+computed `BURN_DIGEST` at module scope, so the browser graph CALLED it at
+import time and the refusal threw, killing the shell render (the silent
+app death the first smoke round surfaced). The revision: `BURN_DIGEST` is
+now lazily memoized (same value, computed once on first use — the
+documented deterministic-pure contract preserved; the browser never reaches
+the burn path). Identity 207/207 re-verified GREEN at the fixed tree.
+
+**The latent defects the F1 block hid** (fixed by the TL at the gate,
+commit 1bc49b0): the electron-builder per-target keys belong at the config
+root (`appImage`, camelCase — W038-RC-2's class; `arch` is not a valid
+`linux:` key), the deb's required maintainer fields (author email +
+homepage), and three smoke defects (CDP_PORT hardcoded 9222 — poisoned by
+the TL station's own CDP Chrome on 9222, now 9333; the single
+connectOverCDP racing the app's CDP boot, now retried under the deadline;
+`textOf`'s locator-vs-(page,selector) signature mismatch).
+
+**The artifact sha256s (built at the gate tree, 1bc49b0):**
+
+```
+fleetos_2.0.0_amd64.deb   94,625,932 bytes
+  sha256 0c50d8460c9e3bcf5f9aca8d5ee9d3334bcc303c5b97d736362e30d8a85649c5
+FleetOS-2.0.0.AppImage  120,762,558 bytes
+  sha256 b35992cf5d0349f367767d3c7cf76cee15f95b918d04024dd9b3c4069c1405ba
+```
+
+(The operator-facing Release artifacts are REBUILT at the converged main
+merge SHA — the footer-proven release tree, per the F352 precedent; those
+sha256s are recorded in the Release notes.)
+
+**The packaged smoke transcript (the honest gate, abridged to the
+assertion lines):**
+
+```
+[SMOKE] app pid 10036 · display :98 · shell http://127.0.0.1:3106/?mode=durable
+[SMOKE] X11 top-level window titles: ["Chromium clipboard","fleetos","FleetOS"]
+[SMOKE] PASS window titled "FleetOS"
+[SMOKE] PASS document.title is the shell's — FleetOS — Operational Truth Console
+[SMOKE] PASS durable mode in the URL
+[SMOKE] PASS footer declares the durable plane
+[SMOKE] PASS footer commit = HEAD — 6e7c76d… (the gate-tree HEAD)
+[SMOKE] PASS six nav buttons
+[SMOKE] PASS nav[0..5] labels + route hashes + blurbs + fixed facts (all six)
+[SMOKE] PASS durable badge in the command path
+[SMOKE] PASS ack ENQUEUED cmd_0000000001 duplicate=false
+[SMOKE] PASS queue record asset.enroll — queued
+[SMOKE] PASS submission log: exactly 1 audit entry — OK — enqueued for Guardian adjudication
+[SMOKE] PASS durable panel: service :3106
+[SMOKE] PASS durable panel: replay 0 on fresh data
+[SMOKE] PASS SIGTERM → app exits 0 — exit=0
+[SMOKE] PASS ZERO orphan processes (pgrep over the extraction path)
+[SMOKE] PASS port :3106 released (connection refused)
+[SMOKE] PASS restart replays 1 command — {"commands":1,"audit":1,"assets":0,…}
+[SMOKE] PASS restarted UI shows the replayed queue record
+[SMOKE] PASS second run: SIGTERM → exits 0 / ZERO orphans / port released
+[SMOKE] ALL ASSERTIONS GREEN
+```
+
+Standing limits unchanged: the bundled world is the fixture-labelled demo
+composition; localhost single-user; Ubuntu amd64; F369/F371 live-pilot gate
+BLOCKED as ever.
