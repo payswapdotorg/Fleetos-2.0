@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!--
+    The FleetOS mark (F375) — the shell's own brand glyph (fos-logo ◈) at
+    product scale: the amber diamond on the console's deep navy. No
+    third-party marks. The PNGs electron-builder consumes are generated
+    deterministically from this geometry by scripts/make-icon.mjs.
+  -->
+  <rect width="512" height="512" rx="72" fill="#0b0f14"/>
+  <rect x="6" y="6" width="500" height="500" rx="66" fill="none" stroke="#1d2a38" stroke-width="4"/>
+  <polygon points="256,84 428,256 256,428 84,256" fill="#e8a33d"/>
+  <polygon points="256,170 342,256 256,342 170,256" fill="#0b0f14"/>
+</svg>

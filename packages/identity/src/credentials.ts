@@ -96,14 +96,24 @@ export const CREDENTIAL_BURN_SALT_HEX = "f370a000000000000000000000000000";
  * The burn digest the dummy path compares against: the scrypt of the
  * EMPTY string over the burn salt. Unreachable by construction —
  * `issueCredential` refuses empty secrets — so a genuine credential can
- * never collide with it. Computed once (deterministic, pure).
+ * never collide with it. Computed once, lazily, on first use
+ * (deterministic, pure — the same value every time; lazy because the
+ * browser shell links this module through the identity barrel, and the
+ * browser shim's scryptSync is an honest refusal: the browser never
+ * reaches the burn path, so the digest is never computed there).
  */
-const BURN_DIGEST = scryptSync(
-  "",
-  CREDENTIAL_BURN_SALT_HEX,
-  CREDENTIAL_SCRYPT_PARAMETERS.keylenBytes,
-  { N: CREDENTIAL_SCRYPT_PARAMETERS.costN, r: CREDENTIAL_SCRYPT_PARAMETERS.blockSizeR, p: CREDENTIAL_SCRYPT_PARAMETERS.parallelizationP },
-);
+let burnDigest: Uint8Array | null = null;
+function BURN_DIGEST(): Uint8Array {
+  if (burnDigest === null) {
+    burnDigest = scryptSync(
+      "",
+      CREDENTIAL_BURN_SALT_HEX,
+      CREDENTIAL_SCRYPT_PARAMETERS.keylenBytes,
+      { N: CREDENTIAL_SCRYPT_PARAMETERS.costN, r: CREDENTIAL_SCRYPT_PARAMETERS.blockSizeR, p: CREDENTIAL_SCRYPT_PARAMETERS.parallelizationP },
+    );
+  }
+  return burnDigest;
+}
 
 // ---------------------------------------------------------------------------
 // Pure helpers
@@ -241,7 +251,7 @@ export function verifyCredential(input: {
   // Unknown/malformed => burn the same work over the dummy salt, then
   // refuse exactly like a mismatch. A real record => the true digest.
   const salt = record !== null ? record.saltHex : CREDENTIAL_BURN_SALT_HEX;
-  const expected = record !== null ? Buffer.from(record.digestHex, "hex") : BURN_DIGEST;
+  const expected = record !== null ? Buffer.from(record.digestHex, "hex") : BURN_DIGEST();
   const candidate = scryptSync(
     input.presentedSecret,
     salt,

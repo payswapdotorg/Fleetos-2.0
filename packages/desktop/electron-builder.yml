@@ -1,0 +1,57 @@
+# F375 — the FleetOS Desktop packaging config (electron-builder).
+#
+# Targets: Ubuntu amd64 (.deb first-class — `sudo apt install ./fleetos_2.0.0_amd64.deb`),
+# plus the portable AppImage. The .deb installs /opt/FleetOS, the XDG
+# .desktop entry (Name=FleetOS, the Ubuntu application grid) and the
+# `fleetos` command (/usr/bin/fleetos). The app ships ZERO node_modules:
+# the main-process code (out/) is the only application code; the FleetOS
+# world (the durable service sources + the @fleetos domain package sources +
+# the built shell) rides in extraResources as plain files the service's own
+# loader consumes.
+
+appId: org.fleetos.FleetOS
+productName: FleetOS
+executableName: fleetos
+
+directories:
+  output: release
+  buildResources: branding
+
+# Plain files, no asar: the app is one small ESM main file, and the composed
+# world (the service + domain sources + shell) must be readable by a plain
+# Node child process — asar buys nothing here and adds loader edge cases.
+asar: false
+
+files:
+  - out/**
+  - package.json
+  - branding/icon.png
+  - watchdog/**
+
+extraResources:
+  - from: resources/fleetos
+    to: fleetos
+    filter:
+      - "**/*"
+
+linux:
+  target:
+    - deb
+    - AppImage
+  category: Office
+  icon: branding/icon.png
+  desktop:
+    entry:
+      Name: FleetOS
+      GenericName: Fleet Operations Console
+      Comment: The FleetOS operational truth console — the durable local composition
+      Categories: Office;Utility;
+      Terminal: "false"
+
+# Per-target options live at the root (electron-builder 26 schema — note
+# `appImage`, camelCase); amd64 is the default arch (x64) — the packet's
+# frozen target.
+deb:
+  artifactName: fleetos_${version}_amd64.${ext}
+appImage:
+  artifactName: FleetOS-${version}.${ext}

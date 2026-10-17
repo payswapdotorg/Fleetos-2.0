@@ -1,0 +1,6 @@
+# F375 build outputs — NEVER committed (the packet's law).
+out/
+release/
+resources/
+branding/icon.png
+branding/icons/
