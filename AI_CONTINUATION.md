@@ -251,4 +251,19 @@ These counts are point-in-time only. The issue tracker records a later compariso
   published is the one gated at the merged tree.
 - **Parallelism:** the F374 convergence (Wave 19 close) proceeds on the TL box
   in parallel (disjoint paths: the adoption/release pins vs packages/desktop).
+- **F375 DELIVERED + GATED + MERGED + RELEASED (2026-10-17):** the worker
+  (w20a, chat 68734bc7 — the parked-prompt class: empty transcript, live
+  workspace, work/f375 pushed @ 6e7c76d) delivered the wholesale
+  @zcode/desktop -> @fleetos/desktop replacement (per the operator's word +
+  the owned grant). TL gate at 96301dd: the full battery GREEN including
+  the packaged smoke (six routes, durable round-trip, SIGTERM law, restart
+  replay) after the F1 adjudication (the honest browser-refusal shim + the
+  lazy-BURN_DIGEST revision — identity 207/207 preserved) and three latent
+  e-builder/smoke fixes. Merged main 27cf0d7; **the GitHub Release
+  fleetos-desktop-v2.0.0 published** (the .deb + AppImage + SHA256SUMS,
+  rebuilt + smoke-re-proven at the exact merge SHA):
+  https://github.com/payswapdotorg/Fleetos-2.0/releases/tag/fleetos-desktop-v2.0.0
+  — WAVE 20'S OPERATOR ORDER FULFILLED: the downloadable installable
+  FleetOS product app for Ubuntu. Standing limits: the fixture-labelled
+  demo world (never live-pilot), localhost single-user, amd64.
 - F369/F371 remain operator-blocked (real acquisition, no invented partners).
